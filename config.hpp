@@ -104,13 +104,14 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
 
 #elif CILIA_TYPE==3
 
-  #define SHAPE_SEQUENCE 3
+  #define SHAPE_SEQUENCE 5
   // Valid options:
   // 0 = 'Build-a-beat'. This choice has some parameters to set (see below).
   // 1 = The 'Fulford and Blake' beat pattern for mammalian airway cilia. See the data-fitting description in  "A model for the micro-structure in ciliated organisms", Blake (1972).
   // 2 = Coral larvae beat pattern. Data fitting done by me, in the same way as Blake (1972).
   // 3 = Volvox beat
   // 4 = Original 'Fulford and Blake' beat - <L>=0.975
+  // 5 = Platynaereis style generic beat
 
   #if SHAPE_SEQUENCE==0
 
@@ -120,6 +121,11 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
     // N.B. We must have RECOVERY_STROKE_WINDOW_LENGTH + EFFECTIVE_STROKE_LENGTH < 1
     #define ZERO_VELOCITY_AVOIDANCE_LENGTH 0.05 // A value in (0,1), giving the maximum fraction of the cycle by which we shift the tangent angle curve to ensure the velocity cannot be zero everywhere along the filament at once.
 
+  #endif
+
+  #if SHAPE_SEQUENCE==5
+    #define TRAVELLING_WAVE_WINDOW 0.4 // Width of the travelling wave as fraction of the filament length, f_w in (0, 1)
+    #define TRAVELLING_WAVE_IMPORTANCE 0.85 // Fraction of the recovery stroke that is due to the travelling wave, f_psi in (0, 1)
   #endif
 
   #define DYNAMIC_PHASE_EVOLUTION true
@@ -260,6 +266,8 @@ extern Real PERIOD;
 extern Real DT;
 extern int TOTAL_TIME_STEPS;
 extern Real TILT_ANGLE;
+extern Real EFFECTIVE_STROKE_FRACTION; // Fraction of the beat that corresponds to the effective stroke in phase space. Only used in Platy beat.
+extern Real THETA_0; // Amplitude of the beat in radians. Only used in Platy beat.
 
 
 #define MU 1.0 // Fluid viscosity.
@@ -447,6 +455,7 @@ extern Real TILT_ANGLE;
   #define CORAL_LARVAE_BEAT (SHAPE_SEQUENCE==2)
   #define VOLVOX_BEAT (SHAPE_SEQUENCE==3)
   #define FULFORD_AND_BLAKE_BEAT_ORIGINAL (SHAPE_SEQUENCE==4)
+  #define GENERIC_PLATY_BEAT (SHAPE_SEQUENCE==5)
 
 #endif
 
