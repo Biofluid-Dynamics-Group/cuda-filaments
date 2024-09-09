@@ -450,7 +450,7 @@ extern Real THETA_0; // Amplitude of the beat in radians. Only used in Platy bea
 
   #define BUILD_A_BEAT (SHAPE_SEQUENCE==0)
 
-  #define FIT_TO_DATA_BEAT (SHAPE_SEQUENCE != 0)
+  #define FIT_TO_DATA_BEAT (SHAPE_SEQUENCE != 0 && SHAPE_SEQUENCE != 5)
   #define FULFORD_AND_BLAKE_BEAT (SHAPE_SEQUENCE==1)
   #define CORAL_LARVAE_BEAT (SHAPE_SEQUENCE==2)
   #define VOLVOX_BEAT (SHAPE_SEQUENCE==3)
