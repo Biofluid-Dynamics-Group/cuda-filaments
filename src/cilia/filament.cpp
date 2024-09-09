@@ -1257,67 +1257,125 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
 
   #elif GENERIC_PLATY_BEAT
 
-  Real transition_function(const Real x) {
-    if (x <= -0.5) {
-        return -1.0;
-    } else if (-0.5 < x && x < 0.5) {
-        return 2.0 * std::exp(-2.0 / (2.0 * x + 1.0)) / 
-              (std::exp(-2.0 / (2.0 * x + 1.0)) + std::exp(2.0 / (2.0 * x - 1.0))) - 1.0;
-    } else {
-        return 1.0;
-    }
-  }
-
-  Real sech(const Real x) {
-      return 2.0 / (std::exp(x) + std::exp(-x));
-  }
-
-  Real transition_function_derivative(const Real x) {
-  if (x <= -0.5 || x >= 0.5) {
-          return 0.0;
+    Real transition_function(const Real x) {
+      if (x <= -0.5) {
+          return -1.0;
+      } else if (-0.5 < x && x < 0.5) {
+          return 2.0 * std::exp(-2.0 / (2.0 * x + 1.0)) / 
+                (std::exp(-2.0 / (2.0 * x + 1.0)) + std::exp(2.0 / (2.0 * x - 1.0))) - 1.0;
       } else {
-          Real numerator = 4.0 * (4.0 * x * x + 1.0) * std::pow(sech(
-              4.0 * x / (4.0 * x * x - 1.0)
-          ), 2);
-          Real denominator = std::pow((1.0 - 4.0 * x * x), 2);
-          return numerator / denominator;
+          return 1.0;
       }
-  }
+    }
 
-  // The following functions need to be checked, and then, initial_setup must be modified
+    Real sech(const Real x) {
+        return 2.0 / (std::exp(x) + std::exp(-x));
+    }
 
-  Real filament::effective_angle(const Real local_phase) {
-    return THETA_0*(1.0 - local_phase/(PI*EFFECTIVE_STROKE_FRACTION));
-  }
+    Real transition_function_derivative(const Real x) {
+    if (x <= -0.5 || x >= 0.5) {
+            return 0.0;
+        } else {
+            Real numerator = 4.0 * (4.0 * x * x + 1.0) * std::pow(sech(
+                4.0 * x / (4.0 * x * x - 1.0)
+            ), 2);
+            Real denominator = std::pow((1.0 - 4.0 * x * x), 2);
+            return numerator / denominator;
+        }
+    }
 
-  Real filament::recovery_angle(const Real s, const Real local_phase) {
-    const Real w = TRAVELLING_WAVE_WINDOW*FIL_LENGTH;
-    const Real T_eff = EFFECTIVE_STROKE_FRACTION;
-    const Real T_rec = 1.0 - T_eff
-    const Real f_psi = TRAVELLING_WAVE_IMPORTANCE;
-    Real rotation = 1.0/(PI*(1.0 - EFFECTIVE_STROKE_FRACTION))*local_phase - 1.0;
-    Real c = (FIL_LENGTH + TRAVELLING_WAVE_WINDOW*FIL_LENGTH)/(1.0 - EFFECTIVE_STROKE_FRACTION);
-    
-    return THETA_0*((1.0 - TRAVELLING_WAVE_IMPORTANCE)*rotation
-        - TRAVELLING_WAVE_IMPORTANCE*transition_function(
-                (s - c*local_phase / (2.0*PI))/(TRAVELLING_WAVE_WINDOW*FIL_LENGTH) + 0.5
-    ));
-  }
+    // The following functions need to be checked, and then, initial_setup must be modified
 
-  void filament::platy_beat_tangent(matrix& t, const Real s) const {
+    Real filament::effective_angle(const Real local_phase) {
+      return THETA_0*(1.0 - local_phase/(PI*EFFECTIVE_STROKE_FRACTION));
+    }
 
-    const Real cutoff = EFFECTIVE_STROKE_FRACTION*2.0*PI;
-    const Real modphase = phase - 2.0*PI*std::floor(0.5*phase/PI);
+    Real filament::recovery_angle(const Real s, const Real local_phase) {
+      const Real w = TRAVELLING_WAVE_WINDOW*FIL_LENGTH;
+      const Real T_eff = EFFECTIVE_STROKE_FRACTION;
+      const Real T_rec = 1.0 - T_eff
+      const Real f_psi = TRAVELLING_WAVE_IMPORTANCE;
+      const Real wave_speed = (FIL_LENGTH + w)/T_rec;
 
-    if (mod_phase < cutoff){
-          return effective_angle(mod_phase) + s*shape_rotation_angle/FIL_LENGTH + PI/2.0;
+      Real rotation = local_phase/(PI*T_rec) - 1.0;
+      
+      return THETA_0*((1.0 - f_psi)*rotation
+          - f_psi*transition_function(
+                  (s - wave_speed*local_phase / (2.0*PI))/w + 0.5
+      ));
+    }
+
+    void filament::platy_beat_tangent_angle(matrix& t, const Real s) const {
+
+      matrix pos(3, 1);
+      pos(2) = 0.0;
+
+      const Real cutoff = EFFECTIVE_STROKE_FRACTION*2.0*PI;
+      const Real modphase = phase - 2.0*PI*std::floor(0.5*phase/PI);
+
+      if (mod_phase < cutoff){
+            return effective_angle(mod_phase) + s*shape_rotation_angle/FIL_LENGTH + PI/2.0;
+        }
+        else {
+            return recovery_angle(s, mod_phase - cutoff) + s*shape_rotation_angle/FIL_LENGTH + PI/2.0;
+        }
+    }
+
+    void filament::platy_beat_tangent(Real& tx, Real& ty, const Real s) const {
+
+      const Real angle = platy_beat_tangent_angle(s);
+
+      tx = std::cos(angle);
+      ty = std::sin(angle);
+
+    }
+
+    void filament::platy_beat_phase_deriv_integrand(const Real s) const {
+      matrix direction_integrand(3, 1);
+      direction_integrand(2) = 0.0;
+
+      const Real cutoff = EFFECTIVE_STROKE_FRACTION*2.0*PI;
+      const Real modphase = phase - 2.0*PI*std::floor(0.5*phase/PI);
+
+      Real deriv_value
+
+      if (modphase < cutoff) {
+        deriv_value = -THETA_0/(PI*EFFECTIVE_STROKE_FRACTION);
       }
       else {
-          return recovery_angle(s, mod_phase - cutoff) + s*shape_rotation_angle/FIL_LENGTH + PI/2.0;
+        const Real w = TRAVELLING_WAVE_WINDOW*FIL_LENGTH;
+        const Real T_eff = EFFECTIVE_STROKE_FRACTION;
+        const Real T_rec = 1.0 - T_eff
+        const Real f_psi = TRAVELLING_WAVE_IMPORTANCE;
+        const Real wave_speed = (FIL_LENGTH + w)/T_rec;
+
+        Real local_phase = phase - modphase;
+        Real first_term = (1 - f_psi)/(PI*T_rec);
+        Real transition_derivative_argumet = (
+          s - wave_speed*local_phase / (2.0*PI)
+        )/w + 0.5;
+        Real second_term = f_psi*transition_function_derivative(
+          transition_derivative_argumet
+        )*(wave_speed)/(2.0*PI*w);
+
+        deriv_value = THETA_0*(first_term + second_term);
       }
-  }
 
+      direction_integrand(0) = std::sin(platy_beat_tangent_angle(s))*deriv_value;
+      direction_integrand(1) = -std::cos(platy_beat_tangent_angle(s))*deriv_value;
 
+      return direction_integrand;
+    }
+
+    void filament::platy_beat_angle_deriv_integrand(const Real s) const {
+      matrix direction_integrand(3, 1);
+      direction_integrand(2) = 0.0;
+
+      direction_integrand(0) = std::sin(platy_beat_tangent_angle(s))*s/FIL_LENGTH;
+      direction_integrand(1) = -std::cos(platy_beat_tangent_angle(s))*s/FIL_LENGTH;
+
+      return direction_integrand;
+    }
 
   #endif
 
