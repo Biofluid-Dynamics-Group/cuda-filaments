@@ -1388,9 +1388,25 @@ void filament::initial_guess(const int nt, const Real *const x_in, const Real *c
 
       phase += phase_dot*DT;
 
-      #if (DYNAMIC_SHAPE_ROTATION || WRITE_GENERALISED_FORCES)
+      #if !GENERIC_PLATY_BEAT
 
-        shape_rotation_angle += shape_rotation_angle_dot*DT;
+        #if (DYNAMIC_SHAPE_ROTATION || WRITE_GENERALISED_FORCES)
+
+          shape_rotation_angle += shape_rotation_angle_dot*DT;
+
+        #endif
+
+      #elif GENERIC_PLATY_BEAT
+
+        #if WRITE_GENERALISED_FORCES
+
+          shape_rotation_angle = 0.0;
+
+        #elif DYNAMIC_SHAPE_ROTATION
+
+          shape_rotation_angle += shape_rotation_angle_dot*DT;
+
+        #endif
 
       #endif
 
@@ -1468,7 +1484,7 @@ void filament::initial_guess(const int nt, const Real *const x_in, const Real *c
     #elif GENERIC_PLATY_BEAT
 
       matrix prev_tangent(3, 1);
-      platy_beat_tangent(prev_tangent(0), prev_tangent(1), 0.0);
+      platy_beat_tangent(prev_tangent, 0.0);
       prev_tangent = R*prev_tangent;
 
       matrix prev_phase_deriv_integrand(3, 1);
@@ -1588,11 +1604,36 @@ void filament::initial_guess(const int nt, const Real *const x_in, const Real *c
 
       #elif GENERIC_PLATY_BEAT
 
+        // Shape
         matrix tangent(3, 1);
         platy_beat_tangent(tangent, Real(n)/Real(NSEG - 1));
 
+        segments[n].x[0] = segments[n-1].x[0] + 0.5*DL*(prev_tangent(0) + tangent(0));
+        segments[n].x[1] = segments[n-1].x[1] + 0.5*DL*(prev_tangent(1) + tangent(1));
+        segments[n].x[2] = segments[n-1].x[2] + 0.5*DL*(prev_tangent(2) + tangent(2));
 
+        prev_tangent = tangent;
 
+        // K matrix, or, velocities
+
+        matrix phase_deriv_integrand(3, 1);
+        phase_deriv_integrand = platy_beat_phase_deriv_integrand(Real(n)/Real(NSEG - 1));
+
+        matrix angle_deriv_integrand(3, 1);
+        angle_deriv_integrand = platy_beat_angle_deriv_integrand(Real(n)/Real(NSEG - 1));
+
+        // Use trapezoidal rule to integrate along the filament to obtain the values of derivatives
+
+        vel_dir_phase[3*n] = vel_dir_phase[3*(n-1)] + 0.5*DL*(prev_phase_deriv_integrand(0) + phase_deriv_integrand(0));
+        vel_dir_phase[3*n + 1] = vel_dir_phase[3*(n-1) + 1] + 0.5*DL*(prev_phase_deriv_integrand(1) + phase_deriv_integrand(1));
+        vel_dir_phase[3*n + 2] = vel_dir_phase[3*(n-1) + 2] + 0.5*DL*(prev_phase_deriv_integrand(2) + phase_deriv_integrand(2));
+
+        vel_dir_angle[3*n] = vel_dir_angle[3*(n-1)] + 0.5*DL*(prev_angle_deriv_integrand(0) + angle_deriv_integrand(0));
+        vel_dir_angle[3*n + 1] = vel_dir_angle[3*(n-1) + 1] + 0.5*DL*(prev_angle_deriv_integrand(1) + angle_deriv_integrand(1));
+        vel_dir_angle[3*n + 2] = vel_dir_angle[3*(n-1) + 2] + 0.5*DL*(prev_angle_deriv_integrand(2) + angle_deriv_integrand(2));
+
+        prev_phase_deriv_integrand = phase_deriv_integrand;
+        prev_angle_deriv_integrand = angle_deriv_integrand;
 
       #endif
 
