@@ -1312,10 +1312,10 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
       const Real modphase = phase - 2.0*PI*std::floor(0.5*phase/PI);
 
       if (mod_phase < cutoff){
-            return effective_angle(mod_phase) + s*shape_rotation_angle/FIL_LENGTH + PI/2.0;
+            return effective_angle(modphase) + s*shape_rotation_angle/FIL_LENGTH + PI/2.0;
         }
         else {
-            return recovery_angle(s, mod_phase - cutoff) + s*shape_rotation_angle/FIL_LENGTH + PI/2.0;
+            return recovery_angle(s, modphase - cutoff) + s*shape_rotation_angle/FIL_LENGTH + PI/2.0;
         }
     }
 
@@ -1335,7 +1335,7 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
       const Real cutoff = EFFECTIVE_STROKE_FRACTION*2.0*PI;
       const Real modphase = phase - 2.0*PI*std::floor(0.5*phase/PI);
 
-      Real deriv_value
+      Real deriv_value;
 
       if (modphase < cutoff) {
         deriv_value = -THETA_0/(PI*EFFECTIVE_STROKE_FRACTION);
@@ -1343,7 +1343,7 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
       else {
         const Real w = TRAVELLING_WAVE_WINDOW*FIL_LENGTH;
         const Real T_eff = EFFECTIVE_STROKE_FRACTION;
-        const Real T_rec = 1.0 - T_eff
+        const Real T_rec = 1.0 - T_eff;
         const Real f_psi = TRAVELLING_WAVE_IMPORTANCE;
         const Real wave_speed = (FIL_LENGTH + w)/T_rec;
 

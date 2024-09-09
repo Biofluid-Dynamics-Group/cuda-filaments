@@ -140,12 +140,12 @@ public:
 
     #elif GENERIC_PLATY_BEAT
 
-      Real effective_angle(const Real local_phase) const;
-      Real recovery_angle(const Real s, const Real local_phase) const;
+      Real effective_angle(const Real local_phase);
+      Real recovery_angle(const Real s, const Real local_phase);
       Real platy_beat_tangent_angle(const Real s) const;
       void platy_beat_tangent(matrix& t, const Real s) const;
-      matrix filament::platy_beat_phase_deriv_integrand(const Real s) const;
-       matrix filament::platy_beat_angle_deriv_integrand(const Real s) const;
+      matrix platy_beat_phase_deriv_integrand(const Real s) const;
+      matrix platy_beat_angle_deriv_integrand(const Real s) const;
 
     #endif
 
