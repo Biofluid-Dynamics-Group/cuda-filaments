@@ -74,10 +74,12 @@ class DRIVER:
                      "fil_x_dim": [],
                      "blob_x_dim": [],
                      "hex_num": [],
-                     "reverse_fil_direction_ratio": []}
+                     "reverse_fil_direction_ratio": [],
+                     "f_eff": [],
+                     "theta_0": []}
 
         # self.sweep_shape = (1, 12, 4, 1)
-        self.sweep_shape = (80, 1, 1, 1)
+        self.sweep_shape = (1, 1, 1, 1)
 
         self.num_sim = 0
 
@@ -140,6 +142,8 @@ class DRIVER:
                         hex_num=2
                         reverse_fil_direction_ratio=0.0
                         # sim_length = 400
+                        f_eff = 0.3
+                        theta_0 = 3.14159265359/2.1
 
                         # callibration
                         nfil = int(1*(i+1))
@@ -273,6 +277,8 @@ class DRIVER:
                         self.pars_list["blob_x_dim"].append(blob_x_dim)
                         self.pars_list["hex_num"].append(hex_num)
                         self.pars_list["reverse_fil_direction_ratio"].append(reverse_fil_direction_ratio)
+                        self.pars_list["f_eff"].append(f_eff)
+                        self.pars_list["theta_0"].append(theta_0)
 
                         index += 1
         # Write rules to sim list file
@@ -327,7 +333,7 @@ class DRIVER:
             
             for key, value in self.pars_list.items():
                 self.write_ini("Parameters", key, float(self.pars_list[key][i]))
-            self.simName = f"ciliate_{self.pars_list['nfil'][i]:.0f}fil_{self.pars_list['nblob'][i]:.0f}blob_{self.pars_list['ar'][i]:.2f}R_{self.pars_list['spring_factor'][i]:.4f}torsion_{self.pars_list['tilt_angle'][i]:.4f}tilt"
+            self.simName = f"ciliate_{self.pars_list['nfil'][i]:.0f}fil_{self.pars_list['nblob'][i]:.0f}blob_{self.pars_list['ar'][i]:.2f}R_{self.pars_list['spring_factor'][i]:.4f}torsion_{self.pars_list['tilt_angle'][i]:.4f}tilt_{self.pars_list['f_eff'][i]:.4f}f_eff_{self.pars_list['theta_0'][i]:.4f}theta0"
             self.write_ini("Filenames", "simulation_file", self.simName)
             self.write_ini("Filenames", "simulation_dir", self.dir)
             # self.write_ini("Filenames", "filplacement_file_name", f"input/placement/icosahedron/icosa_d2_N160.dat")
