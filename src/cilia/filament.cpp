@@ -2440,6 +2440,10 @@ void filament::write_backup(std::ofstream& data_file) const {
 
       return filename_stringstream.str();
 
+    #elif GENERIC_PLATY_BEAT
+
+      return std::string("input/forcing/platy_reference_") + std::string(file_type) + "_NSEG=" + std::to_string(NSEG) + "_SEP=" + std::to_string(SEG_SEP) + "_FEFF=" + std::to_string(EFFECTIVE_STROKE_FRACTION)+ "_THETA0=" + std::to_string(THETA_0) + std::string(".dat");
+
     #endif
 
   }

@@ -8,49 +8,11 @@ class DRIVER:
         self.globals_name = 'input/globals.ini'
         self.afix = ''
         self.inputfile = f""
-        # self.category = 'regular_wall_sim/'
-        # self.category = 'IVP159_flowfield/'
+
         self.category = 'tilt_test/'
-        
-
-        self.exe_name = 'cilia_1e-4_newbeat'
-        # self.exe_name = 'cilia_1e-4_30_ishikawa'
-
-        self.date = '20240730_newbeat'
-        
+        self.exe_name = 'cilia_1e-4'
+        self.date = '20240909'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
-
-
-        # self.category = 'ic_hpc_sim_free_with_force/'
-        # self.exe_name = 'cilia_1e-4_free_with_force'
-        # self.date = '20240311_1'
-        # self.dir = f"data/{self.category}{self.date}{self.afix}/"
-
-        # self.category = 'resolution/'
-        # self.date = '20240822_sangani_boxsize2'
-        # self.exe_name = 'cilia_1e-6_sangani'
-        # self.dir = f"data/{self.category}{self.date}{self.afix}/"
-
-        
-
-
-        # self.category = 'ishikawa/'
-        # self.exe_name = 'cilia_1e-4_ishikawa_volvox'
-        # # self.date = '20240829_pnas_volvox_beat'
-        # # self.date = '20240813_pnas_volvox_beat'
-        # self.date = '20240903_real_volvox_slender50'
-        # self.dir = f"data/{self.category}{self.date}{self.afix}/"
-
-        # self.category = 'giant_swimmer/'
-        # self.exe_name = 'cilia_1e-4_free_with_force_300'
-        # self.date = 'combined_analysis_force_rerun'
-        # self.dir = f"data/{self.category}{self.date}{self.afix}/"
-
-        self.category = 'volvox/'
-        self.exe_name = 'cilia_1e-4_free'
-        self.date = '20240904_volvox_test'
-        self.dir = f"data/{self.category}{self.date}{self.afix}/"
-        
 
         self.pars_list = {
                      "index": [],
