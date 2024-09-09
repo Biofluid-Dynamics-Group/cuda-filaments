@@ -1284,8 +1284,6 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
         }
     }
 
-    // The following functions need to be checked, and then, initial_setup must be modified
-
     Real filament::effective_angle(const Real local_phase) {
       return THETA_0*(1.0 - local_phase/(PI*EFFECTIVE_STROKE_FRACTION));
     }
@@ -1305,7 +1303,7 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
       ));
     }
 
-    void filament::platy_beat_tangent_angle(matrix& t, const Real s) const {
+    void filament::platy_beat_tangent_angle(const Real s) const {
 
       matrix pos(3, 1);
       pos(2) = 0.0;
@@ -1321,18 +1319,18 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
         }
     }
 
-    void filament::platy_beat_tangent(Real& tx, Real& ty, const Real s) const {
+    void filament::platy_beat_tangent(matrix& tangent, const Real s) const {
 
       const Real angle = platy_beat_tangent_angle(s);
 
-      tx = std::cos(angle);
-      ty = std::sin(angle);
+      tangent(0) = std::cos(angle);
+      tangent(1) = std::sin(angle);
+      tangent(2) = 0.0;
 
     }
 
     void filament::platy_beat_phase_deriv_integrand(const Real s) const {
       matrix direction_integrand(3, 1);
-      direction_integrand(2) = 0.0;
 
       const Real cutoff = EFFECTIVE_STROKE_FRACTION*2.0*PI;
       const Real modphase = phase - 2.0*PI*std::floor(0.5*phase/PI);
@@ -1363,16 +1361,17 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
 
       direction_integrand(0) = std::sin(platy_beat_tangent_angle(s))*deriv_value;
       direction_integrand(1) = -std::cos(platy_beat_tangent_angle(s))*deriv_value;
+      direction_integrand(2) = 0.0;
 
       return direction_integrand;
     }
 
     void filament::platy_beat_angle_deriv_integrand(const Real s) const {
       matrix direction_integrand(3, 1);
-      direction_integrand(2) = 0.0;
 
       direction_integrand(0) = std::sin(platy_beat_tangent_angle(s))*s/FIL_LENGTH;
       direction_integrand(1) = -std::cos(platy_beat_tangent_angle(s))*s/FIL_LENGTH;
+      direction_integrand(2) = 0.0;
 
       return direction_integrand;
     }
@@ -1431,8 +1430,12 @@ void filament::initial_guess(const int nt, const Real *const x_in, const Real *c
       vel_dir_angle[1] = 0.0;
       vel_dir_angle[2] = 0.0;
 
-      // Apply rotation through shape_rotation_angle about the z-axis in the reference configuration.
-      const matrix Rshape = (quaternion(std::cos(0.5*shape_rotation_angle), 0.0, 0.0, std::sin(0.5*shape_rotation_angle))).rot_mat();
+      #if !GENERIC_PLATY_BEAT
+        // Apply rotation through shape_rotation_angle about the z-axis in the reference configuration.
+        const matrix Rshape = (quaternion(std::cos(0.5*shape_rotation_angle), 0.0, 0.0, std::sin(0.5*shape_rotation_angle))).rot_mat();
+      #else
+        const matrix Rshape = (quaternion(std::cos(0.0), 0.0, 0.0, std::sin(0.0))).rot_mat();
+      #endif
 
     #endif
 
@@ -1461,6 +1464,20 @@ void filament::initial_guess(const int nt, const Real *const x_in, const Real *c
         k1 = R*k1;
 
       #endif
+
+    #elif GENERIC_PLATY_BEAT
+
+      matrix prev_tangent(3, 1);
+      platy_beat_tangent(prev_tangent(0), prev_tangent(1), 0.0);
+      prev_tangent = R*prev_tangent;
+
+      matrix prev_phase_deriv_integrand(3, 1);
+      prev_phase_deriv_integrand = platy_beat_phase_deriv_integrand(0.0);
+      prev_phase_deriv_integrand = R*prev_phase_deriv_integrand;
+
+      matrix prev_angle_deriv_integrand(3, 1);
+      prev_angle_deriv_integrand = platy_beat_angle_deriv_integrand(0.0);
+      prev_angle_deriv_integrand = R*prev_angle_deriv_integrand;
 
     #endif
 
@@ -1568,6 +1585,14 @@ void filament::initial_guess(const int nt, const Real *const x_in, const Real *c
         vel_dir_phase[3*n + 2] = vel_dir_phase[3*(n-1) + 2] + 0.5*DL*(k1(2) + k2(2));
 
         k1 = k2;
+
+      #elif GENERIC_PLATY_BEAT
+
+        matrix tangent(3, 1);
+        platy_beat_tangent(tangent, Real(n)/Real(NSEG - 1));
+
+
+
 
       #endif
 
