@@ -1303,7 +1303,7 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
       ));
     }
 
-    void filament::platy_beat_tangent_angle(const Real s) const {
+    Real filament::platy_beat_tangent_angle(const Real s) const {
 
       matrix pos(3, 1);
       pos(2) = 0.0;
@@ -1329,7 +1329,7 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
 
     }
 
-    void filament::platy_beat_phase_deriv_integrand(const Real s) const {
+    matrix filament::platy_beat_phase_deriv_integrand(const Real s) const {
       matrix direction_integrand(3, 1);
 
       const Real cutoff = EFFECTIVE_STROKE_FRACTION*2.0*PI;
@@ -1366,7 +1366,7 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
       return direction_integrand;
     }
 
-    void filament::platy_beat_angle_deriv_integrand(const Real s) const {
+    matrix filament::platy_beat_angle_deriv_integrand(const Real s) const {
       matrix direction_integrand(3, 1);
 
       direction_integrand(0) = std::sin(platy_beat_tangent_angle(s))*s/FIL_LENGTH;
