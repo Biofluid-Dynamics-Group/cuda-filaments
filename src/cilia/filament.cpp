@@ -1347,16 +1347,16 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
         const Real f_psi = TRAVELLING_WAVE_IMPORTANCE;
         const Real wave_speed = (FIL_LENGTH + w)/T_rec;
 
-        Real local_phase = phase - modphase;
+        Real local_phase = modphase - cutoff;
         Real first_term = (1 - f_psi)/(PI*T_rec);
         Real transition_derivative_argumet = (
-          s - wave_speed*local_phase / (2.0*PI)
+          s - (wave_speed*local_phase / (2.0*PI))
         )/w + 0.5;
         Real second_term = f_psi*transition_function_derivative(
           transition_derivative_argumet
-        )*(wave_speed)/(2.0*PI*w);
+        )*(-wave_speed)/(2.0*PI*w);
 
-        deriv_value = THETA_0*(first_term + second_term);
+        deriv_value = THETA_0*(first_term - second_term);
       }
 
       direction_integrand(0) = -std::sin(platy_beat_tangent_angle(s))*deriv_value;
