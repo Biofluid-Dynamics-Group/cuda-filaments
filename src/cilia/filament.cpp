@@ -1359,8 +1359,8 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
         deriv_value = THETA_0*(first_term + second_term);
       }
 
-      direction_integrand(0) = std::sin(platy_beat_tangent_angle(s))*deriv_value;
-      direction_integrand(1) = -std::cos(platy_beat_tangent_angle(s))*deriv_value;
+      direction_integrand(0) = -std::sin(platy_beat_tangent_angle(s))*deriv_value;
+      direction_integrand(1) = std::cos(platy_beat_tangent_angle(s))*deriv_value;
       direction_integrand(2) = 0.0;
 
       return direction_integrand;
@@ -1369,8 +1369,8 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
     matrix filament::platy_beat_angle_deriv_integrand(const Real s) const {
       matrix direction_integrand(3, 1);
 
-      direction_integrand(0) = std::sin(platy_beat_tangent_angle(s))*s/FIL_LENGTH;
-      direction_integrand(1) = -std::cos(platy_beat_tangent_angle(s))*s/FIL_LENGTH;
+      direction_integrand(0) = -std::sin(platy_beat_tangent_angle(s))*s/FIL_LENGTH;
+      direction_integrand(1) = std::cos(platy_beat_tangent_angle(s))*s/FIL_LENGTH;
       direction_integrand(2) = 0.0;
 
       return direction_integrand;
