@@ -1299,7 +1299,7 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
       
       return THETA_0*((1.0 - f_psi)*rotation
           - f_psi*transition_function(
-                  (s - wave_speed*local_phase / (2.0*PI))/w + 0.5
+                  (s*FIL_LENGTH - wave_speed*local_phase / (2.0*PI))/w + 0.5
       ));
     }
 
@@ -1323,8 +1323,8 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
 
       const Real angle = platy_beat_tangent_angle(s);
 
-      tangent(0) = std::cos(angle);
-      tangent(1) = std::sin(angle);
+      tangent(0) = std::sin(angle);
+      tangent(1) = std::cos(angle);
       tangent(2) = 0.0;
 
     }
@@ -1350,7 +1350,7 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
         Real local_phase = modphase - cutoff;
         Real first_term = (1 - f_psi)/(PI*T_rec);
         Real transition_derivative_argumet = (
-          s - (wave_speed*local_phase / (2.0*PI))
+          s*FIL_LENGTH - (wave_speed*local_phase / (2.0*PI))
         )/w + 0.5;
         Real second_term = f_psi*transition_function_derivative(
           transition_derivative_argumet
@@ -1359,8 +1359,8 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
         deriv_value = THETA_0*(first_term - second_term);
       }
 
-      direction_integrand(0) = -std::sin(platy_beat_tangent_angle(s))*deriv_value;
-      direction_integrand(1) = std::cos(platy_beat_tangent_angle(s))*deriv_value;
+      direction_integrand(0) = std::cos(platy_beat_tangent_angle(s))*deriv_value;
+      direction_integrand(1) = -std::sin(platy_beat_tangent_angle(s))*deriv_value;
       direction_integrand(2) = 0.0;
 
       return direction_integrand;
@@ -1369,8 +1369,8 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
     matrix filament::platy_beat_angle_deriv_integrand(const Real s) const {
       matrix direction_integrand(3, 1);
 
-      direction_integrand(0) = -std::sin(platy_beat_tangent_angle(s))*s/FIL_LENGTH;
-      direction_integrand(1) = std::cos(platy_beat_tangent_angle(s))*s/FIL_LENGTH;
+      direction_integrand(0) = std::cos(platy_beat_tangent_angle(s))*s;
+      direction_integrand(1) = -std::sin(platy_beat_tangent_angle(s))*s;
       direction_integrand(2) = 0.0;
 
       return direction_integrand;
@@ -1615,13 +1615,20 @@ void filament::initial_guess(const int nt, const Real *const x_in, const Real *c
         platy_beat_tangent(tangent, Real(n)/Real(NSEG - 1));
         tangent = R*tangent;
 
+        std::cout << "Tangent at segment " << n << ": (" << tangent(0) << ", " << tangent(1) << ", " << tangent(2) << ")" << std::endl;
+
         segments[n].x[0] = segments[n-1].x[0] + 0.5*DL*(prev_tangent(0) + tangent(0));
         segments[n].x[1] = segments[n-1].x[1] + 0.5*DL*(prev_tangent(1) + tangent(1));
         segments[n].x[2] = segments[n-1].x[2] + 0.5*DL*(prev_tangent(2) + tangent(2));
 
+        std::cout << "Segment " << n << " position: (" << segments[n].x[0] << ", " << segments[n].x[1] << ", " << segments[n].x[2] << ")" << std::endl;
+
         // printf("positions integrated\n");
 
         prev_tangent = tangent;
+
+        std::cout << "Tangent at segment " << n-1 << ": (" << prev_tangent(0) << ", " << prev_tangent(1) << ", " << prev_tangent(2) << ")" << std::endl;
+        std::cout << "Tangent at segment " << n << ": (" << tangent(0) << ", " << tangent(1) << ", " << tangent(2) << ")" << std::endl;
 
         // K matrix, or, velocities
 
