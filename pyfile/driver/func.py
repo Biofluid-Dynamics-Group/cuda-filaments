@@ -9,9 +9,9 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = 'tilt_test/'
+        self.category = 'ishikawa_study_platy_beat_synchronised/'
         self.exe_name = 'cilia_1e-4'
-        self.date = '20240909'
+        self.date = '20240930'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -41,7 +41,7 @@ class DRIVER:
                      "theta_0": []}
 
         # self.sweep_shape = (1, 12, 4, 1)
-        self.sweep_shape = (1, 1, 1, 1)
+        self.sweep_shape = (4, 1, 1, 1)
 
         self.num_sim = 0
 
@@ -86,57 +86,50 @@ class DRIVER:
                         force_mag = 1
                         tilt_angle = 0
 
-                        # # planar triangle
-                        nfil = int(256*(i+1))
-                        nblob = int(25600*(i+1))
-                        nseg = 20
-                        ar = round(1, 2)
-                        period = 1
-                        spring_factor = round(0.005 + 0.005, 3)
-                        nx=128
-                        ny=int(256/(i+1))
-                        nz=int(64/(i+1))
-                        boxsize=1280*(i+1)
+                        # nfil = int(64*2*(i+1))
+                        # nblob = int(64*2*2*2*(i+1))
+                        # nseg = 20
+                        # ar = 20
+                        # period = 1
+                        # spring_factor = 1e-3
+                        # nx=400
+                        # ny=400
+                        # nz=400
+                        # boxsize=8000
                         fil_spacing=80.0
                         blob_spacing=8.0
                         fil_x_dim=16*(i+1)
                         blob_x_dim=160*(i+1)
                         hex_num=2
                         reverse_fil_direction_ratio=0.0
-                        # sim_length = 400
+                        sim_length = 100.0
                         f_eff = 0.3
                         theta_0 = 3.14159265359/2.1
 
                         # callibration
-                        nfil = int(1*(i+1))
-                        nblob = int(4096*(i+1))
-                        nseg = 20
-                        fil_spacing=256.0
-                        blob_spacing=4.0
-                        fil_x_dim=2
-                        blob_x_dim=64
-                        sim_length = 1
+                        # nfil = int(1*(i+1))
+                        # nblob = int(4096*(i+1))
+                        # nseg = 20
+                        # fil_spacing=256.0
+                        # blob_spacing=4.0
+                        # fil_x_dim=2
+                        # blob_x_dim=64
+                        # sim_length = 1
 
 
-                        # # IVP sim
-                        nx=400
-                        ny=400
-                        nz=400
-                        boxsize=8000
-
-                        nseg = 20
-                        nfil = int(639)
-                        nblob = int(40961)
-                        ar = round(15.00, 2)
-                        spring_factor = round(0.005 + 0.001*i, 3)
-                        period = 1
-                        sim_length = 500
+                        # nseg = 20
+                        # nfil = int(639)
+                        # nblob = int(40961)
+                        # ar = round(15.00, 2)
+                        # spring_factor = round(0.005 + 0.001*i, 3)
+                        # period = 1
+                        # sim_length = 500
                         # tilt_angle = (1./9.)*0.5*3.141592653*j
-                        tilt_angle = 0
+                        # tilt_angle = 0
                         
 
                         # ishikawa pnas
-                        # nfil = [160, 640, 2560][i]
+                        # nfil = 160
                         # nblob = 40962
                         # ar = 20
                         # nseg = 20
@@ -150,18 +143,21 @@ class DRIVER:
                         # tilt_angle = 0
 
                         # ishikawa jfm
-                        # nfil = 160
-                        # nblob = 40962
-                        # ar = 6
-                        # nseg = 40
-                        # nx=400
-                        # ny=400
-                        # nz=400
-                        # boxsize=8000
-                        # spring_factor = [-1, 0, 0.5, 1, 1.5, 2][i]
-                        # period = 1
-                        # sim_length = 1
-                        # tilt_angle = 0
+                        nfil = [10,  40, 160, 320][i]
+                        nblob = 40962
+                        ar = 6
+                        nseg = 40
+                        nx=400
+                        ny=400
+                        nz=400
+                        boxsize=8000
+                        spring_factor = 1e-3
+                        period = 1
+                        sim_length = 1
+                        tilt_angle = 0
+                        # Recreation of Fulford & BLake
+                        # theta_0 = 0.7251279501596777
+                        # f_eff = 0.2061749990099957
 
                         # ishikawa resolution
                         # nfil = 160
@@ -298,9 +294,9 @@ class DRIVER:
             self.simName = f"ciliate_{self.pars_list['nfil'][i]:.0f}fil_{self.pars_list['nblob'][i]:.0f}blob_{self.pars_list['ar'][i]:.2f}R_{self.pars_list['spring_factor'][i]:.4f}torsion_{self.pars_list['tilt_angle'][i]:.4f}tilt_{self.pars_list['f_eff'][i]:.4f}f_eff_{self.pars_list['theta_0'][i]:.4f}theta0"
             self.write_ini("Filenames", "simulation_file", self.simName)
             self.write_ini("Filenames", "simulation_dir", self.dir)
-            # self.write_ini("Filenames", "filplacement_file_name", f"input/placement/icosahedron/icosa_d2_N160.dat")
+            self.write_ini("Filenames", "filplacement_file_name", f"input/placement/icosahedron/icosa_d2_N160.dat")
             # self.write_ini("Filenames", "filplacement_file_name", f"input/placement/icosahedron/icosa_d3_N640.dat")
-            self.write_ini("Filenames", "filplacement_file_name", f"input/placement/icosahedron/icosa_d4_N2560.dat")
+            # self.write_ini("Filenames", "filplacement_file_name", f"input/placement/icosahedron/icosa_d4_N2560.dat")
             self.write_ini("Filenames", "blobplacement_file_name", f"input/placement/icosahedron/icosa_d6_N40962.dat")
             # self.write_ini("Filenames", "blobplacement_file_name", f"input/placement/icosahedron/icosa_d4_N2562.dat")
             self.write_ini("Filenames", "simulation_icstate_name", f"{self.dir}psi{i}.dat")
