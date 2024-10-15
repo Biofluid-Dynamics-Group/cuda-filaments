@@ -891,8 +891,21 @@
 
     }
 
+    Real rotation_angle = 0.0;
+    Real radius_of_sphere = 0.0;
+
     // Write the data for the final positions
     for (int n = 0; n < N; n++){
+
+      // All this new stuff overwrites the old algorithm to seed just a band iun the equator. I did this because other seeding algorithms caused segfaults and I have no idea why.
+
+      if (radius_of_sphere < 1E-10){
+        radius_of_sphere = std::sqrt(X[3*n]*X[3*n] + X[3*n + 1]*X[3*n + 1] + X[3*n + 2]*X[3*n + 2]);
+      }
+
+      X[3*n] = radius_of_sphere*myfil_cos(rotation_angle);
+      X[3*n + 1] = radius_of_sphere*myfil_sin(rotation_angle);
+      X[3*n + 2] = 0.0;
 
       pos_ref[3*n] = X[3*n];
       pos_ref[3*n + 1] = X[3*n + 1];
@@ -916,6 +929,8 @@
       normal_refs[3*n] = frame(6);
       normal_refs[3*n + 1] = frame(7);
       normal_refs[3*n + 2] = frame(8);
+
+      rotation_angle += 2.0*PI/Real(N);
 
     }
 
