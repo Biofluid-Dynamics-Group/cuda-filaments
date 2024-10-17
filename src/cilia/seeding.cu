@@ -355,11 +355,11 @@
 
     matrix sample(3,1);
 
-    if (std::string(GENERATRIX_FILE_NAME) != std::string(FOURIER_DIR) + std::string("sphere")){
+    // if (std::string(GENERATRIX_FILE_NAME) == std::string(FOURIER_DIR) + std::string("sphere")){
 
-      std::cout<< "WARNING: Non-spherical shape not implemented." << std::endl;
+    //   std::cout<< "WARNING: Non-spherical shape not implemented." << std::endl;
 
-    }
+    // }
 
       // There's a really simple way of generating uniform samples on a sphere.
       std::normal_distribution<Real> d(0.0, 1.0);
@@ -377,6 +377,8 @@
 
       theta = theta*(1-2*shift_ratio)+shift_ratio*PI;
 
+      // theta = 2.0*PI/5.0 + theta/5.0;
+
       sample(0) = sample_norm*std::sin(theta)*std::sin(phi);
       sample(1) = sample_norm*std::sin(theta)*std::cos(phi);
       sample(2) = sample_norm*std::cos(theta);
@@ -387,46 +389,47 @@
 
   };
 
-  // matrix random_point_away_from_poles_and_inhomogeneous(const Real shift_ratio, const Real factor){
+  matrix random_point_away_from_poles_and_inhomogeneous(const Real shift_ratio, const Real factor){
 
-  //   // N.B. The Mersenne twister "gen" is modified whenever we call upon it, so this method cannot be
-  //   // const and consequently this class cannot be passed as const to the seeding function.
+    // N.B. The Mersenne twister "gen" is modified whenever we call upon it, so this method cannot be
+    // const and consequently this class cannot be passed as const to the seeding function.
 
-  //   matrix sample(3,1);
+    matrix sample(3,1);
 
-  //   if (std::string(GENERATRIX_FILE_NAME) == std::string(FOURIER_DIR) + std::string("sphere")){
+    if (std::string(GENERATRIX_FILE_NAME) == std::string(FOURIER_DIR) + std::string("sphere")){
 
-  //     // There's a really simple way of generating uniform samples on a sphere.
-  //     std::normal_distribution<Real> d(0.0, 1.0);
+      // There's a really simple way of generating uniform samples on a sphere.
+      std::normal_distribution<Real> d(0.0, 1.0);
 
-  //     sample(0) = d(gen)*factor;
-  //     sample(1) = d(gen)*factor;
-  //     sample(2) = d(gen);
+      sample(0) = d(gen)*factor;
+      sample(1) = d(gen)*factor;
+      sample(2) = d(gen);
 
-  //     const Real sample_norm = norm(sample);
+      const Real sample_norm = norm(sample);
       
-  //     sample /= sample_norm;
+      sample /= sample_norm;
 
-  //     Real theta = std::atan2(std::sqrt(sample(0)*sample(0) + sample(1)*sample(1)),sample(2));
-  //     const Real phi = std::atan2(sample(1), sample(0));
+      Real theta = std::atan2(std::sqrt(sample(0)*sample(0) + sample(1)*sample(1)),sample(2));
+      const Real phi = std::atan2(sample(1), sample(0));
 
-  //     theta = theta*(1-2*shift_ratio)+shift_ratio*PI;
+      theta = theta*(1-2*shift_ratio)+shift_ratio*PI;
+      // theta = 2.0*PI/5.0 + theta/5.0;
 
-  //     sample(0) = sample_norm*std::sin(theta)*std::sin(phi);
-  //     sample(1) = sample_norm*std::sin(theta)*std::cos(phi);
-  //     sample(2) = sample_norm*std::cos(theta);
+      sample(0) = sample_norm*std::sin(theta)*std::sin(phi);
+      sample(1) = sample_norm*std::sin(theta)*std::cos(phi);
+      sample(2) = sample_norm*std::cos(theta);
      
-  //     sample /= sample_norm;
+      sample /= sample_norm;
 
-  //   } else {
+    } else {
 
-  //     std::cout<< "Non-spherical shape not implemented." << std::endl;
+      std::cout<< "Non-spherical shape not implemented." << std::endl;
 
-  //   }
+    }
 
-  //   return sample;
+    return sample;
 
-  // };
+  };
 
   Real polar_angle_area_fraction_integrand(const Real theta) const {
 
@@ -765,6 +768,10 @@
       // We use the spiral distribution given by Saff and Kuijlaars (1997) as our initial positions.
       Real phi = 0.0;
 
+      // Real shift_ratio = (0.471*FIL_LENGTH)/(0.5*AXIS_DIR_BODY_LENGTH*PI); // value used from Dec 2023 to Feb 2024
+      Real shift_ratio = (1.0*FIL_LENGTH)/(0.5*AXIS_DIR_BODY_LENGTH*PI);; // value used from Feb 2024
+      // Real shift_ratio = 0.15;
+
       for (int n = 0; n < N; n++){
 
         const Real theta = std::acos((N == 1) ? -1.0 : 2.0*n/Real(N-1) - 1.0);
@@ -794,7 +801,7 @@
       // Use random initial positions.
       for (int n = 0; n < N; n++){
 
-        const matrix sample = shape.random_point();
+        const matrix sample = shape.random_point_away_from_poles(shift_ratio);
         X[3*n] = sample(0);
         X[3*n + 1] = sample(1);
         X[3*n + 2] = sample(2);
@@ -814,9 +821,6 @@
     }
 
     int num_iters = 0;
-
-    // Real shift_ratio = (0.471*FIL_LENGTH)/(0.5*AXIS_DIR_BODY_LENGTH*PI); // value used from Dec 2023 to Feb 2024
-    Real shift_ratio = (1.0*FIL_LENGTH)/(0.5*AXIS_DIR_BODY_LENGTH*PI); // value used from Feb 2024
 
     while (num_iters < 10000){
 
@@ -892,27 +896,35 @@
     }
 
     Real rotation_angle = 0.0;
+    Real x_value = 0.0;
+    Real y_value = 0.0;
+    Real z_value = 0.0;
     Real radius_of_sphere = 0.0;
 
     // Write the data for the final positions
     for (int n = 0; n < N; n++){
 
-      // All this new stuff overwrites the old algorithm to seed just a band iun the equator. I did this because other seeding algorithms caused segfaults and I have no idea why.
-
       if (radius_of_sphere < 1E-10){
         radius_of_sphere = std::sqrt(X[3*n]*X[3*n] + X[3*n + 1]*X[3*n + 1] + X[3*n + 2]*X[3*n + 2]);
       }
 
-      X[3*n] = radius_of_sphere*myfil_cos(rotation_angle);
-      X[3*n + 1] = radius_of_sphere*myfil_sin(rotation_angle);
-      X[3*n + 2] = 0.0;
+      x_value = myfil_cos(rotation_angle);
+      y_value = myfil_sin(rotation_angle);
+      z_value = 0.0;
+
+      X[3*n] = radius_of_sphere*x_value;
+      X[3*n + 1] = radius_of_sphere*y_value;
+      X[3*n + 2] = radius_of_sphere*z_value;
 
       pos_ref[3*n] = X[3*n];
       pos_ref[3*n + 1] = X[3*n + 1];
       pos_ref[3*n + 2] = X[3*n + 2];
 
-      const Real theta = std::atan2(std::sqrt(X[3*n]*X[3*n] + X[3*n + 1]*X[3*n + 1]), X[3*n + 2]);
-      const Real phi = std::atan2(X[3*n + 1], X[3*n]);
+      // const Real theta = std::atan2(std::sqrt(X[3*n]*X[3*n] + X[3*n + 1]*X[3*n + 1]), X[3*n + 2]);
+      // const Real phi = std::atan2(X[3*n + 1], X[3*n]);
+
+      const Real theta = 0.0;
+      const Real phi = rotation_angle;
 
       matrix frame = shape.full_frame(theta, phi);
       // N.B. the polar and azi refs are not used at the end
@@ -926,9 +938,21 @@
       azi_dir_refs[3*n + 1] = frame(4);
       azi_dir_refs[3*n + 2] = frame(5);
 
-      normal_refs[3*n] = frame(6);
-      normal_refs[3*n + 1] = frame(7);
-      normal_refs[3*n + 2] = frame(8);
+      // polar and azi don't matter
+      // normal refs is the surface normal, the only thing that matters
+
+      // normal_refs[3*n] = frame(6);
+      // normal_refs[3*n + 1] = frame(7);
+      // normal_refs[3*n + 2] = frame(8);
+
+      normal_refs[3*n] = x_value;
+      normal_refs[3*n + 1] = y_value;
+      normal_refs[3*n + 2] = z_value;
+
+      std::cout << "Normal refs for filament " << n << ": (" 
+            << normal_refs[3*n] << ", " 
+            << normal_refs[3*n + 1] << ", " 
+            << normal_refs[3*n + 2] << ")" << std::endl;
 
       rotation_angle += 2.0*PI/Real(N);
 
@@ -1348,7 +1372,7 @@
     const std::string file_name_trunk = GENERATRIX_FILE_NAME+std::to_string(NBLOB);
 
     std::cout << std::endl << std::endl << "Generating seeding files " << "'" << file_name_trunk << ".seed'" << std::endl;
-    
+
     shape_fourier_description shape;
 
     #if ICOSA_SEEDING
@@ -1432,9 +1456,9 @@
 
       std::cout << "Seeding locations according to a spiral pattern..." << std::endl;
 
-      
 
-      const Real theta_max = 0.5/Real(R_OVER_L); // = 0.5 * 2*PI*L/(2*PI*R), meaning the width of the band is L as measured across the sphere surface.
+      
+      const Real theta_max = 0.5/Real(AR); // = 0.5 * 2*PI*L/(2*PI*R), meaning the width of the band is L as measured across the sphere surface.
       const Real h = 2.0*std::sin(theta_max);
       const int num_fils_for_sphere = std::ceil(NFIL*2.0/h);
       const int offset = std::round(0.5*(num_fils_for_sphere - NFIL));
