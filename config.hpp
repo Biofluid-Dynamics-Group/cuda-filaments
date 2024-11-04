@@ -207,6 +207,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
   // 5 = Icosa seeding
   // 6 = Mismatched seeding
   // 7 = Filaments are evenly distributed over the surface but with potential at poles
+  // WARNING: 7 is currently overwritten to an equatorial band
   // 8 = Equal-area centric seeding (rigidbody plane)
   // 9 = Read from files
 
@@ -358,7 +359,7 @@ extern Real THETA_0; // Amplitude of the beat in radians. Only used in Platy bea
 #else
 
   #define STEPS_PER_PERIOD 500
-  #define SAVES_PER_PERIOD 300
+  #define SAVES_PER_PERIOD 100
 
 #endif
 
@@ -508,6 +509,7 @@ extern Real THETA_0; // Amplitude of the beat in radians. Only used in Platy bea
   #define MISMATCH_SEEDING (SEEDING_TYPE==6)
   #define UNIFORM_SEEDING_POLE (SEEDING_TYPE==7)
   #define CENTRIC_WALL_SEEDING (SEEDING_TYPE==8)
+  #define LINE_SEEDING (SEEDING_TYPE==10)
 
 #endif
 

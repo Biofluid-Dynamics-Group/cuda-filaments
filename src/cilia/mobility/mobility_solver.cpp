@@ -365,6 +365,11 @@ void mobility_solver::read_positions_and_forces(std::vector<swimmer>& swimmers){
 
               rhs(index + m) = swimmers[n].filaments[i].phase_dot*swimmers[n].filaments[i].vel_dir_phase[m];
 
+                // std::cout << "rhs(" << index + m << ") = " << rhs(index + m) 
+                //     << ", phase_dot = " << swimmers[n].filaments[i].phase_dot 
+                //     << ", vel_dir_phase[" << m << "] = " << swimmers[n].filaments[i].vel_dir_phase[m] 
+                //     << ", phase = " << swimmers[n].filaments[i].phase << std::endl;
+
             }
 
             #if DYNAMIC_SHAPE_ROTATION
@@ -378,6 +383,16 @@ void mobility_solver::read_positions_and_forces(std::vector<swimmer>& swimmers){
                 rhs(3*NSWIM*(NFIL*NSEG + NBLOB + 2) + n*NFIL + i) = -q_angle;
 
               #endif
+
+            // #else  // This is unnecesary because if no DYNAMIC_SHAPE_ROTATION is present, then the RHS is already zero.
+
+            //   for int(m = 0; m < 3; m++){
+
+            //     rhs(index + m) += 0.0*swimmers[n].filaments[i].vel_dir_angle[m];
+
+            //   }
+
+            // #endif
 
             #endif
 
@@ -570,7 +585,7 @@ void mobility_solver::read_positions_and_forces(std::vector<swimmer>& swimmers){
   }
 
   matrix mobility_solver::apply_preconditioner(const matrix& in, const std::vector<swimmer>& swimmers){
-
+    return in;
     #if PRESCRIBED_CILIA
 
       matrix out = in;
@@ -1036,7 +1051,7 @@ void mobility_solver::read_positions_and_forces(std::vector<swimmer>& swimmers){
   }
 
   matrix mobility_solver::apply_preconditioner_new(const matrix& in, const std::vector<swimmer>& swimmers){
-
+    return in;
     #if PRESCRIBED_CILIA
 
       matrix out = in;

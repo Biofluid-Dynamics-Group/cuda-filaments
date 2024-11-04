@@ -9,7 +9,7 @@ visualiser = visual.VISUAL()
 list_of_single_options = ['plot', 'plot_eco', 'plot_fil', 'phase', 'wavenumber', 'phase_plane', 'order_parameter', 'eckert', 'ciliate', 'ciliate_eco', 'ciliate_speed', 'ciliate_speed_eco', 'ciliate_traj', 
                    'timing', 'ciliate_forcing', 'ciliate_dissipation', 'footpath',
                    'ciliate_svd', 'ciliate_dmd', 'kymograph', 'copy_phases',
-                   'periodic_solution', 'find_periodicity', 'spherical_contour', 'flow_field_2D', 'flow_field_kymograph']
+                   'periodic_solution', 'find_periodicity', 'spherical_contour', 'flow_field_2D', 'flow_field_kymograph', 'average_dissipation']
 # list_of_multi_options = ['multi_phase', 'multi_ciliate', 'multi_ciliate_traj',
 #                          'multi_ciliate_speed', 'multi_timing', 'multi_ciliate_svd',
 #                          'multi_check_overlap', 'multi_ciliate_dissipation',
@@ -55,7 +55,6 @@ if(sys.argv[1] in methods):
         if('blob' in sys.argv):
             visualiser.big_sphere = False
             visualiser.noblob = False
-        
     if hasattr(visualiser, sys.argv[1]):
         method_to_call = getattr(visualiser, sys.argv[1])
         if callable(method_to_call):

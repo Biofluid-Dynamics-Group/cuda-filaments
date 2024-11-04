@@ -740,6 +740,10 @@
 
   void equal_area_seeding_poles(Real *const pos_ref, Real *const polar_dir_refs, Real *const azi_dir_refs, Real *const normal_refs, const int N, shape_fourier_description& shape){
 
+    // Real shift_ratio = (0.471*FIL_LENGTH)/(0.5*AXIS_DIR_BODY_LENGTH*PI); // value used from Dec 2023 to Feb 2024
+    Real shift_ratio = (1.0*FIL_LENGTH)/(0.5*AXIS_DIR_BODY_LENGTH*PI);; // value used from Feb 2024
+    // Real shift_ratio = 0.15;
+
     if (N == 0){
 
       return; // Because of the squirmer-style simulations, the code may try to seed 0 filaments.
@@ -767,10 +771,6 @@
 
       // We use the spiral distribution given by Saff and Kuijlaars (1997) as our initial positions.
       Real phi = 0.0;
-
-      // Real shift_ratio = (0.471*FIL_LENGTH)/(0.5*AXIS_DIR_BODY_LENGTH*PI); // value used from Dec 2023 to Feb 2024
-      Real shift_ratio = (1.0*FIL_LENGTH)/(0.5*AXIS_DIR_BODY_LENGTH*PI);; // value used from Feb 2024
-      // Real shift_ratio = 0.15;
 
       for (int n = 0; n < N; n++){
 

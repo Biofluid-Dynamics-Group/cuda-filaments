@@ -30,20 +30,21 @@ class VISUAL:
         self.globals_name = 'globals.ini'
 
 
-        self.date = '20240608'
+        # self.date = '20241011'
         # self.dir = f"data/IVP159/{self.date}/"
 
-        self.date = '20240717_rpy_get_drag'
-        self.dir = f"data/regular_wall_sim/{self.date}/"
+        # self.date = '20240717_rpy_get_drag'
+        # self.dir = f"data/regular_wall_sim/{self.date}/"
 
-        self.date = '20240724_symplectic'
-        self.dir = f"data/tilt_test/makeup_pattern/{self.date}/"
+        # self.date = '20240724_symplectic'
+        # self.dir = f"data/tilt_test/makeup_pattern/{self.date}/"
 
         # self.date = 'IVP'
         # self.dir = f"data/tilt_test/{self.date}/"
 
 
-
+        self.date = '20241031'
+        self.dir = f"data/emergent_platy_mcw_ic_N274/{self.date}/"
         
 
         # self.date = '20240311_8'
@@ -60,17 +61,17 @@ class VISUAL:
         # self.date = '20240311_1'
         # self.dir = f"data/ic_hpc_sim_free_with_force/{self.date}/"        
 
-        self.date = '20240827_ishikawa_jfm2'
+        # self.date = '20240827_ishikawa_jfm2'
         # self.date = '20240731_pnas_L1'
-        self.date = '20240829_pnas_volvox_beat'
+        # self.date = '20240829_pnas_volvox_beat'
         # self.date = '20240802_pnas_original_beat'
         # self.date = '20240822_ishikawa_resolution6'
-        self.date = '20240902_real_volvox'
-        self.date = '20240903_real_volvox_slender50'
-        self.dir = f"data/ishikawa/{self.date}/"
+        # self.date = '20240902_real_volvox'
+        # self.date = '20240903_real_volvox_slender50'
+        # self.dir = f"data/ishikawa/{self.date}/"
 
-        self.date = '20240904_volvox_test'
-        self.dir = f"data/volvox/{self.date}/"
+        # self.date = '20240904_volvox_test'
+        # self.dir = f"data/volvox/{self.date}/"
 
         # self.date = '20240115_resolution'
         # self.dir = f"data/resolution/{self.date}/"
@@ -112,8 +113,10 @@ class VISUAL:
                      "fil_x_dim": [],
                      "blob_x_dim": [],
                      "hex_num": [],
-                     "reverse_fil_direction_ratio": []}
-        self.video = False
+                     "reverse_fil_direction_ratio": [],
+                     "f_eff": [],
+                     "theta_0": []}
+        self.video = True
         self.interpolate = False
         self.angle = False
         self.output_to_fcm = False
@@ -121,7 +124,7 @@ class VISUAL:
         self.periodic = False
         
 
-        self.show_poles = True
+        self.show_poles = False
         self.big_sphere = True
         self.noblob = False
 
@@ -135,7 +138,7 @@ class VISUAL:
 
 
         self.plot_end_frame_setting = 60000
-        self.frames_setting = 600
+        self.frames_setting = 500000
 
         self.plot_end_frame = self.plot_end_frame_setting
         self.frames = self.frames_setting
@@ -208,11 +211,13 @@ class VISUAL:
         self.ar = self.pars_list['ar'][self.index]
         self.spring_factor = self.pars_list['spring_factor'][self.index]
         self.N = int(self.nswim*(self.nfil*self.nseg + self.nblob))
+        self.theta_0 = self.pars_list['theta_0'][self.index]
+        self.f_eff = self.pars_list['f_eff'][self.index]
 
         
         try:
             self.tilt_angle = self.pars_list['tilt_angle'][self.index]
-            self.simName = self.dir + f"ciliate_{self.nfil:.0f}fil_{self.nblob:.0f}blob_{self.ar:.2f}R_{self.spring_factor:.4f}torsion_{self.tilt_angle:.4f}tilt"
+            self.simName = self.dir + f"ciliate_{self.nfil:.0f}fil_{self.nblob:.0f}blob_{self.ar:.2f}R_{self.spring_factor:.4f}torsion_{self.tilt_angle:.4f}tilt_{self.f_eff:.4f}f_eff_{self.theta_0:.4f}theta0"
             open(self.simName + '_fil_references.dat')
         except:
             self.tilt_angle = 0.
@@ -538,25 +543,27 @@ class VISUAL:
         ax = fig.add_subplot(projection='3d')
         ax.set_proj_type('ortho')
         # ax.set_proj_type('persp', 0.05)  # FOV = 157.4 deg
-        # ax.view_init(elev=5., azim=45)
-        # ax.dist=20
+        ax.view_init(elev=45, azim=45)
+        ax.dist = 10  # Decrease this value to make the plot look larger/closer
         ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
         ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
         ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
         ax.xaxis._axinfo["grid"]['color'] =  (1,1,1,0)
         ax.yaxis._axinfo["grid"]['color'] =  (1,1,1,0)
         ax.zaxis._axinfo["grid"]['color'] =  (1,1,1,0)
-        # ax.axis('off')
-        # ax.grid(False)
-
+        ax.axis('off')
+        ax.grid(False)
 
         def animation_func(t):
             print(t)
             ax.cla()
 
-            ax.set_xlim(-100, 300)
-            ax.set_ylim(-100, 300)
-            ax.set_zlim(-100, 300)
+            # # Adjust the limits to zoom in on the area of interest
+            ax.set_xlim(-100, 100)
+            ax.set_ylim(-100, 100)
+            ax.set_zlim(-100, 100)
+            ax.set_aspect('equal')
+            # ax.axis('off')
 
             seg_states_str = seg_states_f.readline()
 
@@ -577,8 +584,8 @@ class VISUAL:
             plt.rcParams['animation.ffmpeg_path'] = '/usr/bin/ffmpeg'
             ani = animation.FuncAnimation(fig, animation_func, frames=500, interval=10, repeat=False)
             plt.show()
-            # FFwriter = animation.FFMpegWriter(fps=10)
-            # ani.save(f'fig/ciliate_{nfil}fil_anim.mp4', writer=FFwriter)
+            FFwriter = animation.FFMpegWriter(fps=10)
+            ani.save(f'fig/ciliate_{self.nfil}fil_anim.mp4', writer=FFwriter)
         else:
             for i in range(self.plot_end_frame):
                 print(" frame ", i, "/", self.plot_end_frame, "          ", end="\r")
@@ -586,7 +593,7 @@ class VISUAL:
                     animation_func(i)
                 else:
                     seg_states_str = seg_states_f.readline()
-                
+            
             plt.savefig(f'fig/ciliate_{self.nfil}fil.pdf', bbox_inches = 'tight', format='pdf')
             plt.show()
 
@@ -599,7 +606,7 @@ class VISUAL:
         # Plotting
         # colormap = 'cividis'
         colormap = 'twilight_shifted'
-        colormap = 'hsv'
+        # colormap = 'hsv'
 
         fig = plt.figure()
         ax = fig.add_subplot(1,1,1)
@@ -713,8 +720,8 @@ class VISUAL:
                     plt.rcParams['animation.ffmpeg_path'] = '/usr/bin/ffmpeg'
                     ani = animation.FuncAnimation(fig, animation_func, frames=self.frames, interval=10, repeat=False)
                     plt.show()    
-                    # FFwriter = animation.FFMpegWriter(fps=16)
-                    # ani.save(f'fig/fil_phase_index{self.index}_{self.date}_anim.mp4', writer=FFwriter)
+                    FFwriter = animation.FFMpegWriter(fps=16)
+                    ani.save(f'fig/fil_phase_index{self.index}_{self.date}_anim.mp4', writer=FFwriter)
                     ## when save, need to comment out plt.show() and be patient!
                     break
                 else:
@@ -863,8 +870,8 @@ class VISUAL:
                     plt.rcParams['animation.ffmpeg_path'] = '/usr/bin/ffmpeg'
                     ani = animation.FuncAnimation(fig, animation_func, frames=self.frames, interval=10, repeat=False)
                     plt.show()    
-                    # FFwriter = animation.FFMpegWriter(fps=16)
-                    # ani.save(f'fig/fil_phase_index{self.index}_{self.date}_anim.mp4', writer=FFwriter)
+                    FFwriter = animation.FFMpegWriter(fps=16)
+                    ani.save(f'fig/fil_phase_index{self.index}_{self.date}_anim.mp4', writer=FFwriter)
                     ## when save, need to comment out plt.show() and be patient!
                     break
                 else:
@@ -2091,13 +2098,13 @@ class VISUAL:
             if(i>=self.plot_start_frame):
 
                 body_states = np.array(body_states_str.split()[1:], dtype=float)
-                body_vels = np.array(body_vels_str.split(), dtype=float)
-                # body_vels = np.array(body_vels_str.split([1:]), dtype=float)
+                # body_vels = np.array(body_vels_str.split(), dtype=float)
+                body_vels = np.array(body_vels_str.split()[1:], dtype=float)
 
                 # body_pos_array[i-self.plot_start_frame] = body_states[0:3]
                 body_vel_array[i-self.plot_start_frame] = body_vels
                 body_speed_array[i-self.plot_start_frame] = np.sqrt(np.sum(body_vels[0:3]*body_vels[0:3], 0))
-
+                # body_speed_array[i-self.plot_start_frame] = body_vels[2]
             # pos += body_vels[0:3]
             # body_vel_array[i][0:3] = pos*self.dt
 
@@ -2130,8 +2137,8 @@ class VISUAL:
         ax2.set_xlabel(r"$t/T$")
 
         plt.tight_layout()
-        # fig1.savefig(f'fig/ciliate_speed_index{self.index}.pdf', bbox_inches = 'tight', format='pdf')
-        
+        fig1.savefig(f'fig/ciliate_speed_index{self.index}.pdf', bbox_inches = 'tight', format='pdf')
+        fig2.savefig(f'fig/ciliate_speed_index{self.index}_z.pdf', bbox_inches = 'tight', format='pdf')
         plt.show()
 
     def ciliate_speed_eco(self):
@@ -2292,6 +2299,14 @@ class VISUAL:
                 blob_forces = np.reshape(blob_forces, (int(self.pars['NBLOB']), 3))
                 body_vels_tile = np.tile(body_vels, (int(self.pars['NBLOB']), 1))
                 blob_vels = body_vels_tile[:, 0:3] + np.cross(body_vels_tile[:, 3:6], blob_references)
+
+                if i % 10 == 0:
+                    print(f"Iteration {i}:")
+                    print(f"seg_forces shape: {seg_forces.shape}")
+                    print(f"seg_vels shape: {seg_vels.shape}")
+                    print(f"blob_forces shape: {blob_forces.shape}")
+                    print(f"body_vels_tile shape: {body_vels_tile.shape}")
+                    print(f"blob_vels shape: {blob_vels.shape}")
                 
                 R = util.rot_mat(body_states[3:7])
                 body_axis = np.matmul(R, np.array([0,0,1]))
@@ -2320,7 +2335,86 @@ class VISUAL:
         ax.plot(time_array, dissipation_array)
         ax.set_xlabel(r'$t/T$')
         ax.set_ylabel(r'$PT^2/\mu L^3$')
-        # fig.savefig(f'fig/ciliate_dissipation_index{self.index}.pdf', bbox_inches = 'tight', format='pdf')
+        ax.set_ylim(0)
+        fig.savefig(f'fig/ciliate_dissipation_index{self.index}.pdf', bbox_inches = 'tight', format='pdf')
+        # plt.show()
+
+    def average_dissipation(self):
+        self.select_sim()
+
+        seg_forces_f = open(self.simName + '_seg_forces.dat', "r")
+        seg_vels_f = open(self.simName + '_seg_vels.dat', "r")
+        blob_forces_f = open(self.simName + '_blob_forces.dat', "r")
+        blob_references_f = open(self.simName + '_blob_references.dat', "r")
+        body_states_f = open(self.simName + '_body_states.dat', "r")
+        body_vels_f = open(self.simName + '_body_vels.dat', "r")
+
+        # Plotting
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+
+        time_array = np.arange(self.plot_start_frame, self.plot_end_frame )/self.period
+        body_speed_array = np.zeros(self.frames)
+        body_speed_along_axis_array = np.zeros(self.frames)
+        body_rot_speed_array = np.zeros(self.frames)
+        body_rot_speed_along_axis_array = np.zeros(self.frames)
+        dissipation_array = np.zeros(self.frames)
+        efficiency_array = np.zeros(self.frames)
+
+        blob_references_str = blob_references_f.readline()
+        blob_references= np.array(blob_references_str.split(), dtype=float)
+        blob_references = np.reshape(blob_references, (int(self.pars['NBLOB']), 3))
+
+        for i in range(self.plot_end_frame):
+            print(" frame ", i, "/", self.plot_end_frame, "          ", end="\r")
+            seg_forces_str = seg_forces_f.readline()
+            seg_vels_str = seg_vels_f.readline()
+            blob_forces_str = blob_forces_f.readline()
+            body_vels_str = body_vels_f.readline()
+            body_states_str = body_states_f.readline()
+
+            if(i>=self.plot_start_frame):
+                seg_forces = np.array(seg_forces_str.split()[1:], dtype=float)
+                seg_vels = np.array(seg_vels_str.split()[1:], dtype=float)
+                blob_forces= np.array(blob_forces_str.split()[1:], dtype=float)
+                body_vels= np.array(body_vels_str.split()[1:], dtype=float)
+                body_states = np.array(body_states_str.split()[1:], dtype=float)
+
+                seg_forces = np.reshape(seg_forces, (int(self.pars['NSEG']*self.pars['NFIL']), 6))
+                seg_vels = np.reshape(seg_vels, (int(self.pars['NSEG']*self.pars['NFIL']), 6))
+                blob_forces = np.reshape(blob_forces, (int(self.pars['NBLOB']), 3))
+                body_vels_tile = np.tile(body_vels, (int(self.pars['NBLOB']), 1))
+                blob_vels = body_vels_tile[:, 0:3] + np.cross(body_vels_tile[:, 3:6], blob_references)
+                
+                R = util.rot_mat(body_states[3:7])
+                body_axis = np.matmul(R, np.array([0,0,1]))
+                
+                body_speed_array[i-self.plot_start_frame] = np.sqrt(np.sum(body_vels[0:3]*body_vels[0:3], 0))
+                body_speed_along_axis_array[i-self.plot_start_frame] = np.sum(body_vels[0:3]*body_axis)
+
+                body_rot_speed_array[i-self.plot_start_frame] = np.sqrt(np.sum(body_vels[3:6]*body_vels[3:6], 0))
+                body_rot_speed_along_axis_array[i-self.plot_start_frame] = np.sum(body_vels[3:6]*body_axis)
+
+                dissipation_array[i-self.plot_start_frame] = np.sum(blob_forces * blob_vels) + np.sum(seg_forces * seg_vels)
+
+        efficiency_array = 6*np.pi*self.radius*body_speed_along_axis_array**2/dissipation_array
+        body_speed_along_axis_array /= self.fillength
+        body_speed_array /= self.fillength
+        dissipation_array /= self.fillength**3
+        dissipation_array /= self.nfil
+
+        np.save(f'{self.dir}/time_array_index{self.index}.npy', time_array)
+        np.save(f'{self.dir}/body_speed_array_index{self.index}.npy', body_speed_along_axis_array)
+        np.save(f'{self.dir}/body_rot_speed_array_index{self.index}.npy', body_rot_speed_along_axis_array)
+        np.save(f'{self.dir}/dissipation_array_index{self.index}.npy', dissipation_array)
+        np.save(f'{self.dir}/efficiency_array_index{self.index}.npy', efficiency_array)
+
+        ax.set_xlim(time_array[0], time_array[-1])
+        ax.plot(time_array, dissipation_array)
+        ax.set_xlabel(r'$t/T$')
+        ax.set_ylabel(r'$PT^2/\mu L^3$')
+        # ax.set_ylim(0)
+        fig.savefig(f'fig/average_dissipation_index{self.index}.pdf', bbox_inches = 'tight', format='pdf')
         # plt.show()
 
     def ciliate_dmd(self):
@@ -3721,7 +3815,8 @@ class VISUAL:
                         body_vels = np.array(body_vels_str.split(), dtype=float)
 
                         # body_vel_array[i-self.plot_start_frame] = body_vels
-                        body_speed_array[i-self.plot_start_frame] = np.sqrt(np.sum(body_vels[0:3]*body_vels[0:3], 0))
+                        # body_speed_array[i-self.plot_start_frame] = np.sqrt(np.sum(body_vels[0:3]*body_vels[0:3], 0))
+                        body_speed_array[i-self.plot_start_frame] = body_vels[2]
 
                 avg_speed[ind] = np.mean(body_speed_array)
                 max_speed[ind] = np.max(body_speed_array)
@@ -3730,7 +3825,7 @@ class VISUAL:
             except:
                 print("WARNING: " + self.simName + " not found.")
 
-        print(f'avg speed={avg_speed/self.fillength}')
+        print(f'avg velocity={avg_speed/self.fillength}')
 
         print(", ".join((max_speed/self.fillength).astype(str)))
         print(", ".join((some_speed/self.fillength).astype(str)))
@@ -3738,7 +3833,7 @@ class VISUAL:
         
         plt.legend()
         ax.set_xlabel(r'$t/T$')
-        ax.set_ylabel(r'$<VT/L>$')
+        ax.set_ylabel(r'$VT/L$')
         ax.set_xlim(0, 1)
         fig.savefig(f'fig/multi_speed_{self.date}.pdf', bbox_inches = 'tight', format='pdf')
         plt.show()

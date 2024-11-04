@@ -289,7 +289,9 @@ void filament::initial_setup(const Real *const base_pos,
           std::ifstream in("input/ishikawa_wave/ishikawa.dat"); // input
           in >> k;
           in >> v;
-          phase = Real(2.0)*PI*( sin(k*theta/2.0) + sin(v*phi/4.0) );
+          // std::cout << "Phi: " << phi << std::endl;
+          phase = v*(phi + PI);
+          // std::cout << "Phase: " << phase << std::endl;
           in.close();
 
         #elif (CILIA_IC_TYPE==5)
@@ -1615,20 +1617,20 @@ void filament::initial_guess(const int nt, const Real *const x_in, const Real *c
         platy_beat_tangent(tangent, Real(n)/Real(NSEG - 1));
         tangent = R*tangent;
 
-        std::cout << "Tangent at segment " << n << ": (" << tangent(0) << ", " << tangent(1) << ", " << tangent(2) << ")" << std::endl;
+        // std::cout << "Tangent at segment " << n << ": (" << tangent(0) << ", " << tangent(1) << ", " << tangent(2) << ")" << std::endl;
 
         segments[n].x[0] = segments[n-1].x[0] + 0.5*DL*(prev_tangent(0) + tangent(0));
         segments[n].x[1] = segments[n-1].x[1] + 0.5*DL*(prev_tangent(1) + tangent(1));
         segments[n].x[2] = segments[n-1].x[2] + 0.5*DL*(prev_tangent(2) + tangent(2));
 
-        std::cout << "Segment " << n << " position: (" << segments[n].x[0] << ", " << segments[n].x[1] << ", " << segments[n].x[2] << ")" << std::endl;
+        // std::cout << "Segment " << n << " position: (" << segments[n].x[0] << ", " << segments[n].x[1] << ", " << segments[n].x[2] << ")" << std::endl;
 
         // printf("positions integrated\n");
 
         prev_tangent = tangent;
 
-        std::cout << "Tangent at segment " << n-1 << ": (" << prev_tangent(0) << ", " << prev_tangent(1) << ", " << prev_tangent(2) << ")" << std::endl;
-        std::cout << "Tangent at segment " << n << ": (" << tangent(0) << ", " << tangent(1) << ", " << tangent(2) << ")" << std::endl;
+        // std::cout << "Tangent at segment " << n-1 << ": (" << prev_tangent(0) << ", " << prev_tangent(1) << ", " << prev_tangent(2) << ")" << std::endl;
+        // std::cout << "Tangent at segment " << n << ": (" << tangent(0) << ", " << tangent(1) << ", " << tangent(2) << ")" << std::endl;
 
         // K matrix, or, velocities
 
