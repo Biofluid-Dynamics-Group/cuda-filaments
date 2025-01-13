@@ -43,8 +43,8 @@ class VISUAL:
         # self.dir = f"data/tilt_test/{self.date}/"
 
 
-        self.date = '20241031'
-        self.dir = f"data/emergent_platy_mcw_ic_N274/{self.date}/"
+        self.date = '20241210'
+        self.dir = f"data/small_patch_platy/{self.date}/"
         
 
         # self.date = '20240311_8'
@@ -2251,6 +2251,42 @@ class VISUAL:
         ax.set_ylabel('Force')
         plt.legend()
         plt.savefig(f'fig/ciliate_forcing_{self.nfil}fil.pdf', bbox_inches = 'tight', format='pdf')
+        plt.show()
+
+    def ciliate_phases(self):
+        self.select_sim()
+
+        fil_phases_f = open(self.simName + '_true_states.dat', "r")
+        
+
+        # Plotting
+        fig = plt.figure()
+        ax = fig.add_subplot(1,1,1)
+
+        time_array = np.arange(self.plot_start_frame, self.plot_end_frame )
+        phases_array = np.zeros((len(time_array), int(self.pars['NFIL']), 2))
+
+        for i in range(self.plot_end_frame):
+            print(" frame ", i, "/", self.plot_end_frame, "          ", end="\r")
+            phases_str = fil_phases_f.readline()
+
+            if(i>=self.plot_start_frame):
+
+                phases = np.array(phases_str.split()[2:], dtype=float)
+
+                phases_1 = phases[:int(self.nfil/2)+1] #% 2*np.pi
+                phases_2 = phases[int(self.nfil/2)+1:]
+
+                phases_array[i-self.plot_start_frame, :] = np.column_stack((phases_1, phases_2))
+
+        labels=[r'$\lambda_x$', r'$\lambda_y$', r'$\lambda_z$']
+        for i in range(len(phases_array[1])):
+            ax.plot(time_array, phases_array[:, i, 0], label=r'$\psi_1$' + f' fil={i}')
+            ax.plot(time_array, phases_array[:, i, 1], label=r'$\psi_2$' + f' fil={i}')
+        ax.set_xlabel('Time step')
+        ax.set_ylabel('Phase')
+        plt.legend()
+        plt.savefig(f'fig/ciliate_phases_{self.nfil}fil.pdf', bbox_inches = 'tight', format='pdf')
         plt.show()
 
     def ciliate_dissipation(self):

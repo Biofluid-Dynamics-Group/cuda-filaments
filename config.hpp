@@ -332,7 +332,7 @@ extern Real THETA_0; // Amplitude of the beat in radians. Only used in Platy bea
 //    the associated linear system is embedded in the wider Broyden's solve, rather than being solved for the current iterate at each iteration.
 // 1: Use GMRES to solve the linear system at each iteration of Broyden's method.
 
-#define MAX_LINEAR_SYSTEM_ITER 350 // Maximum number of iterations used to solve the linear system in each mobility solve.
+#define MAX_LINEAR_SYSTEM_ITER 500 // Maximum number of iterations used to solve the linear system in each mobility solve.
 #define LINEAR_SYSTEM_TOL 1e-4 // Relative tolerance in the linear system solves.
 
 #if SOLVER_TYPE==1

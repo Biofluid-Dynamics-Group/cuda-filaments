@@ -9,9 +9,9 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = 'ishikawa_study_platy_beat_synchronised/'
+        self.category = 'small_patch_platy/'
         self.exe_name = 'cilia_1e-4'
-        self.date = '20240930'
+        self.date = '20241210'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -41,7 +41,7 @@ class DRIVER:
                      "theta_0": []}
 
         # self.sweep_shape = (1, 12, 4, 1)
-        self.sweep_shape = (4, 1, 1, 1)
+        self.sweep_shape = (1, 1, 1, 1)
 
         self.num_sim = 0
 
@@ -85,24 +85,26 @@ class DRIVER:
                         seg_sep = 2.6
                         force_mag = 1
                         tilt_angle = 0
+                        # tilt_angle = 0.2181662
 
-                        # nfil = int(64*2*(i+1))
-                        # nblob = int(64*2*2*2*(i+1))
-                        # nseg = 20
-                        # ar = 20
-                        # period = 1
-                        # spring_factor = 1e-3
-                        # nx=400
-                        # ny=400
-                        # nz=400
-                        # boxsize=8000
+                        nfil = int(310/20)
+                        nblob = int(5000)
+                        nseg = 20
+                        ar = 4
+                        period = 1
+                        spring_factor = 1e-3
+
+                        nx=500
+                        ny=500
+                        nz=500
+                        boxsize=8000
                         fil_spacing=80.0
                         blob_spacing=8.0
                         fil_x_dim=16*(i+1)
                         blob_x_dim=160*(i+1)
                         hex_num=2
                         reverse_fil_direction_ratio=0.0
-                        sim_length = 100.0
+                        sim_length = 1.0
                         f_eff = 0.3
                         theta_0 = 3.14159265359/2.1
 
@@ -143,18 +145,18 @@ class DRIVER:
                         # tilt_angle = 0
 
                         # ishikawa jfm
-                        nfil = [10,  40, 160, 320][i]
-                        nblob = 40962
-                        ar = 6
-                        nseg = 40
-                        nx=400
-                        ny=400
-                        nz=400
-                        boxsize=8000
-                        spring_factor = 1e-3
-                        period = 1
-                        sim_length = 1
-                        tilt_angle = 0
+                        # nfil = [10,  40, 160, 320][i]
+                        # nblob = 40962
+                        # ar = 6
+                        # nseg = 40
+                        # nx=400
+                        # ny=400
+                        # nz=400
+                        # boxsize=8000
+                        # spring_factor = 1e-3
+                        # period = 1
+                        # sim_length = 1
+                        # tilt_angle = 0
                         # Recreation of Fulford & BLake
                         # theta_0 = 0.7251279501596777
                         # f_eff = 0.2061749990099957

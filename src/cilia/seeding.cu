@@ -954,7 +954,7 @@
             << normal_refs[3*n + 1] << ", " 
             << normal_refs[3*n + 2] << ")" << std::endl;
 
-      rotation_angle += 2.0*PI/Real(N);
+      rotation_angle += 2.0*PI/310.0;  // I set N = 310 for the gap study so that less filaments create the gap at the end
 
     }
 
