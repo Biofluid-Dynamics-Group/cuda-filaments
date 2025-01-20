@@ -155,6 +155,8 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
   // 3 = Ishikawa MCW
   // 5 = Read from a file (default - we can define arbitrary initial conditions in python)
 
+  #define PLATY_GROUPS true // Divide a sphere into 12 segments of frequency
+
 
   #if CILIA_IC_TYPE==2
 
@@ -359,7 +361,7 @@ extern Real THETA_0; // Amplitude of the beat in radians. Only used in Platy bea
 #else
 
   #define STEPS_PER_PERIOD 500
-  #define SAVES_PER_PERIOD 100
+  #define SAVES_PER_PERIOD 500
 
 #endif
 

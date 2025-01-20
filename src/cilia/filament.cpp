@@ -228,6 +228,14 @@ void filament::initial_setup(const Real *const base_pos,
 
       omega0 = 2.0*PI; // T = 1
 
+      #if PLATY_GROUPS
+          const Real phi_pos = atan2(base_pos[1], base_pos[0]);                
+          Real freq_shift = 0.5;  // Frequency shift between cilia in gap
+          Real group = floor(phi_pos*6.0 / PI) + 1;
+          omega0 = 2.0*PI + group*freq_shift/12;
+      
+      #endif
+
       #if (DYNAMIC_SHAPE_ROTATION || WRITE_GENERALISED_FORCES)
 
         shape_rotation_angle = 0.0;
@@ -327,7 +335,6 @@ void filament::initial_setup(const Real *const base_pos,
           }
 
         #endif
-
 
         #if SURFACE_OF_REVOLUTION_BODIES
 

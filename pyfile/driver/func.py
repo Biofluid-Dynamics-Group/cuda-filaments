@@ -9,9 +9,9 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = 'small_patch_platy/'
+        self.category = 'frequency_shift_test/'
         self.exe_name = 'cilia_1e-4'
-        self.date = '20241210'
+        self.date = '20250120'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -83,13 +83,17 @@ class DRIVER:
                     for l in range(self.sweep_shape[3]):
 
                         seg_sep = 2.6
+                        # seg_sep = 49.4
                         force_mag = 1
-                        tilt_angle = 0
-                        # tilt_angle = 0.2181662
+                        # tilt_angle = 0
+                        tilt_angle = 0.2181662
 
-                        nfil = int(310/20)
+                        # nfil = int(310/20)
+                        nfil = int(310)
+                        # nfil = 1
                         nblob = int(5000)
                         nseg = 20
+                        # nseg = 2
                         ar = 4
                         period = 1
                         spring_factor = 1e-3
