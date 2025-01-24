@@ -23,6 +23,7 @@ int TOTAL_TIME_STEPS = 1;
 Real TILT_ANGLE = 0.0;
 Real EFFECTIVE_STROKE_FRACTION = 0.3;
 Real THETA_0 = PI/2.1;
+Real FREQ_SHIFT = 0.0;
 
 std::string SIMULATION_DIR = "data/expr_sims/global/";
 std::string SIMULATION_FILE = "cilia";

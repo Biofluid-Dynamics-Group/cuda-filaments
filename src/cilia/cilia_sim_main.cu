@@ -61,6 +61,7 @@ int main(int argc, char** argv){
   SEG_SEP = std::stof(data_from_ini(GLOBAL_FILE_NAME, "Parameters", "seg_sep"));
   PERIOD = std::stof(data_from_ini(GLOBAL_FILE_NAME, "Parameters", "period"));
   SIM_LENGTH = std::stof(data_from_ini(GLOBAL_FILE_NAME, "Parameters", "sim_length"));
+  FREQ_SHIFT = std::stof(data_from_ini(GLOBAL_FILE_NAME, "Parameters", "freq_shift"));
   TORSIONAL_SPRING_MAGNITUDE_FACTOR = std::stof(data_from_ini(GLOBAL_FILE_NAME, "Parameters", "spring_factor"));
   TILT_ANGLE = std::stof(data_from_ini(GLOBAL_FILE_NAME, "Parameters", "tilt_angle"));
   EFFECTIVE_STROKE_FRACTION = std::stof(data_from_ini(GLOBAL_FILE_NAME, "Parameters", "f_eff"));

@@ -276,6 +276,7 @@ extern int TOTAL_TIME_STEPS;
 extern Real TILT_ANGLE;
 extern Real EFFECTIVE_STROKE_FRACTION; // Fraction of the beat that corresponds to the effective stroke in phase space. Only used in Platy beat.
 extern Real THETA_0; // Amplitude of the beat in radians. Only used in Platy beat.
+extern Real FREQ_SHIFT;  // Frequency percentage shift
 
 
 #define MU 1.0 // Fluid viscosity.

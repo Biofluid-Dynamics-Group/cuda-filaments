@@ -9,9 +9,9 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = 'frequency_shift_test/'
+        self.category = 'frequency_gap_sweep/'
         self.exe_name = 'cilia_1e-4'
-        self.date = '20250120'
+        self.date = '20250124'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -38,10 +38,11 @@ class DRIVER:
                      "hex_num": [],
                      "reverse_fil_direction_ratio": [],
                      "f_eff": [],
-                     "theta_0": []}
+                     "theta_0": [],
+                     "freq_shift": []}
 
         # self.sweep_shape = (1, 12, 4, 1)
-        self.sweep_shape = (1, 1, 1, 1)
+        self.sweep_shape = (12, 12, 1, 1)
 
         self.num_sim = 0
 
@@ -89,7 +90,7 @@ class DRIVER:
                         tilt_angle = 0.2181662
 
                         # nfil = int(310/20)
-                        nfil = int(310)
+                        nfil = int(310) - i
                         # nfil = 1
                         nblob = int(5000)
                         nseg = 20
@@ -111,6 +112,7 @@ class DRIVER:
                         sim_length = 1.0
                         f_eff = 0.3
                         theta_0 = 3.14159265359/2.1
+                        freq_shift = 0.25*j/11
 
                         # callibration
                         # nfil = int(1*(i+1))
@@ -243,6 +245,7 @@ class DRIVER:
                         self.pars_list["reverse_fil_direction_ratio"].append(reverse_fil_direction_ratio)
                         self.pars_list["f_eff"].append(f_eff)
                         self.pars_list["theta_0"].append(theta_0)
+                        self.pars_list["freq_shift"].append(freq_shift)
 
                         index += 1
         # Write rules to sim list file
