@@ -230,7 +230,7 @@ void filament::initial_setup(const Real *const base_pos,
 
       #if PLATY_GROUPS
           const Real phi_pos = atan2(base_pos[1], base_pos[0]);                
-          Real group = floor(phi_pos*6.0 / PI) + 1;
+          Real group = floor(phi_pos*6.0 / PI + 0.0000000001);
           omega0 = 2.0*PI + group*FREQ_SHIFT*2.0*PI/12;
       
       #endif

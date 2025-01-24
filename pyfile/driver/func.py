@@ -112,7 +112,7 @@ class DRIVER:
                         sim_length = 1.0
                         f_eff = 0.3
                         theta_0 = 3.14159265359/2.1
-                        freq_shift = 0.25*j/11
+                        freq_shift = 0.4*j/11
 
                         # callibration
                         # nfil = int(1*(i+1))
