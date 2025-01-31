@@ -2,6 +2,8 @@ import configparser
 import os
 import util
 
+num_fils = 308
+
 class DRIVER:
 
     def __init__(self):
@@ -9,9 +11,9 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = 'frequency_gap_sweep/'
+        self.category = f'frequency_sweep_{num_fils}/'
         self.exe_name = 'cilia_1e-4'
-        self.date = '20250124'
+        self.date = '20250130'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -42,7 +44,7 @@ class DRIVER:
                      "freq_shift": []}
 
         # self.sweep_shape = (1, 12, 4, 1)
-        self.sweep_shape = (12, 12, 1, 1)
+        self.sweep_shape = (12, 1, 1, 1)
 
         self.num_sim = 0
 
@@ -90,7 +92,7 @@ class DRIVER:
                         tilt_angle = 0.2181662
 
                         # nfil = int(310/20)
-                        nfil = int(310) - i
+                        nfil = num_fils
                         # nfil = 1
                         nblob = int(5000)
                         nseg = 20
@@ -112,7 +114,7 @@ class DRIVER:
                         sim_length = 1.0
                         f_eff = 0.3
                         theta_0 = 3.14159265359/2.1
-                        freq_shift = 0.4*j/11
+                        freq_shift = 0.4*i/11
 
                         # callibration
                         # nfil = int(1*(i+1))
@@ -300,7 +302,7 @@ class DRIVER:
             
             for key, value in self.pars_list.items():
                 self.write_ini("Parameters", key, float(self.pars_list[key][i]))
-            self.simName = f"ciliate_{self.pars_list['nfil'][i]:.0f}fil_{self.pars_list['nblob'][i]:.0f}blob_{self.pars_list['ar'][i]:.2f}R_{self.pars_list['spring_factor'][i]:.4f}torsion_{self.pars_list['tilt_angle'][i]:.4f}tilt_{self.pars_list['f_eff'][i]:.4f}f_eff_{self.pars_list['theta_0'][i]:.4f}theta0"
+            self.simName = f"ciliate_{self.pars_list['nfil'][i]:.0f}fil_{self.pars_list['nblob'][i]:.0f}blob_{self.pars_list['ar'][i]:.2f}R_{self.pars_list['spring_factor'][i]:.4f}torsion_{self.pars_list['tilt_angle'][i]:.4f}tilt_{self.pars_list['f_eff'][i]:.4f}f_eff_{self.pars_list['theta_0'][i]:.4f}theta0_{self.pars_list['freq_shift'][i]:.4f}freqshift"
             self.write_ini("Filenames", "simulation_file", self.simName)
             self.write_ini("Filenames", "simulation_dir", self.dir)
             self.write_ini("Filenames", "filplacement_file_name", f"input/placement/icosahedron/icosa_d2_N160.dat")
@@ -321,7 +323,7 @@ class DRIVER:
 
             command = f"export OPENBLAS_NUM_THREADS=1; \
                         export CUDA_VISIBLE_DEVICES={self.cuda_device}; \
-                        ./bin/{self.exe_name} "
+                        nohup ./bin/{self.exe_name} > nohup_{num_fils}.out &"
             
             # on ic hpc
             # command = f"export OPENBLAS_NUM_THREADS=1; \
