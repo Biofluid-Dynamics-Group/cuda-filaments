@@ -43,8 +43,8 @@ class VISUAL:
         # self.dir = f"data/tilt_test/{self.date}/"
 
 
-        self.date = '20241210'
-        self.dir = f"data/small_patch_platy/{self.date}/"
+        self.date = '20250213'
+        self.dir = f"data/longer_period_fixed_gap/{self.date}/"
         
 
         # self.date = '20240311_8'
@@ -115,13 +115,14 @@ class VISUAL:
                      "hex_num": [],
                      "reverse_fil_direction_ratio": [],
                      "f_eff": [],
-                     "theta_0": []}
+                     "theta_0": [],
+                     "freq_shift": []}
         self.video = True
         self.interpolate = False
         self.angle = False
         self.output_to_fcm = False
         self.output_to_superpunto = True
-        self.periodic = False
+        self.periodic = True
         
 
         self.show_poles = False
@@ -213,11 +214,12 @@ class VISUAL:
         self.N = int(self.nswim*(self.nfil*self.nseg + self.nblob))
         self.theta_0 = self.pars_list['theta_0'][self.index]
         self.f_eff = self.pars_list['f_eff'][self.index]
+        self.freq_shift = self.pars_list['freq_shift'][self.index]
 
         
         try:
             self.tilt_angle = self.pars_list['tilt_angle'][self.index]
-            self.simName = self.dir + f"ciliate_{self.nfil:.0f}fil_{self.nblob:.0f}blob_{self.ar:.2f}R_{self.spring_factor:.4f}torsion_{self.tilt_angle:.4f}tilt_{self.f_eff:.4f}f_eff_{self.theta_0:.4f}theta0"
+            self.simName = self.dir + f"ciliate_{self.nfil:.0f}fil_{self.nblob:.0f}blob_{self.ar:.2f}R_{self.spring_factor:.4f}torsion_{self.tilt_angle:.4f}tilt_{self.f_eff:.4f}f_eff_{self.theta_0:.4f}theta0_{self.freq_shift:.4f}freqshift"
             open(self.simName + '_fil_references.dat')
         except:
             self.tilt_angle = 0.
@@ -559,9 +561,9 @@ class VISUAL:
             ax.cla()
 
             # # Adjust the limits to zoom in on the area of interest
-            ax.set_xlim(-100, 100)
-            ax.set_ylim(-100, 100)
-            ax.set_zlim(-100, 100)
+            ax.set_xlim(-150, 150)
+            ax.set_ylim(-150, 150)
+            ax.set_zlim(-150, 150)
             ax.set_aspect('equal')
             # ax.axis('off')
 
@@ -578,7 +580,7 @@ class VISUAL:
                 for seg in range(1, self.nseg):
                     seg_pos = seg_states[fil_i+3*(seg-1) : fil_i+3*seg]
                     fil_data[seg] = seg_pos
-                ax.plot(fil_data[:,0], fil_data[:,1], fil_data[:,2], c='black', zorder = 100)
+                ax.plot(fil_data[:,0], fil_data[:,1], fil_data[:,2], c='black', zorder = 100, marker='o', markersize=2)
 
         if(self.video):
             plt.rcParams['animation.ffmpeg_path'] = '/usr/bin/ffmpeg'

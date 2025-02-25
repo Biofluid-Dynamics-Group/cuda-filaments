@@ -2,7 +2,7 @@ import configparser
 import os
 import util
 
-num_fils = 308
+num_fils = 309
 
 class DRIVER:
 
@@ -11,9 +11,9 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'frequency_sweep_{num_fils}/'
+        self.category = f'longer_period_no_gap/'
         self.exe_name = 'cilia_1e-4'
-        self.date = '20250130'
+        self.date = '20250221'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -44,7 +44,7 @@ class DRIVER:
                      "freq_shift": []}
 
         # self.sweep_shape = (1, 12, 4, 1)
-        self.sweep_shape = (12, 1, 1, 1)
+        self.sweep_shape = (1, 1, 1, 1)
 
         self.num_sim = 0
 
@@ -94,10 +94,10 @@ class DRIVER:
                         # nfil = int(310/20)
                         nfil = num_fils
                         # nfil = 1
-                        nblob = int(5000)
+                        nblob = 9000
                         nseg = 20
                         # nseg = 2
-                        ar = 4
+                        ar = 8  # This is D/L, not R/L
                         period = 1
                         spring_factor = 1e-3
 
@@ -111,10 +111,10 @@ class DRIVER:
                         blob_x_dim=160*(i+1)
                         hex_num=2
                         reverse_fil_direction_ratio=0.0
-                        sim_length = 1.0
+                        sim_length = 7.0
                         f_eff = 0.3
                         theta_0 = 3.14159265359/2.1
-                        freq_shift = 0.4*i/11
+                        freq_shift = 0.4
 
                         # callibration
                         # nfil = int(1*(i+1))
@@ -124,7 +124,7 @@ class DRIVER:
                         # blob_spacing=4.0
                         # fil_x_dim=2
                         # blob_x_dim=64
-                        # sim_length = 1
+                        # sim_length = 5
 
 
                         # nseg = 20
@@ -273,11 +273,17 @@ class DRIVER:
     def read_rules(self):
         sim = configparser.ConfigParser()
         try:
+            print("Here")
             sim.read(self.dir+"rules.ini")
+            print("Now here")
             for key, value in self.pars_list.items():
+                print("Nowwww here")
                 if(key in sim["Parameter list"]):
+                    print(f"{key}")
                     self.pars_list[key] = [float(x) for x in sim["Parameter list"][key].split(', ')][0::1]
-            self.num_sim = len(self.pars_list["nfil"])            
+                print("whaaat")
+            self.num_sim = len(self.pars_list["nfil"])
+            print("what")
         except:
             print("WARNING: " + self.dir + "rules.ini not found.")
 
@@ -323,7 +329,8 @@ class DRIVER:
 
             command = f"export OPENBLAS_NUM_THREADS=1; \
                         export CUDA_VISIBLE_DEVICES={self.cuda_device}; \
-                        nohup ./bin/{self.exe_name} > nohup_{num_fils}.out &"
+                        ./bin/{self.exe_name}"
+                        # nohup ./bin/{self.exe_name} > nohup_{num_fils}.out &"
             
             # on ic hpc
             # command = f"export OPENBLAS_NUM_THREADS=1; \

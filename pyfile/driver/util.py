@@ -82,4 +82,6 @@ def even_list_index(n, m):
         result.append(end)
         start = end
 
+    print(result)
+
     return result
