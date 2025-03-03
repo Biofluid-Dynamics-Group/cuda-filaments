@@ -90,7 +90,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
 // 4 = Squirmer-type simulation; i.e. there aren't actually any filaments/cilia. The slip velocity can be set in the mobility solver.
 
 // Define whether the motion of the rigid bodies is imposed or allowed to evolve dynamically.
-#define PRESCRIBED_BODY_VELOCITIES true
+#define PRESCRIBED_BODY_VELOCITIES false
 
 #define OUTPUT_FORCES true
 #if CILIA_TYPE==0
@@ -141,6 +141,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
   // If true, the vertical in the cilia reference configuration can rotate with respect to the surface normal.
   // Essentially, the cilia can 'tip backwards or forwards' in their beat planes.
   // If false, no such rotation ever occurs.
+  // In the Platynaereis case this changes to an elastic variable.
 
   #define WRITE_GENERALISED_FORCES false
   // If true, this simulation will save its generalised forces to file for use as the reference values.

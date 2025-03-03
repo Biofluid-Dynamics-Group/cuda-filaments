@@ -11,9 +11,9 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'longer_period_no_gap/'
+        self.category = f'metachronal_wave_N33/'
         self.exe_name = 'cilia_1e-4'
-        self.date = '20250221'
+        self.date = '20250228'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -86,18 +86,15 @@ class DRIVER:
                     for l in range(self.sweep_shape[3]):
 
                         seg_sep = 2.6
-                        # seg_sep = 49.4
                         force_mag = 1
-                        # tilt_angle = 0
-                        tilt_angle = 0.2181662
+                        tilt_angle = 0.2181662   # Platynaereis
 
-                        # nfil = int(310/20)
                         nfil = num_fils
-                        # nfil = 1
                         nblob = 9000
                         nseg = 20
-                        # nseg = 2
-                        ar = 8  # This is D/L, not R/L
+                        ar = 8  # This is D/L, not R/L. This is for Platynaereis
+                        # Since D/L = 8 and L = 20um, D = 160um
+                        # In the simulation, L is around  49 units
                         period = 1
                         spring_factor = 1e-3
 
@@ -111,116 +108,10 @@ class DRIVER:
                         blob_x_dim=160*(i+1)
                         hex_num=2
                         reverse_fil_direction_ratio=0.0
-                        sim_length = 7.0
+                        sim_length = 1.0
                         f_eff = 0.3
                         theta_0 = 3.14159265359/2.1
-                        freq_shift = 0.4
-
-                        # callibration
-                        # nfil = int(1*(i+1))
-                        # nblob = int(4096*(i+1))
-                        # nseg = 20
-                        # fil_spacing=256.0
-                        # blob_spacing=4.0
-                        # fil_x_dim=2
-                        # blob_x_dim=64
-                        # sim_length = 5
-
-
-                        # nseg = 20
-                        # nfil = int(639)
-                        # nblob = int(40961)
-                        # ar = round(15.00, 2)
-                        # spring_factor = round(0.005 + 0.001*i, 3)
-                        # period = 1
-                        # sim_length = 500
-                        # tilt_angle = (1./9.)*0.5*3.141592653*j
-                        # tilt_angle = 0
-                        
-
-                        # ishikawa pnas
-                        # nfil = 160
-                        # nblob = 40962
-                        # ar = 20
-                        # nseg = 20
-                        # nx=400
-                        # ny=400
-                        # nz=400
-                        # boxsize=8000
-                        # spring_factor = round(0)
-                        # period = 1
-                        # sim_length = 1
-                        # tilt_angle = 0
-
-                        # ishikawa jfm
-                        # nfil = [10,  40, 160, 320][i]
-                        # nblob = 40962
-                        # ar = 6
-                        # nseg = 40
-                        # nx=400
-                        # ny=400
-                        # nz=400
-                        # boxsize=8000
-                        # spring_factor = 1e-3
-                        # period = 1
-                        # sim_length = 1
-                        # tilt_angle = 0
-                        # Recreation of Fulford & BLake
-                        # theta_0 = 0.7251279501596777
-                        # f_eff = 0.2061749990099957
-
-                        # ishikawa resolution
-                        # nfil = 160
-                        # nblob = int(20 + (3*i)**3)
-                        # ar = 6
-                        # nseg = 40
-
-                        # nfil = 640
-                        # nblob = int(20 + (3*i)**3)
-                        # ar = 20
-                        # nseg = 40
-                        # nx=400
-                        # ny=400
-                        # nz=400
-                        # boxsize=8000
-                        # spring_factor = round(0)
-                        # period = 1
-                        # sim_length = 0.0034
-                        # tilt_angle = 0
-
-                        # swimmer size trend
-                        # nfil = [159, 639, 1128, 1763, 2539, 4291][i]
-                        # nblob = [9000, 40961, 72817, 113777, 163839, 276888][i]
-                        # ar = [8.0, 15.0, 20.0, 25.0, 30.0, 39.0][i]
-                        # nseg = 20
-                        # nx=512
-                        # ny=512
-                        # nz=512
-                        # boxsize=8000
-                        # spring_factor = round(0.005, 3)
-                        # period = 1
-                        # sim_length = 2
-                        # tilt_angle = 0
-
-                        # sangani resolution
-                        # nx=400
-                        # ny=400
-                        # nz=400
-                        
-                        # boxsize=1200+16*(i+1)**(3)
-                        # nblob = int(40961)
-                        
-                        # # boxsize=8000
-                        # # nblob = int(20 + (3*i)**3)
-                        
-                        # ar = round(20.00, 2)
-                        # nfil = 0
-                        # nseg = 20
-                        # spring_factor = round(1*(i+1), 3)
-                        # period = 1
-                        # sim_length = 0.0034
-                        # tilt_angle = 0
-                        # force_mag = 10000.0
+                        freq_shift = 0.0  # This was for a frequency gradient study
 
 
                         self.pars_list["index"].append(index)

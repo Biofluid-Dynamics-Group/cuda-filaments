@@ -29,68 +29,9 @@ class VISUAL:
     def __init__(self):
         self.globals_name = 'globals.ini'
 
-
-        # self.date = '20241011'
-        # self.dir = f"data/IVP159/{self.date}/"
-
-        # self.date = '20240717_rpy_get_drag'
-        # self.dir = f"data/regular_wall_sim/{self.date}/"
-
-        # self.date = '20240724_symplectic'
-        # self.dir = f"data/tilt_test/makeup_pattern/{self.date}/"
-
-        # self.date = 'IVP'
-        # self.dir = f"data/tilt_test/{self.date}/"
-
-
-        self.date = '20250213'
-        self.dir = f"data/longer_period_fixed_gap/{self.date}/"
+        self.date = '20250226'
+        self.dir = f"data/metachronal_wave_N1/{self.date}/"
         
-
-        # self.date = '20240311_8'
-        # self.dir = f"data/ic_hpc_sim/{self.date}/"
-        
-
-        # self.date = '20240311_2'
-        # self.dir = f"data/ic_hpc_sim_free/{self.date}/"
-
-        # self.date = 'combined_analysis'
-        # self.date = 'combined_analysis_force_rerun'
-        # self.dir = f"data/giant_swimmer/{self.date}/"
-
-        # self.date = '20240311_1'
-        # self.dir = f"data/ic_hpc_sim_free_with_force/{self.date}/"        
-
-        # self.date = '20240827_ishikawa_jfm2'
-        # self.date = '20240731_pnas_L1'
-        # self.date = '20240829_pnas_volvox_beat'
-        # self.date = '20240802_pnas_original_beat'
-        # self.date = '20240822_ishikawa_resolution6'
-        # self.date = '20240902_real_volvox'
-        # self.date = '20240903_real_volvox_slender50'
-        # self.dir = f"data/ishikawa/{self.date}/"
-
-        # self.date = '20240904_volvox_test'
-        # self.dir = f"data/volvox/{self.date}/"
-
-        # self.date = '20240115_resolution'
-        # self.dir = f"data/resolution/{self.date}/"
-
-        # self.date = '20240822_sangani_boxsize2'
-        # self.dir = f"data/resolution/{self.date}/"
-
-
-
-        # self.date = f'index1_alpha0.16326530612244897'
-        # self.dir = f"data/bisection/k0.020/section6/iteration2_1e-7/{self.date}/"
-        
-        # self.date = 'index6_alpha0.875'
-        # self.dir = f"data/ic_hpc_bisection/k0.005/iteration1/{self.date}/"
-
-
-        # self.date = '20240507'
-        # self.dir = f"data/regular_wall_sim/{self.date}/"
-
         self.pars_list = {
                      "index": [],
                      "nswim": [],
@@ -561,9 +502,9 @@ class VISUAL:
             ax.cla()
 
             # # Adjust the limits to zoom in on the area of interest
-            ax.set_xlim(-150, 150)
-            ax.set_ylim(-150, 150)
-            ax.set_zlim(-150, 150)
+            ax.set_xlim(-200, 200)
+            ax.set_ylim(-200, 200)
+            ax.set_zlim(-200, 200)
             ax.set_aspect('equal')
             # ax.axis('off')
 
