@@ -11,9 +11,9 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'wgf/'
+        self.category = f'wave_N15_gmrestol_6/'
         self.exe_name = 'cilia_1e-4'
-        self.date = '20250303'
+        self.date = '20250306'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -220,8 +220,8 @@ class DRIVER:
 
             command = f"export OPENBLAS_NUM_THREADS=1; \
                         export CUDA_VISIBLE_DEVICES={self.cuda_device}; \
-                        ./bin/{self.exe_name}"
-                        # nohup ./bin/{self.exe_name} > nohup_{num_fils}.out &"
+                        nohup ./bin/{self.exe_name} > nohup_{num_fils}.out &"
+                        # ./bin/{self.exe_name}"
             
             # on ic hpc
             # command = f"export OPENBLAS_NUM_THREADS=1; \
