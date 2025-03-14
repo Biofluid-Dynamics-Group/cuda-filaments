@@ -156,7 +156,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
   // 3 = Ishikawa MCW
   // 5 = Read from a file (default - we can define arbitrary initial conditions in python)
 
-  #define PLATY_GROUPS true // Divide a sphere into 12 segments of frequency
+  #define PLATY_GROUPS false // Divide a sphere into 12 segments of frequency
 
 
   #if CILIA_IC_TYPE==2

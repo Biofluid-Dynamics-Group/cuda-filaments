@@ -5,6 +5,7 @@ import util
 num_fils = 309
 gmres_tol = 4
 precon = 'precon'
+k = 60
 
 class DRIVER:
 
@@ -13,9 +14,9 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'{precon}_wave_N15_gmrestol_{gmres_tol}/'
+        self.category = f'{precon}_wave_k{k}/'
         self.exe_name = f'cilia_1e-4'
-        self.date = '20250310'
+        self.date = '20250313'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -222,8 +223,8 @@ class DRIVER:
 
             command = f"export OPENBLAS_NUM_THREADS=1; \
                         export CUDA_VISIBLE_DEVICES={self.cuda_device}; \
-                        nohup ./bin/{self.exe_name} > {precon}_nohup_{gmres_tol}.out &"
-                        # ./bin/{self.exe_name}"
+                        ./bin/{self.exe_name}"
+                        # nohup ./bin/{self.exe_name} > {precon}_nohup_k{k}.out &"
             
             # on ic hpc
             # command = f"export OPENBLAS_NUM_THREADS=1; \
