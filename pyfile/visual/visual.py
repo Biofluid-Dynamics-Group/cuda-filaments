@@ -29,8 +29,8 @@ class VISUAL:
     def __init__(self):
         self.globals_name = 'globals.ini'
 
-        self.date = '20250303'
-        self.dir = f"data/emergent_test_one_cilium/{self.date}/"
+        self.date = '20250314'
+        self.dir = f"data/emergent_test_new_gmres_no_elas/{self.date}/"
         
         self.pars_list = {
                      "index": [],

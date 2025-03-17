@@ -2,7 +2,7 @@ import configparser
 import os
 import util
 
-num_fils = 309
+num_fils = 4
 gmres_tol = 4
 precon = 'precon'
 k = 60
@@ -14,9 +14,9 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'{precon}_wave_k{k}/'
+        self.category = f'emergent_test_new_gmres_no_elas/'
         self.exe_name = f'cilia_1e-4'
-        self.date = '20250313'
+        self.date = '20250314'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -111,7 +111,7 @@ class DRIVER:
                         blob_x_dim=160*(i+1)
                         hex_num=2
                         reverse_fil_direction_ratio=0.0
-                        sim_length = 1.0
+                        sim_length = 100.0
                         f_eff = 0.3
                         theta_0 = 3.14159265359/2.1
                         freq_shift = 0.0  # This was for a frequency gradient study

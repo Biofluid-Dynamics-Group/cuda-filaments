@@ -90,7 +90,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
 // 4 = Squirmer-type simulation; i.e. there aren't actually any filaments/cilia. The slip velocity can be set in the mobility solver.
 
 // Define whether the motion of the rigid bodies is imposed or allowed to evolve dynamically.
-#define PRESCRIBED_BODY_VELOCITIES false
+#define PRESCRIBED_BODY_VELOCITIES true
 
 #define OUTPUT_FORCES true
 #if CILIA_TYPE==0
@@ -133,7 +133,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
     // #define TRAVELLING_WAVE_IMPORTANCE 0.7124255370527028 + 0.99*(1.0 - 0.7124255370527028)
   #endif
 
-  #define DYNAMIC_PHASE_EVOLUTION false
+  #define DYNAMIC_PHASE_EVOLUTION true
   // If true, cilia phase speeds are solved for as part of the dynamics. Note that this requires having run a reference simulation with WRITE_GENERALISED_FORCES=true previously.
   // If false, phase_dot = omega0 is constant for each cilium.
 
@@ -148,7 +148,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
   // It will also generate reference s-values for shape sequences which don't result in inextensible filaments.
   // NOTE: This will overwrite any existing reference files unless their names have been changed.
 
-  #define CILIA_IC_TYPE 3
+  #define CILIA_IC_TYPE 1
   // Valid options:
   // 0 = All cilia start in-phase with phase 0.
   // 1 = Cilia start with a (uniformly) random initial phase.
@@ -200,7 +200,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
 
 #elif BODY_OR_SURFACE_TYPE==2 or BODY_OR_SURFACE_TYPE==4 or BODY_OR_SURFACE_TYPE==5
 
-  #define SEEDING_TYPE 7
+  #define SEEDING_TYPE 3
   // Valid options:
   // 0 = Filaments are evenly distributed over the surface.
   // 1 = Filaments are seeded in an equatorial band.
@@ -362,8 +362,8 @@ extern Real FREQ_SHIFT;  // Frequency percentage shift
 
 #else
 
-  #define STEPS_PER_PERIOD 500
-  #define SAVES_PER_PERIOD 500
+  #define STEPS_PER_PERIOD 300
+  #define SAVES_PER_PERIOD 300
 
 #endif
 
