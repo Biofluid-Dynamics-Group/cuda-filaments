@@ -1294,7 +1294,7 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
 
     Real filament::effective_angle(const Real local_phase) const {
       // return THETA_0*(1.0 - local_phase/(PI*EFFECTIVE_STROKE_FRACTION));
-      return THETA_0*std::cos(local_phase*0.5/EFFECTIVE_STROKE_FRACTION));
+      return THETA_0*std::cos(local_phase*0.5/EFFECTIVE_STROKE_FRACTION);
     }
 
     Real filament::recovery_angle(const Real s, const Real local_phase) const {
