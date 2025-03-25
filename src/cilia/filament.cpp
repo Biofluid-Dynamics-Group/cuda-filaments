@@ -1293,7 +1293,8 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
     }
 
     Real filament::effective_angle(const Real local_phase) const {
-      return THETA_0*(1.0 - local_phase/(PI*EFFECTIVE_STROKE_FRACTION));
+      // return THETA_0*(1.0 - local_phase/(PI*EFFECTIVE_STROKE_FRACTION));
+      return THETA_0*std::cos(local_phase*0.5/EFFECTIVE_STROKE_FRACTION));
     }
 
     Real filament::recovery_angle(const Real s, const Real local_phase) const {
@@ -1303,7 +1304,8 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
       const Real f_psi = TRAVELLING_WAVE_IMPORTANCE;
       const Real wave_speed = (FIL_LENGTH + w)/T_rec;
 
-      Real rotation = local_phase/(PI*T_rec) - 1.0;
+      // Real rotation = local_phase/(PI*T_rec) - 1.0;
+      Real rotation = -std::cos(local_phase*0.5/(1.0 - EFFECTIVE_STROKE_FRACTION));
       
       return THETA_0*((1.0 - f_psi)*rotation
           - f_psi*transition_function(
@@ -1317,7 +1319,8 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
       pos(2) = 0.0;
 
       Real cutoff = EFFECTIVE_STROKE_FRACTION*2.0*PI;
-      Real modphase = phase - 2.0*PI*std::floor(0.5*phase/PI);
+      Real shift_phase = phase - s/FIL_LENGTH*ZERO_VELOCITY_AVOIDANCE_LENGTH;
+      Real modphase = shift_phase - 2.0*PI*std::floor(0.5*shift_phase/PI);
 
       if (modphase < cutoff){
             return effective_angle(modphase) + s*shape_rotation_angle/FIL_LENGTH + PI/2.0;
@@ -1341,12 +1344,14 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
       matrix direction_integrand(3, 1);
 
       const Real cutoff = EFFECTIVE_STROKE_FRACTION*2.0*PI;
-      const Real modphase = phase - 2.0*PI*std::floor(0.5*phase/PI);
+      const Real shift_phase = phase - s/FIL_LENGTH*ZERO_VELOCITY_AVOIDANCE_LENGTH;
+      const Real modphase = shift_phase - 2.0*PI*std::floor(0.5*shift_phase/PI);
 
       Real deriv_value;
 
       if (modphase < cutoff) {
-        deriv_value = -THETA_0/(PI*EFFECTIVE_STROKE_FRACTION);
+        // deriv_value = -THETA_0/(PI*EFFECTIVE_STROKE_FRACTION);
+        deriv_value = -THETA_0*std::sin(modphase*0.5/EFFECTIVE_STROKE_FRACTION)*0.5/EFFECTIVE_STROKE_FRACTION;
       }
       else {
         const Real w = TRAVELLING_WAVE_WINDOW*FIL_LENGTH;
@@ -1356,7 +1361,8 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
         const Real wave_speed = (FIL_LENGTH + w)/T_rec;
 
         Real local_phase = modphase - cutoff;
-        Real first_term = (1 - f_psi)/(PI*T_rec);
+        // Real first_term = (1 - f_psi)/(PI*T_rec);
+        Real first_term = (1 - f_psi)*std::sin(local_phase*0.5/(1.0 - EFFECTIVE_STROKE_FRACTION))*0.5/(1.0 - EFFECTIVE_STROKE_FRACTION);
         Real transition_derivative_argumet = (
           s*FIL_LENGTH - (wave_speed*local_phase / (2.0*PI))
         )/w + 0.5;
