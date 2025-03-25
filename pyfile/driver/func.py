@@ -14,9 +14,9 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'emergence_constant_forcing_plane_test/'
+        self.category = f'constant_forcing_fb/'
         self.exe_name = f'cilia_1e-4'
-        self.date = '20250318'
+        self.date = '20250321'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
