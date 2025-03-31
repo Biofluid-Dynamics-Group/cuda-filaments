@@ -29,8 +29,8 @@ class VISUAL:
     def __init__(self):
         self.globals_name = 'globals.ini'
 
-        self.date = '20250314'
-        self.dir = f"data/emergent_test_new_gmres_no_elas/{self.date}/"
+        self.date = '20250325'
+        self.dir = f"data/new_beat/{self.date}/"
         
         self.pars_list = {
                      "index": [],
@@ -67,10 +67,10 @@ class VISUAL:
         
 
         self.show_poles = False
-        self.big_sphere = True
+        self.big_sphere = False
         self.noblob = False
 
-        self.planar = False
+        self.planar = True
 
         if(self.planar):
             self.big_sphere = False

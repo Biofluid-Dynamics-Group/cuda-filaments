@@ -14,7 +14,7 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'new_beat_wgf/'
+        self.category = f'new_beat_avoidance_05_not_01/'
         self.exe_name = f'cilia_1e-4'
         self.date = '20250325'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
@@ -90,7 +90,8 @@ class DRIVER:
 
                         seg_sep = 2.6
                         force_mag = 1
-                        tilt_angle = 0.2181662   # Platynaereis
+                        # tilt_angle = 0.2181662   # Platynaereis
+                        tilt_angle = 0.0
 
                         nfil = num_fils
                         nblob = 100
@@ -111,7 +112,7 @@ class DRIVER:
                         blob_x_dim=160*(i+1)
                         hex_num=2
                         reverse_fil_direction_ratio=0.0
-                        sim_length = 1.0
+                        sim_length = 10.0
                         f_eff = 0.3
                         theta_0 = 3.14159265359/2.1
                         freq_shift = 0.0  # This was for a frequency gradient study
