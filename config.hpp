@@ -126,7 +126,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
   #if SHAPE_SEQUENCE==5
     #define TRAVELLING_WAVE_WINDOW 0.4 // Width of the travelling wave as fraction of the filament length, f_w in (0, 1)
     #define TRAVELLING_WAVE_IMPORTANCE 0.85 // Fraction of the recovery stroke that is due to the travelling wave, f_psi in (0, 1)
-    #define ZERO_VELOCITY_AVOIDANCE_LENGTH 0.05 // A value in (0,1), giving the maximum fraction of the cycle by which we shift the tangent angle curve to ensure the velocity cannot be zero everywhere along the filament at once.
+    #define ZERO_VELOCITY_AVOIDANCE_LENGTH 0.5 // A value in (0,1), giving the maximum fraction of the cycle by which we shift the tangent angle curve to ensure the velocity cannot be zero everywhere along the filament at once.
 
 
     // Recreation of Fulford & Blake
@@ -138,7 +138,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
   // If true, cilia phase speeds are solved for as part of the dynamics. Note that this requires having run a reference simulation with WRITE_GENERALISED_FORCES=true previously.
   // If false, phase_dot = omega0 is constant for each cilium.
 
-  #define DYNAMIC_SHAPE_ROTATION false
+  #define DYNAMIC_SHAPE_ROTATION true
   // If true, the vertical in the cilia reference configuration can rotate with respect to the surface normal.
   // Essentially, the cilia can 'tip backwards or forwards' in their beat planes.
   // If false, no such rotation ever occurs.
@@ -149,7 +149,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
   // It will also generate reference s-values for shape sequences which don't result in inextensible filaments.
   // NOTE: This will overwrite any existing reference files unless their names have been changed.
 
-  #define CILIA_IC_TYPE 1
+  #define CILIA_IC_TYPE 0
   // Valid options:
   // 0 = All cilia start in-phase with phase 0.
   // 1 = Cilia start with a (uniformly) random initial phase.
