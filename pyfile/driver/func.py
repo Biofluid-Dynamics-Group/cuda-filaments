@@ -2,7 +2,7 @@ import configparser
 import os
 import util
 
-num_fils = 5
+num_fils = 1
 gmres_tol = 4
 precon = 'precon'
 k = 60
@@ -14,9 +14,9 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'new_beat_more_resolution_in_forcing_and_sim_more_cilia/'
+        self.category = f'stiffness_1em2/'
         self.exe_name = f'cilia_1e-4'
-        self.date = '20250331'
+        self.date = '20250401'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -100,7 +100,7 @@ class DRIVER:
                         # Since D/L = 8 and L = 20um, D = 160um
                         # In the simulation, L is around  49 units
                         period = 1
-                        spring_factor = 1e-3
+                        spring_factor = 5e-2
 
                         nx=500
                         ny=500
