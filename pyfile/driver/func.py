@@ -2,7 +2,7 @@ import configparser
 import os
 import util
 
-num_fils = 1
+num_fils = 5
 gmres_tol = 4
 precon = 'precon'
 k = 60
@@ -14,7 +14,7 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'new_beat_avoidance_5_not_1/'
+        self.category = f'new_beat_more_resolution_in_forcing_and_sim_more_cilia/'
         self.exe_name = f'cilia_1e-4'
         self.date = '20250331'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"

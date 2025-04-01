@@ -173,7 +173,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
 
 #endif
 
-#define BODY_OR_SURFACE_TYPE 5
+#define BODY_OR_SURFACE_TYPE 0
 // Valid options:
 // 0 = An infinite plane wall at z = 0. This choice has some sub-types (see below). // 20240717:decrecated - only compatible with RPY
 // 1 = Deformed planes with 2 principal curvatures (partially implemented)
@@ -201,7 +201,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
 
 #elif BODY_OR_SURFACE_TYPE==2 or BODY_OR_SURFACE_TYPE==4 or BODY_OR_SURFACE_TYPE==5
 
-  #define SEEDING_TYPE 3
+  #define SEEDING_TYPE 0
   // Valid options:
   // 0 = Filaments are evenly distributed over the surface.
   // 1 = Filaments are seeded in an equatorial band.
@@ -235,7 +235,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
 
 #endif
 
-#define MOBILITY_TYPE 4
+#define MOBILITY_TYPE 1
 // Valid options:
 // 0 = Basic Stokes drag. No hydrodynamic interactions between particles.
 // 1 = Rotne-Prager-Yamakawa (RPY) mobility matrices (with the corrections due to Swan and Brady if an infinite plane wall is selected).
@@ -326,7 +326,7 @@ extern Real FREQ_SHIFT;  // Frequency percentage shift
 // This factor avoids over-adjusting during the Broyden's iterations.
 // Setting it to 1 will give standard behaviour, and values smaller than 1 should help with convergence problems by having Broyden's method do more of the heavy lifting.
 // Choosing 0.4 seems to work well when using GMRES, whilst 0.1 appears to be a good choice for a "Broyden's only" simulation.
-#define JACOBIAN_CONFIDENCE_FACTOR 0.1
+#define JACOBIAN_CONFIDENCE_FACTOR 0.4
 
 #define MAX_BROYDEN_ITER 400 // Maximum number of Broyden's method iterations per time-step.
 #define TOL 1e-4 // Tolerance to be reached by the Broyden's method solve.
