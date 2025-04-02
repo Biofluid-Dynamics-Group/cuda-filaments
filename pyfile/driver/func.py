@@ -2,8 +2,8 @@ import configparser
 import os
 import util
 
-num_fils = 309
-gmres_tol = 4
+num_fils = 1
+gmres_tol = 7
 precon = 'precon'
 k = 60
 
@@ -14,9 +14,9 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'fixed_body_emergent_rand_0/'
+        self.category = f'gmres_test_e_8_cufcm/'
         self.exe_name = f'cilia_1e-4'
-        self.date = '20250401'
+        self.date = '20250402'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -90,17 +90,17 @@ class DRIVER:
 
                         seg_sep = 2.6
                         force_mag = 1
-                        tilt_angle = 0.2181662   # Platynaereis
-                        # tilt_angle = 0.0
+                        # tilt_angle = 0.2181662   # Platynaereis
+                        tilt_angle = 0.0
 
                         nfil = num_fils
-                        nblob = 9000
+                        nblob = 1024
                         nseg = 20
                         ar = 8  # This is D/L, not R/L. This is for Platynaereis
                         # Since D/L = 8 and L = 20um, D = 160um
                         # In the simulation, L is around  49 units
                         period = 1
-                        spring_factor = 1e-2
+                        spring_factor = 1e-3
 
                         nx=500
                         ny=500
@@ -112,7 +112,7 @@ class DRIVER:
                         blob_x_dim=160*(i+1)
                         hex_num=2
                         reverse_fil_direction_ratio=0.0
-                        sim_length = 50.0
+                        sim_length = 2.0
                         f_eff = 0.3
                         theta_0 = 3.14159265359/2.1
                         freq_shift = 0.0  # This was for a frequency gradient study
