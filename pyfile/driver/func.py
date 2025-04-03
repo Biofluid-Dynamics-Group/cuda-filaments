@@ -14,7 +14,7 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'gmres_test_e_8_cufcm/'
+        self.category = f'gmres_test_e_7_cufcm/'
         self.exe_name = f'cilia_1e-4'
         self.date = '20250402'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
