@@ -138,13 +138,13 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
   // If true, cilia phase speeds are solved for as part of the dynamics. Note that this requires having run a reference simulation with WRITE_GENERALISED_FORCES=true previously.
   // If false, phase_dot = omega0 is constant for each cilium.
 
-  #define DYNAMIC_SHAPE_ROTATION true
+  #define DYNAMIC_SHAPE_ROTATION false
   // If true, the vertical in the cilia reference configuration can rotate with respect to the surface normal.
   // Essentially, the cilia can 'tip backwards or forwards' in their beat planes.
   // If false, no such rotation ever occurs.
   // In the Platynaereis case this changes to an elastic variable.
 
-  #define WRITE_GENERALISED_FORCES true
+  #define WRITE_GENERALISED_FORCES false
   // If true, this simulation will save its generalised forces to file for use as the reference values.
   // It will also generate reference s-values for shape sequences which don't result in inextensible filaments.
   // NOTE: This will overwrite any existing reference files unless their names have been changed.
@@ -338,7 +338,7 @@ extern Real FREQ_SHIFT;  // Frequency percentage shift
 // 1: Use GMRES to solve the linear system at each iteration of Broyden's method.
 
 #define MAX_LINEAR_SYSTEM_ITER 500 // Maximum number of iterations used to solve the linear system in each mobility solve.
-#define LINEAR_SYSTEM_TOL 1e-8 // Relative tolerance in the linear system solves.
+#define LINEAR_SYSTEM_TOL 1e-7 // Relative tolerance in the linear system solves.
 
 #if SOLVER_TYPE==1
 
@@ -363,8 +363,8 @@ extern Real FREQ_SHIFT;  // Frequency percentage shift
 
 #else
 
-  #define STEPS_PER_PERIOD 25000
-  #define SAVES_PER_PERIOD 25000
+  #define STEPS_PER_PERIOD 500
+  #define SAVES_PER_PERIOD 500
 
 #endif
 

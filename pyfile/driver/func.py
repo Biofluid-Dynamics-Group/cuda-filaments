@@ -14,9 +14,9 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'wgf_sphere/'
-        self.exe_name = f'cilia_1e-8_wgf'
-        self.date = '20250403'
+        self.category = f'sphere_one_cilium_no_elas/'
+        self.exe_name = f'cilia_1e-7'
+        self.date = '20250407'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -90,8 +90,8 @@ class DRIVER:
 
                         seg_sep = 2.6
                         force_mag = 1
-                        # tilt_angle = 0.2181662   # Platynaereis
-                        tilt_angle = 0.0
+                        tilt_angle = 0.2181662   # Platynaereis
+                        # tilt_angle = 0.0
 
                         nfil = num_fils
                         nblob = 9000
@@ -112,7 +112,7 @@ class DRIVER:
                         blob_x_dim=160*(i+1)
                         hex_num=2
                         reverse_fil_direction_ratio=0.0
-                        sim_length = 1.0
+                        sim_length = 5.0
                         f_eff = 0.3
                         theta_0 = 3.14159265359/2.1
                         freq_shift = 0.0  # This was for a frequency gradient study
@@ -224,9 +224,9 @@ class DRIVER:
 
             command = f"export OPENBLAS_NUM_THREADS=1; \
                         export CUDA_VISIBLE_DEVICES={self.cuda_device}; \
-                        nohup ./bin/{self.exe_name} > nohup.out &"
-                        # ./bin/{self.exe_name}"
-            
+                        ./bin/{self.exe_name}"
+                        # nohup ./bin/{self.exe_name} > nohup.out &"
+                        
             # on ic hpc
             # command = f"export OPENBLAS_NUM_THREADS=1; \
             #             ./bin/{self.exe_name}"
