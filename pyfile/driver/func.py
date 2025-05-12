@@ -2,7 +2,7 @@ import configparser
 import os
 import util
 
-num_fils = 1
+num_fils = 309
 gmres_tol = 5
 precon = 'precon'
 k = 60
@@ -14,9 +14,9 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'sphere_one_cilium_elas_e_7/'
+        self.category = f'sphere_{num_fils}_cilia_elas_e_7_leftprecon/'
         self.exe_name = f'cilia_1e-7'
-        self.date = '20250411'
+        self.date = '20250506'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -112,7 +112,7 @@ class DRIVER:
                         blob_x_dim=160*(i+1)
                         hex_num=2
                         reverse_fil_direction_ratio=0.0
-                        sim_length = 5.0
+                        sim_length = 50.0
                         f_eff = 0.3
                         theta_0 = 3.14159265359/2.1
                         freq_shift = 0.0  # This was for a frequency gradient study
@@ -224,7 +224,7 @@ class DRIVER:
 
             command = f"export OPENBLAS_NUM_THREADS=1; \
                         export CUDA_VISIBLE_DEVICES={self.cuda_device}; \
-                        nohup ./bin/{self.exe_name} > nohup.out &"
+                        nohup ./bin/{self.exe_name} > left_precon_nohup_{num_fils}.out &"
                         # ./bin/{self.exe_name}"
                         
             # on ic hpc
