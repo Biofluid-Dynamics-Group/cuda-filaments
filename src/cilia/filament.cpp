@@ -1402,7 +1402,7 @@ void filament::initial_guess(const int nt, const Real *const x_in, const Real *c
 
       phase += phase_dot*DT;
 
-      // #if !GENERIC_PLATY_BEAT
+      #if !GENERIC_PLATY_BEAT
 
         #if (DYNAMIC_SHAPE_ROTATION || WRITE_GENERALISED_FORCES)
 
@@ -1410,19 +1410,19 @@ void filament::initial_guess(const int nt, const Real *const x_in, const Real *c
 
         #endif
 
-      // #elif GENERIC_PLATY_BEAT
+      #elif GENERIC_PLATY_BEAT
 
-      //   #if WRITE_GENERALISED_FORCES
+        #if WRITE_GENERALISED_FORCES
 
-      //     shape_rotation_angle = 0.0;
+          shape_rotation_angle = 0.0;
 
-      //   #elif DYNAMIC_SHAPE_ROTATION
+        #elif DYNAMIC_SHAPE_ROTATION
 
-      //     shape_rotation_angle += shape_rotation_angle_dot*DT;
+          shape_rotation_angle += shape_rotation_angle_dot*DT;
 
-      //   #endif
+        #endif
 
-      // #endif
+      #endif
 
     }
 

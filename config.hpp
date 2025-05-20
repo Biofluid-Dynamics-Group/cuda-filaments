@@ -144,7 +144,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
   // If false, no such rotation ever occurs.
   // In the Platynaereis case this changes to an elastic variable. NO LONGER TRUE
 
-  #define WRITE_GENERALISED_FORCES true
+  #define WRITE_GENERALISED_FORCES false
   // If true, this simulation will save its generalised forces to file for use as the reference values.
   // It will also generate reference s-values for shape sequences which don't result in inextensible filaments.
   // NOTE: This will overwrite any existing reference files unless their names have been changed.
@@ -363,8 +363,8 @@ extern Real FREQ_SHIFT;  // Frequency percentage shift
 
 #else
 
-  #define STEPS_PER_PERIOD 5000
-  #define SAVES_PER_PERIOD 5000
+  #define STEPS_PER_PERIOD 7500
+  #define SAVES_PER_PERIOD 500
 
 #endif
 

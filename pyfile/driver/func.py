@@ -14,7 +14,7 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'plane_test_{num_fils}_global_var_change_moretimesteps/'
+        self.category = f'plane_{num_fils}_7500steps/'
         self.exe_name = f'cilia_1e-7'
         self.date = '20250520'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
