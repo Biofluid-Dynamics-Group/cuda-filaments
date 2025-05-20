@@ -14,7 +14,7 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'plane_old_elasticity_wgf_zval0.1/'
+        self.category = f'plane_old_elasticity_test_fils_{num_fils}_zval0.75/'
         self.exe_name = f'cilia_1e-7'
         self.date = '20250520'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
