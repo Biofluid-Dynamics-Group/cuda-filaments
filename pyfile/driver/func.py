@@ -2,8 +2,8 @@ import configparser
 import os
 import util
 
-num_fils = 309
-gmres_tol = 5
+num_fils = 1
+gmres_tol = 7
 precon = 'precon'
 k = 60
 
@@ -14,9 +14,9 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'sphere_{num_fils}_cilia_elas_e_7_leftprecon/'
+        self.category = f'sphere_{num_fils}_corrected_more_zval_flex/'
         self.exe_name = f'cilia_1e-7'
-        self.date = '20250506'
+        self.date = '20250519'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -100,7 +100,7 @@ class DRIVER:
                         # Since D/L = 8 and L = 20um, D = 160um
                         # In the simulation, L is around  49 units
                         period = 1
-                        spring_factor = 1e-2
+                        spring_factor = 1e-4
 
                         nx=500
                         ny=500
@@ -112,7 +112,7 @@ class DRIVER:
                         blob_x_dim=160*(i+1)
                         hex_num=2
                         reverse_fil_direction_ratio=0.0
-                        sim_length = 50.0
+                        sim_length = 1.0
                         f_eff = 0.3
                         theta_0 = 3.14159265359/2.1
                         freq_shift = 0.0  # This was for a frequency gradient study
@@ -224,8 +224,8 @@ class DRIVER:
 
             command = f"export OPENBLAS_NUM_THREADS=1; \
                         export CUDA_VISIBLE_DEVICES={self.cuda_device}; \
-                        nohup ./bin/{self.exe_name} > left_precon_nohup_{num_fils}.out &"
-                        # ./bin/{self.exe_name}"
+                        nohup ./bin/{self.exe_name} > precon_nohup_{num_fils}.out &"
+                        # ./bin/{self.exe_name}"   
                         
             # on ic hpc
             # command = f"export OPENBLAS_NUM_THREADS=1; \
