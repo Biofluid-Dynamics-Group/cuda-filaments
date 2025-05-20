@@ -1319,14 +1319,14 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
       pos(2) = 0.0;
 
       Real cutoff = EFFECTIVE_STROKE_FRACTION*2.0*PI;
-      Real shift_phase = phase - ZERO_VELOCITY_AVOIDANCE_LENGTH*2.0*PI*s/FIL_LENGTH;
-      Real modphase = shift_phase - 2.0*PI*std::floor(0.5*shift_phase/PI);
+      Real shifted_phase = phase - s*2.0*PI*ZERO_VELOCITY_AVOIDANCE_LENGTH;
+      shifted_phase -= 2.0*PI*std::floor(0.5*shifted_phase/PI);
 
-      if (modphase < cutoff){
-            return effective_angle(modphase) + PI/2.0;
+      if (shifted_phase < cutoff){
+            return effective_angle(shifted_phase) + PI/2.0;
         }
         else {
-            return recovery_angle(s, modphase - cutoff) + PI/2.0;
+            return recovery_angle(s, shifted_phase - cutoff) + PI/2.0;
         }
     }
 
@@ -1344,14 +1344,14 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
       matrix direction_integrand(3, 1);
 
       const Real cutoff = EFFECTIVE_STROKE_FRACTION*2.0*PI;
-      const Real shift_phase = phase - s/FIL_LENGTH*ZERO_VELOCITY_AVOIDANCE_LENGTH*2.0*PI;
-      const Real modphase = shift_phase - 2.0*PI*std::floor(0.5*shift_phase/PI);
+      Real shifted_phase = phase - s*2.0*PI*ZERO_VELOCITY_AVOIDANCE_LENGTH;
+      shifted_phase -= 2.0*PI*std::floor(0.5*shifted_phase/PI);
 
       Real deriv_value;
 
-      if (modphase < cutoff) {
+      if (shifted_phase < cutoff) {
         // deriv_value = -THETA_0/(PI*EFFECTIVE_STROKE_FRACTION);
-        deriv_value = -THETA_0*std::sin(modphase*0.5/EFFECTIVE_STROKE_FRACTION)*0.5/EFFECTIVE_STROKE_FRACTION;
+        deriv_value = -THETA_0*std::sin(shifted_phase*0.5/EFFECTIVE_STROKE_FRACTION)*0.5/EFFECTIVE_STROKE_FRACTION;
       }
       else {
         const Real w = TRAVELLING_WAVE_WINDOW*FIL_LENGTH;
@@ -1360,7 +1360,7 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
         const Real f_psi = TRAVELLING_WAVE_IMPORTANCE;
         const Real wave_speed = (FIL_LENGTH + w)/T_rec;
 
-        Real local_phase = modphase - cutoff;
+        Real local_phase = shifted_phase - cutoff;
         // Real first_term = (1 - f_psi)/(PI*T_rec);
         Real first_term = (1 - f_psi)*std::sin(local_phase*0.5/(1.0 - EFFECTIVE_STROKE_FRACTION))*0.5/(1.0 - EFFECTIVE_STROKE_FRACTION);
         Real transition_derivative_argumet = (
@@ -1402,7 +1402,7 @@ void filament::initial_guess(const int nt, const Real *const x_in, const Real *c
 
       phase += phase_dot*DT;
 
-      #if !GENERIC_PLATY_BEAT
+      // #if !GENERIC_PLATY_BEAT
 
         #if (DYNAMIC_SHAPE_ROTATION || WRITE_GENERALISED_FORCES)
 
@@ -1410,19 +1410,19 @@ void filament::initial_guess(const int nt, const Real *const x_in, const Real *c
 
         #endif
 
-      #elif GENERIC_PLATY_BEAT
+      // #elif GENERIC_PLATY_BEAT
 
-        #if WRITE_GENERALISED_FORCES
+      //   #if WRITE_GENERALISED_FORCES
 
-          shape_rotation_angle = 0.0;
+      //     shape_rotation_angle = 0.0;
 
-        #elif DYNAMIC_SHAPE_ROTATION
+      //   #elif DYNAMIC_SHAPE_ROTATION
 
-          shape_rotation_angle += shape_rotation_angle_dot*DT;
+      //     shape_rotation_angle += shape_rotation_angle_dot*DT;
 
-        #endif
+      //   #endif
 
-      #endif
+      // #endif
 
     }
 
