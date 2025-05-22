@@ -14,9 +14,9 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'plane_{num_fils}_7500steps/'
+        self.category = f'sphere_wgf/'
         self.exe_name = f'cilia_1e-7'
-        self.date = '20250520'
+        self.date = '20250521'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -112,7 +112,7 @@ class DRIVER:
                         blob_x_dim=160*(i+1)
                         hex_num=2
                         reverse_fil_direction_ratio=0.0
-                        sim_length = 10.0
+                        sim_length = 1.0
                         f_eff = 0.3
                         theta_0 = 3.14159265359/2.1
                         freq_shift = 0.0  # This was for a frequency gradient study
@@ -224,8 +224,8 @@ class DRIVER:
 
             command = f"export OPENBLAS_NUM_THREADS=1; \
                         export CUDA_VISIBLE_DEVICES={self.cuda_device}; \
-                        ./bin/{self.exe_name}"
-            # nohup ./bin/{self.exe_name} > precon_nohup_{num_fils}.out &"
+                        nohup ./bin/{self.exe_name} > {self.dir}.out &"
+                        # ./bin/{self.exe_name}"
                            
                         
             # on ic hpc
