@@ -14,7 +14,7 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'new_elas_rpy_wgf/'
+        self.category = f'new_elas_rpy_test_{num_fils}/'
         self.exe_name = f'cilia_1e-7'
         self.date = '20250528'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
