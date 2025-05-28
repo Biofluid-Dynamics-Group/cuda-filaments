@@ -1323,10 +1323,10 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
       shifted_phase -= 2.0*PI*std::floor(0.5*shifted_phase/PI);
 
       if (shifted_phase < cutoff){
-            return effective_angle(shifted_phase) + PI/2.0;
+            return effective_angle(shifted_phase) + PI/2.0 + s*shape_rotation_angle/FIL_LENGTH;
         }
         else {
-            return recovery_angle(s, shifted_phase - cutoff) + PI/2.0;
+            return recovery_angle(s, shifted_phase - cutoff) + PI/2.0 + s*shape_rotation_angle/FIL_LENGTH;
         }
     }
 
@@ -1466,7 +1466,8 @@ void filament::initial_guess(const int nt, const Real *const x_in, const Real *c
         // Apply rotation through shape_rotation_angle about the z-axis in the reference configuration.
         const matrix Rshape = (quaternion(std::cos(0.5*shape_rotation_angle), 0.0, 0.0, std::sin(0.5*shape_rotation_angle))).rot_mat();
       #else
-        const matrix Rshape = (quaternion(std::cos(0.5*shape_rotation_angle), 0.0, 0.0, std::sin(0.5*shape_rotation_angle))).rot_mat();
+        // const matrix Rshape = (quaternion(std::cos(0.5*shape_rotation_angle), 0.0, 0.0, std::sin(0.5*shape_rotation_angle))).rot_mat();
+        const matrix Rshape = (quaternion(std::cos(0.0), 0.0, 0.0, std::sin(0.0))).rot_mat();
 
       #endif
 
@@ -1510,9 +1511,9 @@ void filament::initial_guess(const int nt, const Real *const x_in, const Real *c
       prev_phase_deriv_integrand = platy_beat_phase_deriv_integrand(0.0);
       prev_phase_deriv_integrand = R*Rshape*prev_phase_deriv_integrand;
 
-      // matrix prev_angle_deriv_integrand(3, 1);
-      // prev_angle_deriv_integrand = platy_beat_angle_deriv_integrand(0.0);
-      // prev_angle_deriv_integrand = R*Rshape*prev_angle_deriv_integrand;
+      matrix prev_angle_deriv_integrand(3, 1);
+      prev_angle_deriv_integrand = platy_beat_angle_deriv_integrand(0.0);
+      prev_angle_deriv_integrand = R*Rshape*prev_angle_deriv_integrand;
 
       // printf("prev_tangent set\n");
 
@@ -1654,27 +1655,28 @@ void filament::initial_guess(const int nt, const Real *const x_in, const Real *c
         phase_deriv_integrand = R*Rshape*phase_deriv_integrand;
 
         #if (DYNAMIC_SHAPE_ROTATION || WRITE_GENERALISED_FORCES)
+          matrix angle_deriv_integrand(3, 1);
+          angle_deriv_integrand = platy_beat_angle_deriv_integrand(Real(n)/Real(NSEG - 1));
+          angle_deriv_integrand = R*Rshape*angle_deriv_integrand;
 
-          // angle_deriv_integrand = R*Rshape*angle_deriv_integrand;
+          // matrix ref(3,1);
+          // ref(0) = segments[n].x[0] - segments[0].x[0];
+          // ref(1) = segments[n].x[1] - segments[0].x[1];
+          // ref(2) = segments[n].x[2] - segments[0].x[2];
 
-          matrix ref(3,1);
-          ref(0) = segments[n].x[0] - segments[0].x[0];
-          ref(1) = segments[n].x[1] - segments[0].x[1];
-          ref(2) = segments[n].x[2] - segments[0].x[2];
+          // ref = Rshape*ref;
 
-          ref = Rshape*ref;
+          // // Turn ref into cross(e_z, ref)
+          // ref(2) = -ref(1);
+          // ref(1) = ref(0);
+          // ref(0) = ref(2);
+          // ref(2) = 0.0;
 
-          // Turn ref into cross(e_z, ref)
-          ref(2) = -ref(1);
-          ref(1) = ref(0);
-          ref(0) = ref(2);
-          ref(2) = 0.0;
+          // ref = R*ref;
 
-          ref = R*ref;
-
-          vel_dir_angle[3*n] = ref(0);
-          vel_dir_angle[3*n + 1] = ref(1);
-          vel_dir_angle[3*n + 2] = ref(2);
+          // vel_dir_angle[3*n] = ref(0);
+          // vel_dir_angle[3*n + 1] = ref(1);
+          // vel_dir_angle[3*n + 2] = ref(2);
 
         #endif
 
@@ -1701,21 +1703,21 @@ void filament::initial_guess(const int nt, const Real *const x_in, const Real *c
           // std::cout << "vel_dir_angle[3*(n-1)]: " << vel_dir_angle[3*(n-1)] << std::endl;
           // std::cout << "prev_angle_deriv_integrand(0): " << prev_angle_deriv_integrand(0) << std::endl;
           // std::cout << "angle_deriv_integrand(0): " << angle_deriv_integrand(0) << std::endl;
-          // vel_dir_angle[3*n] = vel_dir_angle[3*(n-1)] + 0.5*DL*(prev_angle_deriv_integrand(0) + angle_deriv_integrand(0));
+          vel_dir_angle[3*n] = vel_dir_angle[3*(n-1)] + 0.5*DL*(prev_angle_deriv_integrand(0) + angle_deriv_integrand(0));
           // std::cout << "1 is good" << std::endl;
 
           // std::cout << "vel_dir_angle[3*n + 1]: " << vel_dir_angle[3*n + 1] << std::endl;
           // std::cout << "vel_dir_angle[3*(n-1) + 1]: " << vel_dir_angle[3*(n-1) + 1] << std::endl;
           // std::cout << "prev_angle_deriv_integrand(1): " << prev_angle_deriv_integrand(1) << std::endl;
           // std::cout << "angle_deriv_integrand(1): " << angle_deriv_integrand(1) << std::endl;
-          // vel_dir_angle[3*n + 1] = vel_dir_angle[3*(n-1) + 1] + 0.5*DL*(prev_angle_deriv_integrand(1) + angle_deriv_integrand(1));
+          vel_dir_angle[3*n + 1] = vel_dir_angle[3*(n-1) + 1] + 0.5*DL*(prev_angle_deriv_integrand(1) + angle_deriv_integrand(1));
           // std::cout << "2 is good" << std::endl;
 
           // std::cout << "vel_dir_angle[3*n + 2]: " << vel_dir_angle[3*n + 2] << std::endl;
           // std::cout << "vel_dir_angle[3*(n-1) + 2]: " << vel_dir_angle[3*(n-1) + 2] << std::endl;
           // std::cout << "prev_angle_deriv_integrand(2): " << prev_angle_deriv_integrand(2) << std::endl;
           // std::cout << "angle_deriv_integrand(2): " << angle_deriv_integrand(2) << std::endl;
-          // vel_dir_angle[3*n + 2] = vel_dir_angle[3*(n-1) + 2] + 0.5*DL*(prev_angle_deriv_integrand(2) + angle_deriv_integrand(2));
+          vel_dir_angle[3*n + 2] = vel_dir_angle[3*(n-1) + 2] + 0.5*DL*(prev_angle_deriv_integrand(2) + angle_deriv_integrand(2));
           // std::cout << "3 is good" << std::endl;
 
           // printf("angle velocities integrated\n");
@@ -1723,7 +1725,7 @@ void filament::initial_guess(const int nt, const Real *const x_in, const Real *c
         #endif
         prev_phase_deriv_integrand = phase_deriv_integrand;
         #if DYNAMIC_SHAPE_ROTATION || WRITE_GENERALISED_FORCES
-          // prev_angle_deriv_integrand = angle_deriv_integrand;
+          prev_angle_deriv_integrand = angle_deriv_integrand;
         #endif
 
       #endif
