@@ -363,8 +363,8 @@ extern Real FREQ_SHIFT;  // Frequency percentage shift
 
 #else
 
-  #define STEPS_PER_PERIOD 500
-  #define SAVES_PER_PERIOD 500
+  #define STEPS_PER_PERIOD 750
+  #define SAVES_PER_PERIOD 750
 
 #endif
 
