@@ -14,9 +14,9 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'sphere_wgf/'
+        self.category = f'sphere_test_{num_fils}/'
         self.exe_name = f'cilia_1e-7'
-        self.date = '20250521'
+        self.date = '20250522'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
