@@ -348,7 +348,7 @@ extern Real FREQ_SHIFT;  // Frequency percentage shift
   // Right preconditioning seems to result in fewer GMRES iterations and also means that the error in GMRES
   // is the same as the error in the original system we want to solve, so this is the default option.
   // This ought to be checked whenever the preconditioner is changed though.
-  #define USE_RIGHT_PRECON true
+  #define USE_RIGHT_PRECON false
 
 #endif
 
@@ -363,8 +363,8 @@ extern Real FREQ_SHIFT;  // Frequency percentage shift
 
 #else
 
-  #define STEPS_PER_PERIOD 750
-  #define SAVES_PER_PERIOD 750
+  #define STEPS_PER_PERIOD 1500
+  #define SAVES_PER_PERIOD 1500
 
 #endif
 
