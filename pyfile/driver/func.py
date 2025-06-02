@@ -14,9 +14,9 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'left_precon_new_elas_test_plane_more_timesteps/'
+        self.category = f'zval0.1_theta5/'
         self.exe_name = f'cilia_1e-7'
-        self.date = '20250528'
+        self.date = '20250602'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -100,7 +100,7 @@ class DRIVER:
                         # Since D/L = 8 and L = 20um, D = 160um
                         # In the simulation, L is around  49 units
                         period = 1
-                        spring_factor = 1e-3
+                        spring_factor = 1e-4
 
                         nx=500
                         ny=500
@@ -112,9 +112,9 @@ class DRIVER:
                         blob_x_dim=160*(i+1)
                         hex_num=2
                         reverse_fil_direction_ratio=0.0
-                        sim_length = 1.0
+                        sim_length = 10.0
                         f_eff = 0.3
-                        theta_0 = 3.14159265359/2.1
+                        theta_0 = 3.14159265359/5
                         freq_shift = 0.0  # This was for a frequency gradient study
 
 
