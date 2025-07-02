@@ -1297,8 +1297,8 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
       const Real w = EFF_TRAVELLING_WAVE_WINDOW*FIL_LENGTH;
       const Real c = omega0 * (FIL_LENGTH + w) / EFFECTIVE_STROKE_FRACTION;
       const Real wave_position = (s*FIL_LENGTH - (
-        c * local_phase / (2.0*PI) / omega0
-      )) / w + 0.5;
+        c * local_phase / (2.0*PI) / omega0)
+      ) / w + 0.5;
       const Real wave = -transition_function(wave_position);
       return THETA_0*(
         (1.0 - EFF_TRAVELLING_WAVE_IMPORTANCE)*rotation - EFF_TRAVELLING_WAVE_IMPORTANCE*wave
@@ -1310,8 +1310,8 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
       const Real w = REC_TRAVELLING_WAVE_WINDOW*FIL_LENGTH;
       const Real c = omega0 * (FIL_LENGTH + w) / (1.0 - EFFECTIVE_STROKE_FRACTION);
       const Real wave_position = (s*FIL_LENGTH - (
-        c * local_phase / (2.0*PI)) / omega0
-      )) / w + 0.5;
+        c * local_phase / (2.0*PI) / omega0)
+      ) / w + 0.5;
       const Real wave = transition_function(wave_position);
       return THETA_0*(
         (1.0 - REC_TRAVELLING_WAVE_IMPORTANCE)*rotation - REC_TRAVELLING_WAVE_IMPORTANCE*wave
@@ -1372,7 +1372,7 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
         const Real w = REC_TRAVELLING_WAVE_WINDOW*FIL_LENGTH;
         const Real c = omega0 * (FIL_LENGTH + w) / (1.0 - EFFECTIVE_STROKE_FRACTION);
         const Real wave_position = (s*FIL_LENGTH - (
-          c * shifted_phase / (2.0*PI)) / omega0
+          c * shifted_phase / (2.0*PI) / omega0
         )) / w + 0.5;
         const Real wave = transition_function_derivative(wave_position)*(c / (2.0*PI*omega0)) / w;
 

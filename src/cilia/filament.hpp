@@ -140,7 +140,7 @@ public:
 
     #elif GENERIC_PLATY_BEAT
 
-      Real effective_angle(const Real local_phase) const;
+      Real effective_angle(const Real s, const Real local_phase) const;
       Real recovery_angle(const Real s, const Real local_phase) const;
       Real platy_beat_tangent_angle(const Real s) const;
       void platy_beat_tangent(matrix& t, const Real s) const;
