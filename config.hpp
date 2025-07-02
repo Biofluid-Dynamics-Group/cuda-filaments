@@ -124,8 +124,10 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
   #endif
 
   #if SHAPE_SEQUENCE==5
-    #define TRAVELLING_WAVE_WINDOW 0.4 // Width of the travelling wave as fraction of the filament length, f_w in (0, 1)
-    #define TRAVELLING_WAVE_IMPORTANCE 0.85 // Fraction of the recovery stroke that is due to the travelling wave, f_psi in (0, 1)
+    #define REC_TRAVELLING_WAVE_WINDOW 0.4 // Width of the travelling wave as fraction of the filament length, f_w in (0, 1)
+    #define REC_TRAVELLING_WAVE_IMPORTANCE 0.85 // Fraction of the recovery stroke that is due to the travelling wave, f_psi in (0, 1)
+    #define EFF_TRAVELLING_WAVE_WINDOW 0.8 // Width of the effective stroke wave as fraction of the filament length, f_e in (0, 1)
+    #define EFF_TRAVELLING_WAVE_IMPORTANCE 0.1 // Fraction of the effective stroke that is due to the travelling wave, f_psi in (0, 1)
     #define ZERO_VELOCITY_AVOIDANCE_LENGTH 0.05 // A value in (0,1), giving the maximum fraction of the cycle by which we shift the tangent angle curve to ensure the velocity cannot be zero everywhere along the filament at once.
 
 
