@@ -1318,7 +1318,7 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
       ) / w + 0.5;
       const Real wave = transition_function(wave_position);
       return THETA_0*(
-        (1.0 - EFF_TRAVELLING_WAVE_IMPORTANCE)*rotation - EFF_TRAVELLING_WAVE_IMPORTANCE*wave
+        (1.0 - REC_TRAVELLING_WAVE_IMPORTANCE)*rotation - REC_TRAVELLING_WAVE_IMPORTANCE*wave
       );
     }
 
@@ -1695,7 +1695,7 @@ void filament::initial_guess(const int nt, const Real *const x_in, const Real *c
         vel_dir_phase[3*n + 2] = vel_dir_phase[3*(n-1) + 2] + 0.5*DL*(prev_phase_deriv_integrand(2) + phase_deriv_integrand(2));
 
         prev_phase_deriv_integrand = phase_deriv_integrand;
-        
+
       #endif
     }
 
