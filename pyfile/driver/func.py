@@ -100,7 +100,7 @@ class DRIVER:
                         # Since D/L = 8 and L = 20um, D = 160um
                         # In the simulation, L is around  49 units
                         period = 1
-                        spring_factor = 1e-4
+                        spring_factor = 1e-3
 
                         nx=500
                         ny=500
