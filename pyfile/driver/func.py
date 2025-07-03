@@ -16,7 +16,7 @@ class DRIVER:
 
         self.category = f'travelling_wave_wgf/'
         self.exe_name = f'cilia_1e-7'
-        self.date = '20250702'
+        self.date = '20250703'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -90,8 +90,8 @@ class DRIVER:
 
                         seg_sep = 2.6
                         force_mag = 1
-                        tilt_angle = 0.2181662   # Platynaereis
-                        # tilt_angle = 0.0
+                        # tilt_angle = 0.2181662   # Platynaereis
+                        tilt_angle = 0.0
 
                         nfil = num_fils
                         nblob = 9000
@@ -224,8 +224,9 @@ class DRIVER:
 
             command = f"export OPENBLAS_NUM_THREADS=1; \
                         export CUDA_VISIBLE_DEVICES={self.cuda_device}; \
-                        nohup ./bin/{self.exe_name} > {self.dir}.out &"
-                        # ./bin/{self.exe_name}"
+                         ./bin/{self.exe_name}"
+                        # nohup ./bin/{self.exe_name} > {self.dir}.out &"
+
                            
                         
             # on ic hpc

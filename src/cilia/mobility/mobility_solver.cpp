@@ -585,7 +585,7 @@ void mobility_solver::read_positions_and_forces(std::vector<swimmer>& swimmers){
   }
 
   matrix mobility_solver::apply_preconditioner(const matrix& in, const std::vector<swimmer>& swimmers){
-    // return in;
+    return in;
     #if PRESCRIBED_CILIA
 
       matrix out = in;
@@ -1051,7 +1051,7 @@ void mobility_solver::read_positions_and_forces(std::vector<swimmer>& swimmers){
   }
 
   matrix mobility_solver::apply_preconditioner_new(const matrix& in, const std::vector<swimmer>& swimmers){
-    // return in;
+    return in;
     #if PRESCRIBED_CILIA
 
       matrix out = in;

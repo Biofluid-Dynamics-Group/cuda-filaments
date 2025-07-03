@@ -1293,9 +1293,11 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
     }
 
     Real filament::effective_angle(const Real s, const Real local_phase) const {
-      const Real rotation = myfil_cos(local_phase*0.5/EFFECTIVE_STROKE_FRACTION);
+      const Real effective_duration = EFFECTIVE_STROKE_FRACTION / omega0;
       const Real w = EFF_TRAVELLING_WAVE_WINDOW*FIL_LENGTH;
-      const Real c = omega0 * (FIL_LENGTH + w) / EFFECTIVE_STROKE_FRACTION;
+      const Real c = (FIL_LENGTH + w) / effective_duration;
+
+      const Real rotation = myfil_cos(local_phase*0.5/EFFECTIVE_STROKE_FRACTION);
       const Real wave_position = (s*FIL_LENGTH - (
         c * local_phase / (2.0*PI) / omega0)
       ) / w + 0.5;
@@ -1306,15 +1308,17 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
     }
 
     Real filament::recovery_angle(const Real s, const Real local_phase) const {
-      const Real rotation = myfil_cos(local_phase*0.5/(1.0 - EFFECTIVE_STROKE_FRACTION) + PI);
+      const Real recovery_duration = (1.0 - EFFECTIVE_STROKE_FRACTION) / omega0;
       const Real w = REC_TRAVELLING_WAVE_WINDOW*FIL_LENGTH;
-      const Real c = omega0 * (FIL_LENGTH + w) / (1.0 - EFFECTIVE_STROKE_FRACTION);
+      const Real c = (FIL_LENGTH + w) / recovery_duration;
+
+      const Real rotation = myfil_cos(local_phase*0.5/(1.0 - EFFECTIVE_STROKE_FRACTION) + PI);
       const Real wave_position = (s*FIL_LENGTH - (
         c * local_phase / (2.0*PI) / omega0)
       ) / w + 0.5;
       const Real wave = transition_function(wave_position);
       return THETA_0*(
-        (1.0 - REC_TRAVELLING_WAVE_IMPORTANCE)*rotation - REC_TRAVELLING_WAVE_IMPORTANCE*wave
+        (1.0 - EFF_TRAVELLING_WAVE_IMPORTANCE)*rotation - EFF_TRAVELLING_WAVE_IMPORTANCE*wave
       );
     }
 
@@ -1355,27 +1359,30 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
       Real deriv_value;
 
       if (shifted_phase < cutoff) {
-        const Real rotation = -myfil_sin(shifted_phase*0.5/EFFECTIVE_STROKE_FRACTION)/(2.0*EFFECTIVE_STROKE_FRACTION);
+        const Real effective_duration = EFFECTIVE_STROKE_FRACTION / omega0;
         const Real w = EFF_TRAVELLING_WAVE_WINDOW*FIL_LENGTH;
-        const Real c = omega0 * (FIL_LENGTH + w) / EFFECTIVE_STROKE_FRACTION;
+        const Real c = (FIL_LENGTH + w) / effective_duration;
+
+        const Real rotation = -myfil_sin(shifted_phase*0.5/EFFECTIVE_STROKE_FRACTION)/EFFECTIVE_STROKE_FRACTION/2.0;
         const Real wave_position = (s*FIL_LENGTH - (
-          c * shifted_phase / (2.0*PI) / omega0
-        )) / w + 0.5;
-        const Real wave = -transition_function_derivative(wave_position)*(c / (2.0*PI*omega0)) / w;
+          c * shifted_phase / (2.0*PI) / omega0)
+        ) / w + 0.5;
+        const Real wave = -transition_function_derivative(wave_position) * (-c/(2.0*PI*w*omega0));
 
         deriv_value = THETA_0*(
           (1.0 - EFF_TRAVELLING_WAVE_IMPORTANCE)*rotation - EFF_TRAVELLING_WAVE_IMPORTANCE*wave
         );
       }
       else {
-        const Real rotation = -myfil_sin(shifted_phase*0.5/(1.0 - EFFECTIVE_STROKE_FRACTION) + PI)/(2.0*(1.0 - EFFECTIVE_STROKE_FRACTION));
+        const Real recovery_duration = (1.0 - EFFECTIVE_STROKE_FRACTION) / omega0;
         const Real w = REC_TRAVELLING_WAVE_WINDOW*FIL_LENGTH;
-        const Real c = omega0 * (FIL_LENGTH + w) / (1.0 - EFFECTIVE_STROKE_FRACTION);
-        const Real wave_position = (s*FIL_LENGTH - (
-          c * shifted_phase / (2.0*PI) / omega0
-        )) / w + 0.5;
-        const Real wave = transition_function_derivative(wave_position)*(c / (2.0*PI*omega0)) / w;
+        const Real c = (FIL_LENGTH + w) / recovery_duration;
 
+        const Real rotation = -myfil_sin(shifted_phase*0.5/(1.0 - EFFECTIVE_STROKE_FRACTION) + PI)/(1.0 - EFFECTIVE_STROKE_FRACTION)/2.0;
+        const Real wave_position = (s*FIL_LENGTH - (
+          c * shifted_phase / (2.0*PI) / omega0)
+        ) / w + 0.5;
+        const Real wave = transition_function_derivative(wave_position) * (-c/(2.0*PI*w*omega0));
         deriv_value = THETA_0*(
           (1.0 - REC_TRAVELLING_WAVE_IMPORTANCE)*rotation - REC_TRAVELLING_WAVE_IMPORTANCE*wave
         );
@@ -1410,27 +1417,11 @@ void filament::initial_guess(const int nt, const Real *const x_in, const Real *c
 
       phase += phase_dot*DT;
 
-      #if !GENERIC_PLATY_BEAT
-
         #if (DYNAMIC_SHAPE_ROTATION || WRITE_GENERALISED_FORCES)
 
           shape_rotation_angle += shape_rotation_angle_dot*DT;
 
         #endif
-
-      #elif GENERIC_PLATY_BEAT
-
-        #if WRITE_GENERALISED_FORCES
-
-          shape_rotation_angle = 0.0;
-
-        #elif DYNAMIC_SHAPE_ROTATION
-
-          shape_rotation_angle += shape_rotation_angle_dot*DT;
-
-        #endif
-
-      #endif
 
     }
 
