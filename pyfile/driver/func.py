@@ -14,9 +14,9 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'travelling_wave_wgf/'
+        self.category = f'travelling_wave_riemann_wgf/'
         self.exe_name = f'cilia_1e-7'
-        self.date = '20250703'
+        self.date = '20250709'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {

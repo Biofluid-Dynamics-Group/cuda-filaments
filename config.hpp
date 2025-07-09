@@ -186,7 +186,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
 
 #if BODY_OR_SURFACE_TYPE==0 //only compatible with RPY
 
-  #define SEEDING_TYPE 0
+  #define SEEDING_TYPE 1
   // Valid options:
   // 0 = Filaments are placed on a rectangular grid.
   // 1 = Filaments are placed on a hexagonal grid.
@@ -340,7 +340,7 @@ extern Real FREQ_SHIFT;  // Frequency percentage shift
 // 1: Use GMRES to solve the linear system at each iteration of Broyden's method.
 
 #define MAX_LINEAR_SYSTEM_ITER 500 // Maximum number of iterations used to solve the linear system in each mobility solve.
-#define LINEAR_SYSTEM_TOL 1e-7 // Relative tolerance in the linear system solves.
+#define LINEAR_SYSTEM_TOL 1e-12 // Relative tolerance in the linear system solves.
 
 #if SOLVER_TYPE==1
 
@@ -350,7 +350,7 @@ extern Real FREQ_SHIFT;  // Frequency percentage shift
   // Right preconditioning seems to result in fewer GMRES iterations and also means that the error in GMRES
   // is the same as the error in the original system we want to solve, so this is the default option.
   // This ought to be checked whenever the preconditioner is changed though.
-  #define USE_RIGHT_PRECON true
+  #define USE_RIGHT_PRECON false
 
 #endif
 
@@ -370,7 +370,8 @@ extern Real FREQ_SHIFT;  // Frequency percentage shift
 
 #endif
 
-#define BASE_HEIGHT_ABOVE_SURFACE (0.5*DL)
+// #define BASE_HEIGHT_ABOVE_SURFACE (0.5*DL)
+#define BASE_HEIGHT_ABOVE_SURFACE (0.0*DL) // The height of the base of the cilia above the surface, in units of segment length.
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Derived/redefined parameters (these should be left alone)

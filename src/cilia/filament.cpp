@@ -1293,13 +1293,13 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
     }
 
     Real filament::effective_angle(const Real s, const Real local_phase) const {
-      const Real effective_duration = EFFECTIVE_STROKE_FRACTION / omega0;
+      const Real effective_duration = EFFECTIVE_STROKE_FRACTION;
       const Real w = EFF_TRAVELLING_WAVE_WINDOW*FIL_LENGTH;
       const Real c = (FIL_LENGTH + w) / effective_duration;
 
       const Real rotation = myfil_cos(local_phase*0.5/EFFECTIVE_STROKE_FRACTION);
       const Real wave_position = (s*FIL_LENGTH - (
-        c * local_phase / (2.0*PI) / omega0)
+        c * local_phase / (2.0*PI))
       ) / w + 0.5;
       const Real wave = -transition_function(wave_position);
       return THETA_0*(
@@ -1308,13 +1308,13 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
     }
 
     Real filament::recovery_angle(const Real s, const Real local_phase) const {
-      const Real recovery_duration = (1.0 - EFFECTIVE_STROKE_FRACTION) / omega0;
+      const Real recovery_duration = (1.0 - EFFECTIVE_STROKE_FRACTION);
       const Real w = REC_TRAVELLING_WAVE_WINDOW*FIL_LENGTH;
       const Real c = (FIL_LENGTH + w) / recovery_duration;
 
       const Real rotation = myfil_cos(local_phase*0.5/(1.0 - EFFECTIVE_STROKE_FRACTION) + PI);
       const Real wave_position = (s*FIL_LENGTH - (
-        c * local_phase / (2.0*PI) / omega0)
+        c * local_phase / (2.0*PI))
       ) / w + 0.5;
       const Real wave = transition_function(wave_position);
       return THETA_0*(
@@ -1359,30 +1359,30 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
       Real deriv_value;
 
       if (shifted_phase < cutoff) {
-        const Real effective_duration = EFFECTIVE_STROKE_FRACTION / omega0;
+        const Real effective_duration = EFFECTIVE_STROKE_FRACTION;
         const Real w = EFF_TRAVELLING_WAVE_WINDOW*FIL_LENGTH;
         const Real c = (FIL_LENGTH + w) / effective_duration;
 
         const Real rotation = -myfil_sin(shifted_phase*0.5/EFFECTIVE_STROKE_FRACTION)/EFFECTIVE_STROKE_FRACTION/2.0;
         const Real wave_position = (s*FIL_LENGTH - (
-          c * shifted_phase / (2.0*PI) / omega0)
+          c * shifted_phase / (2.0*PI))
         ) / w + 0.5;
-        const Real wave = -transition_function_derivative(wave_position) * (-c/(2.0*PI*w*omega0));
+        const Real wave = -transition_function_derivative(wave_position) * (-c/(2.0*PI*w));
 
         deriv_value = THETA_0*(
           (1.0 - EFF_TRAVELLING_WAVE_IMPORTANCE)*rotation - EFF_TRAVELLING_WAVE_IMPORTANCE*wave
         );
       }
       else {
-        const Real recovery_duration = (1.0 - EFFECTIVE_STROKE_FRACTION) / omega0;
+        const Real recovery_duration = (1.0 - EFFECTIVE_STROKE_FRACTION);
         const Real w = REC_TRAVELLING_WAVE_WINDOW*FIL_LENGTH;
         const Real c = (FIL_LENGTH + w) / recovery_duration;
 
         const Real rotation = -myfil_sin(shifted_phase*0.5/(1.0 - EFFECTIVE_STROKE_FRACTION) + PI)/(1.0 - EFFECTIVE_STROKE_FRACTION)/2.0;
         const Real wave_position = (s*FIL_LENGTH - (
-          c * shifted_phase / (2.0*PI) / omega0)
+          c * shifted_phase / (2.0*PI))
         ) / w + 0.5;
-        const Real wave = transition_function_derivative(wave_position) * (-c/(2.0*PI*w*omega0));
+        const Real wave = transition_function_derivative(wave_position) * (-c/(2.0*PI*w));
         deriv_value = THETA_0*(
           (1.0 - REC_TRAVELLING_WAVE_IMPORTANCE)*rotation - REC_TRAVELLING_WAVE_IMPORTANCE*wave
         );
@@ -1649,9 +1649,13 @@ void filament::initial_guess(const int nt, const Real *const x_in, const Real *c
 
         #endif
 
-        segments[n].x[0] = segments[n-1].x[0] + 0.5*DL*(prev_tangent(0) + tangent(0));
-        segments[n].x[1] = segments[n-1].x[1] + 0.5*DL*(prev_tangent(1) + tangent(1));
-        segments[n].x[2] = segments[n-1].x[2] + 0.5*DL*(prev_tangent(2) + tangent(2));
+        // segments[n].x[0] = segments[n-1].x[0] + 0.5*DL*(prev_tangent(0) + tangent(0));
+        // segments[n].x[1] = segments[n-1].x[1] + 0.5*DL*(prev_tangent(1) + tangent(1));
+        // segments[n].x[2] = segments[n-1].x[2] + 0.5*DL*(prev_tangent(2) + tangent(2));
+
+        segments[n].x[0] = segments[n-1].x[0] + DL*tangent(0);
+        segments[n].x[1] = segments[n-1].x[1] + DL*tangent(1);
+        segments[n].x[2] = segments[n-1].x[2] + DL*tangent(2);
 
         prev_tangent = tangent;
 
@@ -1690,9 +1694,13 @@ void filament::initial_guess(const int nt, const Real *const x_in, const Real *c
 
         // Use trapezoidal rule to integrate along the filament to obtain the values of derivatives
 
-        vel_dir_phase[3*n] = vel_dir_phase[3*(n-1)] + 0.5*DL*(prev_phase_deriv_integrand(0) + phase_deriv_integrand(0));
-        vel_dir_phase[3*n + 1] = vel_dir_phase[3*(n-1) + 1] + 0.5*DL*(prev_phase_deriv_integrand(1) + phase_deriv_integrand(1));
-        vel_dir_phase[3*n + 2] = vel_dir_phase[3*(n-1) + 2] + 0.5*DL*(prev_phase_deriv_integrand(2) + phase_deriv_integrand(2));
+        // vel_dir_phase[3*n] = vel_dir_phase[3*(n-1)] + 0.5*DL*(prev_phase_deriv_integrand(0) + phase_deriv_integrand(0));
+        // vel_dir_phase[3*n + 1] = vel_dir_phase[3*(n-1) + 1] + 0.5*DL*(prev_phase_deriv_integrand(1) + phase_deriv_integrand(1));
+        // vel_dir_phase[3*n + 2] = vel_dir_phase[3*(n-1) + 2] + 0.5*DL*(prev_phase_deriv_integrand(2) + phase_deriv_integrand(2));
+
+        vel_dir_phase[3*n] = vel_dir_phase[3*(n-1)] + DL*phase_deriv_integrand(0);
+        vel_dir_phase[3*n + 1] = vel_dir_phase[3*(n-1) + 1] + DL*phase_deriv_integrand(1);
+        vel_dir_phase[3*n + 2] = vel_dir_phase[3*(n-1) + 2] + DL*phase_deriv_integrand(2);
 
         prev_phase_deriv_integrand = phase_deriv_integrand;
 
@@ -2446,16 +2454,6 @@ void filament::write_backup(std::ofstream& data_file) const {
   #endif
 
 }
-
-
-
-
-
-
-
-
-
-
 
 #if PRESCRIBED_CILIA
 
