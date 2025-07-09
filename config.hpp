@@ -127,7 +127,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
     #define REC_TRAVELLING_WAVE_WINDOW 0.4 // Width of the travelling wave as fraction of the filament length, f_w in (0, 1)
     #define REC_TRAVELLING_WAVE_IMPORTANCE 0.85 // Fraction of the recovery stroke that is due to the travelling wave, f_psi in (0, 1)
     #define EFF_TRAVELLING_WAVE_WINDOW 0.8 // Width of the effective stroke wave as fraction of the filament length, f_e in (0, 1)
-    #define EFF_TRAVELLING_WAVE_IMPORTANCE 0.0 // Fraction of the effective stroke that is due to the travelling wave, f_psi in (0, 1)
+    #define EFF_TRAVELLING_WAVE_IMPORTANCE 0.1 // Fraction of the effective stroke that is due to the travelling wave, f_psi in (0, 1)
     #define ZERO_VELOCITY_AVOIDANCE_LENGTH 0.05 // A value in (0,1), giving the maximum fraction of the cycle by which we shift the tangent angle curve to ensure the velocity cannot be zero everywhere along the filament at once.
 
 
@@ -146,7 +146,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
   // If false, no such rotation ever occurs.
   // In the Platynaereis case this changes to an elastic variable. NO LONGER TRUE
 
-  #define WRITE_GENERALISED_FORCES true
+  #define WRITE_GENERALISED_FORCES false
   // If true, this simulation will save its generalised forces to file for use as the reference values.
   // It will also generate reference s-values for shape sequences which don't result in inextensible filaments.
   // NOTE: This will overwrite any existing reference files unless their names have been changed.
@@ -350,7 +350,7 @@ extern Real FREQ_SHIFT;  // Frequency percentage shift
   // Right preconditioning seems to result in fewer GMRES iterations and also means that the error in GMRES
   // is the same as the error in the original system we want to solve, so this is the default option.
   // This ought to be checked whenever the preconditioner is changed though.
-  #define USE_RIGHT_PRECON false
+  #define USE_RIGHT_PRECON true
 
 #endif
 
@@ -365,13 +365,13 @@ extern Real FREQ_SHIFT;  // Frequency percentage shift
 
 #else
 
-  #define STEPS_PER_PERIOD 25000
-  #define SAVES_PER_PERIOD 25000
+  #define STEPS_PER_PERIOD 500
+  #define SAVES_PER_PERIOD 500
 
 #endif
 
-// #define BASE_HEIGHT_ABOVE_SURFACE (0.5*DL)
-#define BASE_HEIGHT_ABOVE_SURFACE (0.0*DL) // The height of the base of the cilia above the surface, in units of segment length.
+#define BASE_HEIGHT_ABOVE_SURFACE (0.5*DL)
+// #define BASE_HEIGHT_ABOVE_SURFACE (0.0*DL) // The height of the base of the cilia above the surface, in units of segment length.
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Derived/redefined parameters (these should be left alone)
