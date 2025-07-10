@@ -186,7 +186,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
 
 #if BODY_OR_SURFACE_TYPE==0 //only compatible with RPY
 
-  #define SEEDING_TYPE 1
+  #define SEEDING_TYPE 0
   // Valid options:
   // 0 = Filaments are placed on a rectangular grid.
   // 1 = Filaments are placed on a hexagonal grid.
@@ -340,7 +340,7 @@ extern Real FREQ_SHIFT;  // Frequency percentage shift
 // 1: Use GMRES to solve the linear system at each iteration of Broyden's method.
 
 #define MAX_LINEAR_SYSTEM_ITER 500 // Maximum number of iterations used to solve the linear system in each mobility solve.
-#define LINEAR_SYSTEM_TOL 1e-12 // Relative tolerance in the linear system solves.
+#define LINEAR_SYSTEM_TOL 1e-7 // Relative tolerance in the linear system solves.
 
 #if SOLVER_TYPE==1
 
@@ -365,8 +365,8 @@ extern Real FREQ_SHIFT;  // Frequency percentage shift
 
 #else
 
-  #define STEPS_PER_PERIOD 500
-  #define SAVES_PER_PERIOD 500
+  #define STEPS_PER_PERIOD 1000
+  #define SAVES_PER_PERIOD 1000
 
 #endif
 
