@@ -1665,24 +1665,30 @@ void filament::initial_guess(const int nt, const Real *const x_in, const Real *c
 
           phase_deriv_integrand = R*Rshape*phase_deriv_integrand;
 
-          matrix ref(3,1);
-          ref(0) = segments[n].x[0] - segments[0].x[0];
-          ref(1) = segments[n].x[1] - segments[0].x[1];
-          ref(2) = segments[n].x[2] - segments[0].x[2];
+          // --- START: Corrected calculation for vel_dir_angle ---
 
-          ref = Rshape*ref;
+          // 1. Get the reference tangent before any rotations.
+          matrix tangent_ref(3,1);
+          platy_beat_tangent(tangent_ref, Real(n)/Real(NSEG - 1));
 
-          // Turn ref into cross(e_z, ref)
-          ref(2) = -ref(1);
-          ref(1) = ref(0);
-          ref(0) = ref(2);
-          ref(2) = 0.0;
+          // 2. Rotate it by Rshape.
+          matrix tangent_rotated_by_shape = Rshape * tangent_ref;
 
-          ref = R*ref;
+          // 3. Compute the cross product in the filament's base frame.
+          matrix cross_product_result(3,1);
+          cross_product_result(0) = -tangent_rotated_by_shape(1); // e_z x (R_shape * t_ref)
+          cross_product_result(1) =  tangent_rotated_by_shape(0);
+          cross_product_result(2) =  0.0;
 
-          vel_dir_angle[3*n] = ref(0);
-          vel_dir_angle[3*n + 1] = ref(1);
-          vel_dir_angle[3*n + 2] = ref(2);
+          // 4. Rotate the result into the lab frame to get the integrand.
+          matrix angle_deriv_integrand = R * cross_product_result;
+
+          // 5. Integrate the integrand to get the velocity direction.
+          vel_dir_angle[3*n]     = vel_dir_angle[3*(n-1)]     + DL * angle_deriv_integrand(0);
+          vel_dir_angle[3*n + 1] = vel_dir_angle[3*(n-1) + 1] + DL * angle_deriv_integrand(1);
+          vel_dir_angle[3*n + 2] = vel_dir_angle[3*(n-1) + 2] + DL * angle_deriv_integrand(2);
+
+          // --- END: Corrected calculation ---
 
         #else
 
