@@ -14,7 +14,7 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'FIXED_travelling_wave/'
+        self.category = f'actual_amplitude/'
         self.exe_name = f'cilia_1e-7'
         self.date = '20250710'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
@@ -114,7 +114,7 @@ class DRIVER:
                         reverse_fil_direction_ratio=0.0
                         sim_length = 10.0
                         f_eff = 0.3
-                        theta_0 = 3.14159265359/2.1*0.9
+                        theta_0 = 3.14159265359/2.1#*0.9
                         freq_shift = 0.0  # This was for a frequency gradient study
 
 
