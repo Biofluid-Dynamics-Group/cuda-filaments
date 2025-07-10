@@ -1374,13 +1374,14 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
         );
       }
       else {
+        const Real local_phase = shifted_phase - cutoff;
         const Real recovery_duration = (1.0 - EFFECTIVE_STROKE_FRACTION);
         const Real w = REC_TRAVELLING_WAVE_WINDOW*FIL_LENGTH;
         const Real c = (FIL_LENGTH + w) / recovery_duration;
 
-        const Real rotation = -myfil_sin(shifted_phase*0.5/(1.0 - EFFECTIVE_STROKE_FRACTION) + PI)/(1.0 - EFFECTIVE_STROKE_FRACTION)/2.0;
+        const Real rotation = -myfil_sin(local_phase*0.5/(1.0 - EFFECTIVE_STROKE_FRACTION) + PI)/(1.0 - EFFECTIVE_STROKE_FRACTION)/2.0;
         const Real wave_position = (s*FIL_LENGTH - (
-          c * shifted_phase / (2.0*PI))
+          c * local_phase / (2.0*PI))
         ) / w + 0.5;
         const Real wave = transition_function_derivative(wave_position) * (-c/(2.0*PI*w));
         deriv_value = THETA_0*(
