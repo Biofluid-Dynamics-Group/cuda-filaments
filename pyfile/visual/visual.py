@@ -29,8 +29,8 @@ class VISUAL:
     def __init__(self):
         self.globals_name = 'globals.ini'
 
-        self.date = '20250325'
-        self.dir = f"data/new_beat/{self.date}/"
+        self.date = '20250711'
+        self.dir = f"data/plane_random_1/{self.date}/"
         
         self.pars_list = {
                      "index": [],
@@ -62,8 +62,8 @@ class VISUAL:
         self.interpolate = False
         self.angle = False
         self.output_to_fcm = False
-        self.output_to_superpunto = True
-        self.periodic = True
+        self.output_to_superpunto = False
+        self.periodic = False
         
 
         self.show_poles = False
