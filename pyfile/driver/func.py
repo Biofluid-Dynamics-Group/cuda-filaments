@@ -2,7 +2,7 @@ import configparser
 import os
 import util
 
-num_fils = 2
+num_fils = 50
 gmres_tol = 7
 precon = 'precon'
 k = 60
@@ -14,7 +14,7 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'plane_emergent_random/'
+        self.category = f'plane_emergent_random_{num_fils}fils/'
         self.exe_name = f'cilia_1e-7'
         self.date = '20250714'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
@@ -100,13 +100,13 @@ class DRIVER:
                         # Since D/L = 8 and L = 20um, D = 160um
                         # In the simulation, L is around  49 units
                         period = 1
-                        spring_factor = 5e-2
+                        spring_factor = 1e-1
 
                         nx=500
                         ny=500
                         nz=500
                         boxsize=8000
-                        fil_spacing=80.0
+                        fil_spacing=90.0
                         blob_spacing=8.0
                         fil_x_dim=16*(i+1)
                         blob_x_dim=160*(i+1)

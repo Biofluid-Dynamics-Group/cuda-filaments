@@ -29,8 +29,8 @@ class VISUAL:
     def __init__(self):
         self.globals_name = 'globals.ini'
 
-        self.date = '20250711'
-        self.dir = f"data/plane_random_1/{self.date}/"
+        self.date = '20250714'
+        self.dir = f"data/plane_emergent_random_50_fils/{self.date}/"
         
         self.pars_list = {
                      "index": [],

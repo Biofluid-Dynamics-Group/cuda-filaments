@@ -151,7 +151,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
   // It will also generate reference s-values for shape sequences which don't result in inextensible filaments.
   // NOTE: This will overwrite any existing reference files unless their names have been changed.
 
-  #define CILIA_IC_TYPE 0
+  #define CILIA_IC_TYPE 1
   // Valid options:
   // 0 = All cilia start in-phase with phase 0.
   // 1 = Cilia start with a (uniformly) random initial phase.
@@ -186,7 +186,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
 
 #if BODY_OR_SURFACE_TYPE==0 //only compatible with RPY
 
-  #define SEEDING_TYPE 1
+  #define SEEDING_TYPE 0
   // Valid options:
   // 0 = Filaments are placed on a rectangular grid.
   // 1 = Filaments are placed on a hexagonal grid.
