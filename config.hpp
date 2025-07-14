@@ -196,10 +196,10 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
   // Define one lattice size and leave the other blank to have it automatically calculated to fit the number of filaments.
   // Leave both blank to have the code attempt to make a regular lattice.
   // If values are given for both, the code will use FIL_LATTICE_X_NUM and re-calculate FIL_LATTICE_Y_NUM.
-  #define FIL_LATTICE_X_NUM 1
-  #define FIL_LATTICE_Y_NUM
+  #define FIL_LATTICE_X_NUM 10
+  #define FIL_LATTICE_Y_NUM 
   #define FIL_LATTICE_Y_SPACING (1.8*FIL_LENGTH) // For prescribed-shape cilia, this is the beat-wise separation.
-  #define FIL_LATTICE_X_SPACING (2.0*DL) // Leave blank for a regular grid (i.e. squares or regular hexagons (as appropriate) based on FIL_LATTICE_Y_SPACING).
+  #define FIL_LATTICE_X_SPACING  // Leave blank for a regular grid (i.e. squares or regular hexagons (as appropriate) based on FIL_LATTICE_Y_SPACING).
 
 #elif BODY_OR_SURFACE_TYPE==2 or BODY_OR_SURFACE_TYPE==4 or BODY_OR_SURFACE_TYPE==5
 
@@ -237,7 +237,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
 
 #endif
 
-#define MOBILITY_TYPE 1
+#define MOBILITY_TYPE 4
 // Valid options:
 // 0 = Basic Stokes drag. No hydrodynamic interactions between particles.
 // 1 = Rotne-Prager-Yamakawa (RPY) mobility matrices (with the corrections due to Swan and Brady if an infinite plane wall is selected).
