@@ -14,7 +14,7 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'plane_emergent_random_{num_fils}fils/'
+        self.category = f'plane_fcm_emergent_random_{num_fils}fils/'
         self.exe_name = f'cilia_1e-7'
         self.date = '20250714'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
@@ -105,7 +105,7 @@ class DRIVER:
                         nx=500
                         ny=500
                         nz=500
-                        boxsize=8000
+                        boxsize=1300
                         fil_spacing=90.0
                         blob_spacing=8.0
                         fil_x_dim=16*(i+1)
