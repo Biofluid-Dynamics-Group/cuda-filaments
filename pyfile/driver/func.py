@@ -2,8 +2,8 @@ import configparser
 import os
 import util
 
-num_fils = 100
-gmres_tol = 7
+num_fils = 309
+gmres_tol = 4
 precon = 'precon'
 k = 60
 
@@ -14,9 +14,9 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'plane_fcm_emergent_random_{num_fils}fils/'
+        self.category = f'prescribed_random_5/'
         self.exe_name = f'cilia_1e-7'
-        self.date = '20250714'
+        self.date = '20250715'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -105,14 +105,14 @@ class DRIVER:
                         nx=500
                         ny=500
                         nz=500
-                        boxsize=1300
-                        fil_spacing=90.0
+                        boxsize=8000
+                        fil_spacing=80.0
                         blob_spacing=8.0
                         fil_x_dim=16*(i+1)
                         blob_x_dim=160*(i+1)
                         hex_num=2
                         reverse_fil_direction_ratio=0.0
-                        sim_length = 50.0
+                        sim_length = 1.0
                         f_eff = 0.3
                         theta_0 = 3.14159265359/2.1#*0.9
                         freq_shift = 0.0  # This was for a frequency gradient study
@@ -224,8 +224,8 @@ class DRIVER:
 
             command = f"export OPENBLAS_NUM_THREADS=1; \
                         export CUDA_VISIBLE_DEVICES={self.cuda_device}; \
-                         ./bin/{self.exe_name}"
-                        # nohup ./bin/{self.exe_name} > {self.dir}.out &"
+                        nohup ./bin/{self.exe_name} > {self.dir}.out &"
+                        # ./bin/{self.exe_name}"
 
                            
                         

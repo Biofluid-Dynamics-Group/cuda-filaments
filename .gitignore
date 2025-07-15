@@ -18,6 +18,9 @@
 *.txt
 *.npy
 
+*.ini
+*.pyc
+
 # ignore all videos and figures
 *.avi
 *.mov
