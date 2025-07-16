@@ -29,8 +29,8 @@ class VISUAL:
     def __init__(self):
         self.globals_name = 'globals.ini'
 
-        self.date = '20250714'
-        self.dir = f"data/plane_emergent_random_50_fils/{self.date}/"
+        self.date = '20250715'
+        self.dir = f"data/wave_k19/{self.date}/"
         
         self.pars_list = {
                      "index": [],
@@ -67,10 +67,10 @@ class VISUAL:
         
 
         self.show_poles = False
-        self.big_sphere = False
+        self.big_sphere = True
         self.noblob = False
 
-        self.planar = True
+        self.planar = False
 
         if(self.planar):
             self.big_sphere = False
