@@ -34,7 +34,7 @@ def export_notebook_to_html(notebook_path, output_path):
     <script>
         window.MathJax = {
             tex: {
-                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                inlineMath: [['$', '$']],
                 displayMath: [['$$', '$$'], ['\\[', '\\]']]
             }
         };
