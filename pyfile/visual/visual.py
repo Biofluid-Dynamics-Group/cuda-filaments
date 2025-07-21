@@ -29,8 +29,8 @@ class VISUAL:
     def __init__(self):
         self.globals_name = 'globals.ini'
 
-        self.date = '20250715'
-        self.dir = f"data/wave_k19/{self.date}/"
+        self.date = '20250717'
+        self.dir = f"data/emergent_random_3/{self.date}/"
         
         self.pars_list = {
                      "index": [],
@@ -487,7 +487,7 @@ class VISUAL:
         ax.set_proj_type('ortho')
         # ax.set_proj_type('persp', 0.05)  # FOV = 157.4 deg
         ax.view_init(elev=45, azim=45)
-        ax.dist = 10  # Decrease this value to make the plot look larger/closer
+        ax.dist = 12  # Decrease this value to make the plot look larger/closer
         ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
         ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
         ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
@@ -521,7 +521,7 @@ class VISUAL:
                 for seg in range(1, self.nseg):
                     seg_pos = seg_states[fil_i+3*(seg-1) : fil_i+3*seg]
                     fil_data[seg] = seg_pos
-                ax.plot(fil_data[:,0], fil_data[:,1], fil_data[:,2], c='black', zorder = 100, marker='o', markersize=2)
+                ax.plot(fil_data[:,0], fil_data[:,1], fil_data[:,2], c='black', zorder = 100, marker='o', markersize=1)
 
         if(self.video):
             plt.rcParams['animation.ffmpeg_path'] = '/usr/bin/ffmpeg'
