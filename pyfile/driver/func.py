@@ -14,9 +14,9 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'emergent_random_3/'
+        self.category = f'no_tilt_5/'
         self.exe_name = f'cilia_1e-7'
-        self.date = '20250717'
+        self.date = '20250728'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -90,11 +90,11 @@ class DRIVER:
 
                         seg_sep = 2.6
                         force_mag = 1
-                        tilt_angle = 0.2181662   # Platynaereis
-                        # tilt_angle = 0.0
+                        # tilt_angle = 0.2181662   # Platynaereis
+                        tilt_angle = 0.0
 
                         nfil = num_fils
-                        nblob = 9000
+                        nblob = 18000
                         nseg = 20
                         ar = 8  # This is D/L, not R/L. This is for Platynaereis
                         # Since D/L = 8 and L = 20um, D = 160um
@@ -102,17 +102,17 @@ class DRIVER:
                         period = 1
                         spring_factor = 1.5e-1
 
-                        nx=500
-                        ny=500
-                        nz=500
-                        boxsize=8000
+                        nx=256
+                        ny=256
+                        nz=256
+                        boxsize=4000
                         fil_spacing=80.0
                         blob_spacing=8.0
                         fil_x_dim=16*(i+1)
                         blob_x_dim=160*(i+1)
                         hex_num=2
                         reverse_fil_direction_ratio=0.0
-                        sim_length = 50.0
+                        sim_length = 100.0
                         f_eff = 0.3
                         theta_0 = 3.14159265359/2.1#*0.9
                         freq_shift = 0.0  # This was for a frequency gradient study
