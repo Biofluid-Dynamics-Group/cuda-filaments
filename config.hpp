@@ -92,7 +92,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
 // Define whether the motion of the rigid bodies is imposed or allowed to evolve dynamically.
 #define PRESCRIBED_BODY_VELOCITIES true
 
-#define OUTPUT_FORCES true
+#define OUTPUT_FORCES false
 #if CILIA_TYPE==0
 
   #define CILIA_IC_TYPE 2
@@ -366,7 +366,7 @@ extern Real FREQ_SHIFT;  // Frequency percentage shift
 #else
 
   #define STEPS_PER_PERIOD 500
-  #define SAVES_PER_PERIOD 500
+  #define SAVES_PER_PERIOD 100
 
 #endif
 
