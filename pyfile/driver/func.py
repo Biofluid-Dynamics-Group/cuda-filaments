@@ -14,9 +14,9 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'no_tilt_5/'
+        self.category = f'no_tilt_6/'
         self.exe_name = f'cilia_1e-7'
-        self.date = '20250728'
+        self.date = '20250820'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
