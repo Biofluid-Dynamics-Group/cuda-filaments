@@ -900,64 +900,119 @@
     Real y_value = 0.0;
     Real z_value = 0.0;
     Real radius_of_sphere = 0.0;
-
     // Write the data for the final positions
-    for (int n = 0; n < N; n++){
+    #if PLATY_GROUPS
+        if (N > 0 && radius_of_sphere < 1e-10){
+          radius_of_sphere = std::sqrt(X[0]*X[0] + X[1]*X[1] + X[2]*X[2]);
+        }
 
-      if (radius_of_sphere < 1E-10){
-        radius_of_sphere = std::sqrt(X[3*n]*X[3*n] + X[3*n + 1]*X[3*n + 1] + X[3*n + 2]*X[3*n + 2]);
-      }
+        const int G = NUM_PLATY_GROUPS;
+        const Real gap_angle = PLATY_GROUP_GAP_ANG;   // radians
+        const Real total_gap = gap_angle * G;
+        const Real two_pi = 2.0f*PI;
+        const Real available = two_pi - total_gap;  // available angular space
+        if (available <= 0){
+          std::cerr << "PLATY_GROUPS error: gaps too large." << std::endl;
+        }
+        const Real group_arc = available / G; // angular span occupied by cilia in each group
 
-      x_value = myfil_cos(rotation_angle);
-      y_value = myfil_sin(rotation_angle);
-      z_value = 0.0;
+        // Distribute counts per group as evenly as possible
+        std::vector<int> group_counts(G, N / G);
+        int remainder = N % G;
+        for (int g = 0; g < G && remainder > 0; g++, remainder--) group_counts[g]++;
 
-      X[3*n] = radius_of_sphere*x_value;
-      X[3*n + 1] = radius_of_sphere*y_value;
-      X[3*n + 2] = radius_of_sphere*z_value;
+        // Pre-compute angles
+        std::vector<Real> angle_list;
+        angle_list.reserve(N);
+        for (int g = 0; g < G; g++){
+          Real group_start = g * (group_arc + gap_angle); // start angle of this group
+          int ng = group_counts[g];
+          if (ng == 0) continue;
+          for (int k = 0; k < ng; k++){
+            // Center cilia within the group's occupied arc
+            Real phi = group_start + ( (k + 0.5f) * (group_arc / ng) );
+            // Normalize angle
+            if (phi >= two_pi) phi -= two_pi;
+            angle_list.push_back(phi);
+          }
+        }
 
-      pos_ref[3*n] = X[3*n];
-      pos_ref[3*n + 1] = X[3*n + 1];
-      pos_ref[3*n + 2] = X[3*n + 2];
+        // Safety: in rare rounding cases adjust size
+        if ((int)angle_list.size() > N) angle_list.resize(N);
 
-      // const Real theta = std::atan2(std::sqrt(X[3*n]*X[3*n] + X[3*n + 1]*X[3*n + 1]), X[3*n + 2]);
-      // const Real phi = std::atan2(X[3*n + 1], X[3*n]);
+        for (int n = 0; n < N; n++){
+          const Real phi = angle_list[n];
+          x_value = myfil_cos(phi);
+          y_value = myfil_sin(phi);
+          z_value = 0.0f;
 
-      const Real theta = 0.0;
-      const Real phi = rotation_angle;
+          X[3*n]     = radius_of_sphere * x_value;
+          X[3*n + 1] = radius_of_sphere * y_value;
+          X[3*n + 2] = radius_of_sphere * z_value;
 
-      matrix frame = shape.full_frame(theta, phi);
-      // N.B. the polar and azi refs are not used at the end
-      // To define the beating plane, consult the filament class instead
-      
-      polar_dir_refs[3*n] = frame(0);
-      polar_dir_refs[3*n + 1] = frame(1);
-      polar_dir_refs[3*n + 2] = frame(2);
+          pos_ref[3*n]     = X[3*n];
+          pos_ref[3*n + 1] = X[3*n + 1];
+          pos_ref[3*n + 2] = X[3*n + 2];
 
-      azi_dir_refs[3*n] = frame(3);
-      azi_dir_refs[3*n + 1] = frame(4);
-      azi_dir_refs[3*n + 2] = frame(5);
+          // Keep theta ~ 0 (equator) and use phi for azimuthal frame
+          const Real theta = 0.0f;
+          matrix frame = shape.full_frame(theta, phi);
 
-      // polar and azi don't matter
-      // normal refs is the surface normal, the only thing that matters
+          polar_dir_refs[3*n]     = frame(0);
+          polar_dir_refs[3*n + 1] = frame(1);
+          polar_dir_refs[3*n + 2] = frame(2);
 
-      // normal_refs[3*n] = frame(6);
-      // normal_refs[3*n + 1] = frame(7);
-      // normal_refs[3*n + 2] = frame(8);
+          azi_dir_refs[3*n]     = frame(3);
+          azi_dir_refs[3*n + 1] = frame(4);
+          azi_dir_refs[3*n + 2] = frame(5);
 
-      normal_refs[3*n] = x_value;
-      normal_refs[3*n + 1] = y_value;
-      normal_refs[3*n + 2] = z_value;
+          // Use outward radial direction as normal
+          normal_refs[3*n]     = x_value;
+          normal_refs[3*n + 1] = y_value;
+          normal_refs[3*n + 2] = z_value;
 
-      std::cout << "Normal refs for filament " << n << ": (" 
-            << normal_refs[3*n] << ", " 
-            << normal_refs[3*n + 1] << ", " 
-            << normal_refs[3*n + 2] << ")" << std::endl;
+          // Optional debug
+          // std::cout << "Group seed " << n << " phi=" << phi << std::endl;
+        }
+    #else
+        for (int n = 0; n < N; n++){
 
-      rotation_angle += 2.0*PI/309.0;  // I set N = 310 for the gap study so that less filaments create the gap at the end
+          if (radius_of_sphere < 1E-10){
+            radius_of_sphere = std::sqrt(X[3*n]*X[3*n] + X[3*n + 1]*X[3*n + 1] + X[3*n + 2]*X[3*n + 2]);
+          }
 
-    }
+          x_value = myfil_cos(rotation_angle);
+          y_value = myfil_sin(rotation_angle);
+          z_value = 0.0;
 
+          X[3*n]     = radius_of_sphere*x_value;
+          X[3*n + 1] = radius_of_sphere*y_value;
+          X[3*n + 2] = radius_of_sphere*z_value;
+
+          pos_ref[3*n]     = X[3*n];
+          pos_ref[3*n + 1] = X[3*n + 1];
+          pos_ref[3*n + 2] = X[3*n + 2];
+
+          const Real theta = 0.0;
+          const Real phi = rotation_angle;
+
+          matrix frame = shape.full_frame(theta, phi);
+
+          polar_dir_refs[3*n]     = frame(0);
+          polar_dir_refs[3*n + 1] = frame(1);
+          polar_dir_refs[3*n + 2] = frame(2);
+
+          azi_dir_refs[3*n]     = frame(3);
+          azi_dir_refs[3*n + 1] = frame(4);
+          azi_dir_refs[3*n + 2] = frame(5);
+
+          normal_refs[3*n]     = x_value;
+          normal_refs[3*n + 1] = y_value;
+          normal_refs[3*n + 2] = z_value;
+
+          rotation_angle += 2.0*PI/Real(N-1);
+        }
+    #endif
   };
 
   std::mt19937 gen1;
