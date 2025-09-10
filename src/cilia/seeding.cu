@@ -1010,7 +1010,7 @@
           normal_refs[3*n + 1] = y_value;
           normal_refs[3*n + 2] = z_value;
 
-          rotation_angle += 2.0*PI/Real(N-1);
+          rotation_angle += 2.0*PI/Real(N);
         }
     #endif
   };
