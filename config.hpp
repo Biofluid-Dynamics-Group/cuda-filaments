@@ -93,6 +93,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
 #define PRESCRIBED_BODY_VELOCITIES true
 
 #define OUTPUT_FORCES false
+#define OUTPUT_SEG_STATES true
 #if CILIA_TYPE==0
 
   #define CILIA_IC_TYPE 2

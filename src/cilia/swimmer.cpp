@@ -1127,7 +1127,7 @@ void swimmer::write_data(std::ofstream& seg_state_file, std::ofstream& body_stat
 
   body.write_data(body_state_file);
 
-  #if OUTPUT_FORCES
+  #if OUTPUT_SEG_STATES
 
     for (int n = 0; n < NFIL; n++){
 
