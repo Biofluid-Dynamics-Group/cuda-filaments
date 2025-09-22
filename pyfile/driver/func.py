@@ -2,7 +2,7 @@ import configparser
 import os
 import util
 
-num_fils = 303
+num_fils = 348
 gmres_tol = 7
 precon = 'precon'
 k = 60
@@ -14,9 +14,9 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'test_low_packing_2/'
+        self.category = f'cell_gaps_notilt_2/'
         self.exe_name = f'cilia_1e-7'
-        self.date = '20250918'
+        self.date = '20250922'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -90,8 +90,8 @@ class DRIVER:
 
                         seg_sep = 2.6
                         force_mag = 1
-                        tilt_angle = 0.2181662   # Platynaereis
-                        # tilt_angle = 0.0
+                        # tilt_angle = 0.2181662   # Platynaereis
+                        tilt_angle = 0.0
 
                         nfil = num_fils
                         

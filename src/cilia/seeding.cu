@@ -901,6 +901,11 @@
     Real z_value = 0.0;
     Real radius_of_sphere = 0.0;
     // Write the data for the final positions
+    #if ABLATE
+      int seed_like = SEED_LIKE;
+    #else
+      int seed_like = N;
+    #endif
     #if PLATY_GROUPS
         if (N > 0 && radius_of_sphere < 1e-10){
           radius_of_sphere = std::sqrt(X[0]*X[0] + X[1]*X[1] + X[2]*X[2]);
@@ -917,13 +922,13 @@
         const Real group_arc = available / G; // angular span occupied by cilia in each group
 
         // Distribute counts per group as evenly as possible
-        std::vector<int> group_counts(G, N / G);
-        int remainder = N % G;
+        std::vector<int> group_counts(G, seed_like / G);
+        int remainder = seed_like % G;
         for (int g = 0; g < G && remainder > 0; g++, remainder--) group_counts[g]++;
 
         // Pre-compute angles
         std::vector<Real> angle_list;
-        angle_list.reserve(N);
+        angle_list.reserve(seed_like);
         for (int g = 0; g < G; g++){
           Real group_start = g * (group_arc + gap_angle); // start angle of this group
           int ng = group_counts[g];
@@ -938,7 +943,7 @@
         }
 
         // Safety: in rare rounding cases adjust size
-        if ((int)angle_list.size() > N) angle_list.resize(N);
+        if ((int)angle_list.size() > seed_like) angle_list.resize(seed_like);
 
         for (int n = 0; n < N; n++){
           const Real phi = angle_list[n];
@@ -1010,7 +1015,7 @@
           normal_refs[3*n + 1] = y_value;
           normal_refs[3*n + 2] = z_value;
 
-          rotation_angle += 2.0*PI/Real(N);
+          rotation_angle += 2.0*PI/Real(seed_like);
         }
     #endif
   };
