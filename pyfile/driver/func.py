@@ -2,7 +2,7 @@ import configparser
 import os
 import util
 
-num_fils = 298
+num_fils = 303
 gmres_tol = 7
 precon = 'precon'
 k = 60
@@ -14,9 +14,9 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'cell_gaps_1/'
+        self.category = f'test_low_packing_2/'
         self.exe_name = f'cilia_1e-7'
-        self.date = '20250901'
+        self.date = '20250918'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -94,13 +94,14 @@ class DRIVER:
                         # tilt_angle = 0.0
 
                         nfil = num_fils
-                        nblob = 18000
+                        
                         nseg = 20
                         ar = 8  # This is D/L, not R/L. This is for Platynaereis
                         # Since D/L = 8 and L = 20um, D = 160um
                         # In the simulation, L is around  49 units
                         period = 1
                         spring_factor = 1.5e-1
+                        nblob = 2*int(728.17*(ar/2)**2 + 1)  # According to Hang's paper, doubled to avoid overlap
 
                         nx=256
                         ny=256
