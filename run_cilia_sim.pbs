@@ -2,7 +2,8 @@
 #PBS -l walltime=71:00:00
 #PBS -l select=1:ncpus=1:mem=8gb:ngpus=1:gpu_type=RTX6000
 
-module load cuda/11.4.2
+# module load cuda/11.4.2  # HPC not CX3
+module load CUDA/12.8.0
 module load tools/prod
 # need this if running bisection, however, when compile the binary, this needs to be turned off
 # module load SciPy-bundle/2022.05-foss-2022a

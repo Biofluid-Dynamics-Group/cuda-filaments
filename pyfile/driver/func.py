@@ -2,7 +2,9 @@ import configparser
 import os
 import util
 
-num_fils = 348
+ablation_fraction = 0.1
+
+num_fils = 348*(1 - ablation_fraction)
 gmres_tol = 7
 precon = 'precon'
 k = 60
@@ -14,7 +16,7 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'cell_gaps_notilt_2/'
+        self.category = f'cell_gaps_ablated_10pc/'
         self.exe_name = f'cilia_1e-7'
         self.date = '20250922'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
@@ -90,8 +92,8 @@ class DRIVER:
 
                         seg_sep = 2.6
                         force_mag = 1
-                        # tilt_angle = 0.2181662   # Platynaereis
-                        tilt_angle = 0.0
+                        tilt_angle = 0.2181662   # Platynaereis
+                        # tilt_angle = 0.0
 
                         nfil = num_fils
                         

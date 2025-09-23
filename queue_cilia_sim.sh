@@ -28,8 +28,11 @@
 # q=9
 # command="python3 pyfile/bisection/bisection.py ${q} 9 0 "
 
-q=19
-nq=20
+export OPENBLAS_NUM_THREADS=1
+export CUDA_VISIBLE_DEVICES=0
+
+q=0
+nq=1
 command="python3 pyfile/driver/driver.py run ${q} ${nq} 1"
 
 
