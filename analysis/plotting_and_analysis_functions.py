@@ -35,7 +35,6 @@ class SimulationData:
 # ----------------------------- Loading Helpers -----------------------------
 
 def _infer_num_fils_from_phase(phase_file: str) -> int:
-    print("[info] Inferring number of filaments from phase file...")
     with open(phase_file, "r") as f:
         first = f.readline().strip().split()
     width = len(first)
@@ -45,7 +44,6 @@ def _infer_num_fils_from_phase(phase_file: str) -> int:
     return (width - 2)//2
 
 def _load_basal_positions(ref_file: str, expected_N: Optional[int]=None) -> np.ndarray:
-    print("[info] Loading basal positions...")
     raw = np.loadtxt(ref_file).ravel()
     if raw.size % 3 != 0:
         raise ValueError(f"Reference file length {raw.size} not divisible by 3.")
@@ -67,7 +65,6 @@ def load_simulation(base_path: str,
         sphere_radius: Sphere radius. If None, estimated from basal positions.
         num_segs: Segments per filament. If None, inferred from data.
     """
-    print("[info] Loading simulation data...")
     phase_file = f"{base_path}_true_states.dat"
     seg_file   = f"{base_path}_seg_states.dat"
     ref_file   = f"{base_path}_fil_references.dat"
@@ -80,14 +77,11 @@ def load_simulation(base_path: str,
         raise FileNotFoundError(ref_file)
 
     num_fils = _infer_num_fils_from_phase(phase_file)
-    print(f"[info] Detected {num_fils} filaments.")
 
-    print("[info] Loading phase data...")
     phase_data = np.loadtxt(phase_file)
     times_raw = phase_data[:, 0]  # simulation step counter
     T = len(times_raw)
     phases = np.mod(phase_data[:, 2:num_fils+2], 2*np.pi)  # only psi 1
-    print(f"[info] Loaded {T} timesteps of phase.")
 
     # Time normalization: convert simulation steps to periods/cycles
     if num_steps is not None and num_steps > 0:
@@ -99,25 +93,21 @@ def load_simulation(base_path: str,
         print("[warn] No num_steps provided, using simple 0-1 time normalization")
 
     # Load segment positions
-    print("[info] Loading segment position data...")
     seg_data = np.loadtxt(seg_file)
     if seg_data.shape[0] != T:
         raise ValueError("Phase and segment files have mismatched time length.")
     flat_len = seg_data.shape[1] - 1
     if num_segs is None:
-        print("[info] NO SEGS PROVIDAD, inferring number of segments from segment file...")
         # Solve S from flat_len = num_fils * S * 3
         if flat_len % (num_fils * 3) != 0:
             raise ValueError("Cannot infer num_segs (inconsistent flattened length).")
         num_segs = int(flat_len // (num_fils * 3))
     seg_positions = seg_data[:, 1:].reshape(T, num_fils, num_segs, 3)
-    print(f"[info] Loaded segment positions with {num_segs} segments per filament.")
 
     basal_pos = _load_basal_positions(ref_file, num_fils)
     x, y = basal_pos[:,0], basal_pos[:,1]
     basal_phi = np.mod(np.arctan2(y, x), 2*np.pi)
     order_idx = np.argsort(basal_phi)
-    print("[info] Loaded basal positions and computed azimuths.")
 
     # If sphere_radius not supplied, estimate as mean radial norm of basal points
     if sphere_radius is None:
@@ -138,7 +128,6 @@ def load_simulation(base_path: str,
     )
 
 # ----------------------------- Kymograph -----------------------------
-
 def plot_kymograph(base_path: str,
                    sim: Optional[SimulationData]=None,
                    num_steps: Optional[int]=None,
@@ -163,30 +152,36 @@ def plot_kymograph(base_path: str,
     else:
         fig, ax = fig_ax
 
-    X, Y = np.meshgrid(sim.times, phi_sorted) if use_phi_axis else np.meshgrid(sim.times, np.arange(N))
-    # Need same shape: transpose phases to (N, T)
-    im = ax.contourf(
-            X, Y, phases_sorted.T, cmap=cmap, levels=np.linspace(0, 2*np.pi, 100)
-        )
-
     if use_phi_axis:
+        # Use contourf like in the notebook - this works correctly
+        X, Y = np.meshgrid(sim.times, phi_sorted)
+        im = ax.contourf(X, Y, phases_sorted.T, levels=100, cmap=cmap, 
+                         vmin=0, vmax=2*np.pi)
         ax.set_ylabel("azimuth φ (rad)")
+        ax.set_yticks([0, np.pi, 2*np.pi])
+        ax.set_yticklabels(['0', 'π', '2π'])
     else:
+        # For index-based y-axis, use imshow
+        im = ax.imshow(phases_sorted.T, aspect='auto', cmap=cmap,
+                       extent=[sim.times[0], sim.times[-1], 0, N],
+                       origin='lower', vmin=0, vmax=2*np.pi)
         ax.set_ylabel("cilia index (sorted)")
 
     # Update x-axis label based on whether we have num_steps
     if sim.num_steps is not None:
-        ax.set_xlabel("t/T")
+        ax.set_xlabel("time (periods)")
     else:
         ax.set_xlabel("normalized time")
         
     title = "Kymograph"
     ax.set_title(title)
 
-    cbar = fig.colorbar(im, ax=ax)
-    cbar.set_label(r"$\psi_1$")
-    cbar.set_ticks([0, np.pi, 2*np.pi])
-    cbar.set_ticklabels([r"$0$", r"$\pi$", r"$2\pi$"])
+    # Only add colorbar if we're not using an existing figure
+    if fig_ax is None:
+        cbar = fig.colorbar(im, ax=ax)
+        cbar.set_label(r"phase $\psi$ (rad)")
+        cbar.set_ticks([0, np.pi, 2*np.pi])
+        cbar.set_ticklabels([r"$0$", r"$\pi$", r"$2\pi$"])
 
     if show:
         plt.tight_layout()
@@ -200,7 +195,6 @@ def plot_kymograph(base_path: str,
         fig.savefig(out_path.as_posix(), dpi=180)
         print(f"[info] Saved kymograph to {out_path}")
     return fig, ax
-
 # ----------------------------- 3D Frame Plot -----------------------------
 
 def plot_frame(base_path: str,
