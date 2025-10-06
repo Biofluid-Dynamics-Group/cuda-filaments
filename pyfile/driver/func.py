@@ -2,9 +2,9 @@ import configparser
 import os
 import util
 
-ablation_fraction = 0.1
+ablation_fraction = 0.0
 
-num_fils = 348*(1 - ablation_fraction)
+num_fils = 360*(1 - ablation_fraction)
 gmres_tol = 7
 precon = 'precon'
 k = 60
@@ -16,9 +16,9 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'cell_gaps_ablated_10pc/'
+        self.category = f'uniform_4/'
         self.exe_name = f'cilia_1e-7'
-        self.date = '20250922'
+        self.date = '20251004'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -103,7 +103,7 @@ class DRIVER:
                         # In the simulation, L is around  49 units
                         period = 1
                         spring_factor = 1.5e-1
-                        nblob = 2*int(728.17*(ar/2)**2 + 1)  # According to Hang's paper, doubled to avoid overlap
+                        nblob = 1*int(728.17*(ar/2)**2 + 1)  # According to Hang's paper, doubled to avoid overlap
 
                         nx=256
                         ny=256

@@ -160,7 +160,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
   // 3 = Ishikawa MCW
   // 5 = Read from a file (default - we can define arbitrary initial conditions in python)
 
-  #define PLATY_GROUPS true // Divide a sphere into 12 segments of frequency w/ gaps
+  #define PLATY_GROUPS false // Divide a sphere into 12 segments of frequency w/ gaps
   #if PLATY_GROUPS
     #define NUM_PLATY_GROUPS 12             // number of groups
     #define PLATY_GROUP_GAP_ANG 0.03375     // angular gap between groups (rad)
@@ -168,7 +168,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
 
   #define ABLATE false  // Ablate cilia, as in, remove the last cilia in the ring
   #if ABLATE
-    #if PLATYGROUPS
+    #if PLATY_GROUPS
       #define SEED_LIKE 348 // amount of cilia with gaps, with tilt
     #else
       #define SEED_LIKE 359 // amount of cilia without gaps, with tilt
