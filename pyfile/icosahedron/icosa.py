@@ -90,7 +90,7 @@ def plot_icosahedral_grid(vertices):
     plt.show()
 
 if __name__ == "__main__":
-    depth = 0  # Adjust the depth of subdivision
+    depth = 5  # Adjust the depth of subdivision
     icosahedral_grid = generate_icosahedral_grid(depth)
     icosahedral_grid = np.unique(icosahedral_grid, axis=0)
 
@@ -99,14 +99,16 @@ if __name__ == "__main__":
         icosahedral_grid[i] = normalize(icosahedral_grid[i])
     
     # remove the poles
-    for i, v in enumerate(icosahedral_grid):
-        if np.linalg.norm(v - np.array([0,0,1])) <1e-8:
-            icosahedral_grid = np.delete(icosahedral_grid, i, axis=0)
-            break
-    for i, v in enumerate(icosahedral_grid):
-        if np.linalg.norm(v - np.array([0,0,-1])) <1e-8:
-            icosahedral_grid = np.delete(icosahedral_grid, i, axis=0)
-            break
+    # for i, v in enumerate(icosahedral_grid):
+    #     if np.linalg.norm(v - np.array([0,0,1])) <1e-8:
+    #         icosahedral_grid = np.delete(icosahedral_grid, i, axis=0)
+    #         break
+    # for i, v in enumerate(icosahedral_grid):
+    #     if np.linalg.norm(v - np.array([0,0,-1])) <1e-8:
+    #         icosahedral_grid = np.delete(icosahedral_grid, i, axis=0)
+    #         break
+
+
 
     np.savetxt(f'icosa_d{depth}_N{len(icosahedral_grid)}.dat', icosahedral_grid)
-    # plot_icosahedral_grid(icosahedral_grid)
+    plot_icosahedral_grid(icosahedral_grid)

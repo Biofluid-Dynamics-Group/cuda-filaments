@@ -163,20 +163,15 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
   #define PLATY_GROUPS false // Divide a sphere into 12 segments of frequency w/ gaps
   #if PLATY_GROUPS
     #define NUM_PLATY_GROUPS 12             // number of groups
-    #define PLATY_GROUP_GAP_ANG 0.03375     // angular gap between groups (rad)
   #endif
 
-  #define ABLATE false  // Ablate cilia, as in, remove the last cilia in the ring
+  #define ABLATE true  // Ablate cilia, as in, remove the last cilia in the ring
   #if ABLATE
-    #if PLATY_GROUPS
-      #define SEED_LIKE 348 // amount of cilia with gaps, with tilt
-    #else
-      #define SEED_LIKE 359 // amount of cilia without gaps, with tilt
-    #endif  
-    // Ablation is mimicked as if seeding an amount of cilia
-    // which should be more than the actual number of cilia, so that the last places
-    // are not seeded.
-  #endif
+    #define SEED_LIKE 360 // amount of cilia without gaps, with tilt
+  #endif  
+  // Ablation is mimicked as if seeding an amount of cilia
+  // which should be more than the actual number of cilia, so that the last places
+  // are not seeded.
 
   #if CILIA_IC_TYPE==2
 
@@ -575,7 +570,7 @@ extern Real FREQ_SHIFT;  // Frequency percentage shift
 
 // #if (DYNAMIC_SHAPE_ROTATION && !PRESCRIBED_BODY_VELOCITIES)
 
-//   #error "I haven't implemented the preconditioner for free bodies with DYNAMIC_SHAPE_ROTATION enabled yet..."
+// #error "I haven't implemented the preconditioner for free bodies with DYNAMIC_SHAPE_ROTATION enabled yet..."
 
 // #endif
 

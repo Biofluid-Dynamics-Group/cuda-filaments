@@ -261,12 +261,23 @@ def plot_frame(base_path: str,
     else:
         ax.view_init(elev=30, azim=-45)
 
-    for i in range(sim.num_fils):
-        cilium_positions = sim.seg_positions[f, i, :, :]
-        x_data = cilium_positions[:, 0]
-        y_data = cilium_positions[:, 1]
-        z_data = cilium_positions[:, 2]
-        ax.plot(x_data, y_data, z_data, '-', lw=2)
+    # Plot cilia with phase-based coloring
+    if color_by_phase:
+        norm = mcolors.Normalize(vmin=0, vmax=2*np.pi)
+        for i in range(sim.num_fils):
+            cilium_positions = sim.seg_positions[f, i, :, :]
+            x_data = cilium_positions[:, 0]
+            y_data = cilium_positions[:, 1]
+            z_data = cilium_positions[:, 2]
+            color = cmap(norm(sim.phases[f, i]))
+            ax.plot(x_data, y_data, z_data, '-', lw=2, color=color)
+    else:
+        for i in range(sim.num_fils):
+            cilium_positions = sim.seg_positions[f, i, :, :]
+            x_data = cilium_positions[:, 0]
+            y_data = cilium_positions[:, 1]
+            z_data = cilium_positions[:, 2]
+            ax.plot(x_data, y_data, z_data, '-', lw=2)
 
     if color_by_phase:
         # Place a polar inset in the top-right of the 3D axes
@@ -296,35 +307,6 @@ def plot_frame(base_path: str,
 
         # Center label in axes coords (avoid polar-data transform issues)
         circ.text(0.5, 0.5, r'$\psi_1$', ha='center', va='center', fontsize=14, transform=circ.transAxes)
-
-        # Build a colored ring
-        theta = np.linspace(0, 2*np.pi, 361)
-        r_inner, r_outer = 0.82, 1.50
-        Theta, R = np.meshgrid(theta, np.linspace(r_inner, r_outer, 2))
-        Z = Theta
-        im_circ = circ.pcolormesh(Theta, R, Z, cmap=cmap, shading='auto', vmin=0, vmax=2*np.pi)
-
-        # Style the circular legend
-        circ.set_yticks([]); circ.set_xticks([])
-        circ.spines['polar'].set_visible(False)
-        circ.set_theta_zero_location('N')
-        circ.set_theta_direction(1)
-        circ.set_rlim(0.78, 1.02)
-
-        # --- Add radial lines and labels at ψ1 = 0 and ψ1 = 2π f_eff ---
-        theta0 = 0.0
-        theta_eff = 0.6*np.pi  # same angle you used for the colorbar tick (2π f_eff)
-
-        # Guide lines
-        circ.plot([theta0, theta0],   [r_inner, r_outer], color='k', lw=1.0, zorder=10)
-        circ.plot([theta_eff, theta_eff], [r_inner, r_outer], color='k', lw=1.0, zorder=10)
-
-        # Labels farther from the center (keep <= rlim max)
-        r_label = 1.1
-        circ.text(theta0,  1.03, r'$0$', ha='center', va='bottom', fontsize=14,
-                transform=circ.transData, clip_on=False, zorder=11)
-        circ.text(theta_eff, 1.09, r'$2\pi f_{\mathrm{eff}}$', ha='center', va='bottom', fontsize=14,
-                transform=circ.transData, clip_on=False, zorder=11)
 
     if show:
         plt.tight_layout()
@@ -465,8 +447,8 @@ class WaveDirectionResult:
     percent_positive: float
     percent_negative: float
     percent_stationary: float
-    labels: np.ndarray        # shape (N,) values in {-1,0,1}
-    velocity: np.ndarray      # shape (N,) average propagation indicator
+    labels: np.ndarray        # shape (N) values in {-1,0,1}
+    velocity: np.ndarray      # shape (N) average propagation indicator
 
 def analyze_wave_direction(base_path: str,
                            sim: Optional[SimulationData]=None,
@@ -616,6 +598,153 @@ def plot_basal_positions(base_path: str,
         fig.savefig(out_path.as_posix(), dpi=180, bbox_inches='tight')
         print(f"[info] Saved basal positions to {out_path}")
         
+    return fig, ax
+
+# ----------------------------- Blob Position Plot -----------------------------
+
+def plot_blob_positions(base_path: str,
+                       sim: Optional[SimulationData]=None,
+                       num_steps: Optional[int]=None,
+                       view: str = "top",  # "top", "iso", or "sphere"
+                       color_by: str = "azimuth",  # "azimuth", "altitude", "index", or "uniform"
+                       show_sphere: bool = True,
+                       cmap=DEFAULT_CMAP,
+                       show: bool = True,
+                       save: bool = True,
+                       fig_ax: Optional[Tuple[Any,Any]] = None):
+    """
+    Plot surface blob positions.
+    
+    Args:
+        view: "top" (2D top-down), "iso" (3D isometric), or "sphere" (3D with sphere surface)
+        color_by: "azimuth" (φ angle), "altitude" (θ angle), "index", or "uniform"
+        show_sphere: If True and 3D view, show sphere surface
+    """
+    if sim is None:
+        sim = load_simulation(base_path, num_steps=num_steps)
+    
+    # Load blob references
+    blob_ref_file = f"{base_path}_blob_references.dat"
+    if not os.path.isfile(blob_ref_file):
+        print(f"[warn] Blob reference file not found: {blob_ref_file}")
+        return None, None
+    
+    blob_pos = np.loadtxt(blob_ref_file).reshape(-1, 3)
+    x, y, z = blob_pos[:, 0], blob_pos[:, 1], blob_pos[:, 2]
+    
+    # Calculate spherical coordinates for coloring
+    r = np.sqrt(x**2 + y**2 + z**2)
+    phi = np.mod(np.arctan2(y, x), 2*np.pi)  # azimuth [0, 2π]
+    theta = np.arccos(np.clip(z / (r + 1e-14), -1, 1))  # polar angle [0, π]
+    
+    # Determine coloring
+    if color_by == "azimuth":
+        colors = phi
+        cbar_label = r"azimuth $\phi$ (rad)"
+        vmin, vmax = 0, 2*np.pi
+    elif color_by == "altitude":
+        colors = theta
+        cbar_label = r"polar angle $\theta$ (rad)"
+        vmin, vmax = 0, np.pi
+    elif color_by == "index":
+        colors = np.arange(len(x))
+        cbar_label = "blob index"
+        vmin, vmax = 0, len(x)-1
+    else:  # uniform
+        colors = 'grey'
+        cbar_label = None
+        vmin = vmax = None
+    
+    # Create figure
+    if fig_ax is None:
+        if view == "top":
+            fig, ax = plt.subplots(figsize=(8, 8))
+        else:
+            fig = plt.figure(figsize=(10, 10))
+            ax = fig.add_subplot(111, projection='3d')
+    else:
+        fig, ax = fig_ax
+    
+    # Plot based on view
+    if view == "top":
+        # 2D top-down view
+        if color_by == "uniform":
+            sc = ax.scatter(x, y, c=colors, s=10, alpha=0.6, edgecolor='k', linewidth=0.2)
+        else:
+            sc = ax.scatter(x, y, c=colors, cmap=cmap, s=10, alpha=0.6, 
+                          edgecolor='k', linewidth=0.2, vmin=vmin, vmax=vmax)
+        
+        # Sphere outline
+        theta_circle = np.linspace(0, 2*np.pi, 400)
+        circle_x = sim.sphere_radius * np.cos(theta_circle)
+        circle_y = sim.sphere_radius * np.sin(theta_circle)
+        ax.plot(circle_x, circle_y, color='grey', lw=2, alpha=0.6)
+        
+        ax.set_aspect('equal')
+        ax.set_xlabel('x')
+        ax.set_ylabel('y')
+        ax.grid(True, alpha=0.3)
+        
+    else:
+        # 3D view
+        if color_by == "uniform":
+            sc = ax.scatter(x, y, z, c=colors, s=10, alpha=0.6, edgecolor='k', linewidth=0.2)
+        else:
+            sc = ax.scatter(x, y, z, c=colors, cmap=cmap, s=10, alpha=0.6,
+                          edgecolor='k', linewidth=0.2, vmin=vmin, vmax=vmax)
+        
+        # Sphere surface
+        if show_sphere:
+            u = np.linspace(0, 2*np.pi, 50)
+            v = np.linspace(0, np.pi, 50)
+            xs = sim.sphere_radius * np.outer(np.cos(u), np.sin(v))
+            ys = sim.sphere_radius * np.outer(np.sin(u), np.sin(v))
+            zs = sim.sphere_radius * np.outer(np.ones_like(u), np.cos(v))
+            ax.plot_surface(xs, ys, zs, color='grey', alpha=0.1, linewidth=0)
+        
+        ax.set_xlabel('x')
+        ax.set_ylabel('y')
+        ax.set_zlabel('z')
+        ax.set_aspect('equal')
+        
+        if view == "top":
+            ax.view_init(elev=90, azim=-90)
+        else:  # iso
+            ax.view_init(elev=30, azim=-45)
+        
+        # Set limits
+        margin = sim.sphere_radius * 0.1
+        max_range = sim.sphere_radius + margin
+        ax.set_xlim(-max_range, max_range)
+        ax.set_ylim(-max_range, max_range)
+        ax.set_zlim(-max_range, max_range)
+    
+    title = f"Surface blobs (N={len(x)})"
+    ax.set_title(title)
+    
+    # Colorbar for non-uniform coloring
+    if color_by != "uniform" and cbar_label:
+        cbar = fig.colorbar(sc, ax=ax, fraction=0.045, pad=0.04)
+        cbar.set_label(cbar_label)
+        if color_by == "azimuth":
+            cbar.set_ticks([0, np.pi, 2*np.pi])
+            cbar.set_ticklabels([r'$0$', r'$\pi$', r'$2\pi$'])
+        elif color_by == "altitude":
+            cbar.set_ticks([0, np.pi/2, np.pi])
+            cbar.set_ticklabels([r'$0$', r'$\pi/2$', r'$\pi$'])
+    
+    if show:
+        plt.tight_layout()
+        plt.show()
+    
+    if save:
+        out_dir = Path("analysis_output")
+        out_dir.mkdir(exist_ok=True, parents=True)
+        suffix = f"_blobs_{view}_{color_by}.png"
+        out_path = out_dir / (Path(base_path).name + suffix)
+        fig.savefig(out_path.as_posix(), dpi=180, bbox_inches='tight')
+        print(f"[info] Saved blob positions to {out_path}")
+    
     return fig, ax
 
 # ----------------------------- Wavelength Analysis -----------------------------
