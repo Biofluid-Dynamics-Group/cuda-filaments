@@ -16,9 +16,9 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'uniform_4/'
+        self.category = f'sphere_seeding_test/'
         self.exe_name = f'cilia_1e-7'
-        self.date = '20251004'
+        self.date = '20251009'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -103,7 +103,9 @@ class DRIVER:
                         # In the simulation, L is around  49 units
                         period = 1
                         spring_factor = 1.5e-1
-                        nblob = 1*int(728.17*(ar/2)**2 + 1)  # According to Hang's paper, doubled to avoid overlap
+                        # nblob = 1*int(728.17*(ar/2)**2 + 1)  # According to Hang's paper, doubled to avoid overlap
+                        nblob = 10242  # icosa_d5_N10242.dat
+                        # nblob = 40962  # icosa_d6_N40962.dat
 
                         nx=256
                         ny=256
@@ -115,7 +117,7 @@ class DRIVER:
                         blob_x_dim=160*(i+1)
                         hex_num=2
                         reverse_fil_direction_ratio=0.0
-                        sim_length = 100.0
+                        sim_length = 1.0
                         f_eff = 0.3
                         theta_0 = 3.14159265359/2.1#*0.9
                         freq_shift = 0.0  # This was for a frequency gradient study
