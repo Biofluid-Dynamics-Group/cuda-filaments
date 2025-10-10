@@ -2,8 +2,8 @@ import configparser
 import os
 import util
 
-ablation_fraction = 0.25
-num_fils = int(360*(1 - ablation_fraction))
+ablation_fraction = 0.9
+num_fils = max(int(360*(1 - ablation_fraction)), 1)
 gmres_tol = 7
 precon = 'precon'
 k = 60
@@ -15,7 +15,7 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'ablation_test_3/'
+        self.category = f'ablation_study_0/'
         self.exe_name = f'cilia_1e-7'
         self.date = '20251010'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
@@ -116,7 +116,7 @@ class DRIVER:
                         blob_x_dim=160*(i+1)
                         hex_num=2
                         reverse_fil_direction_ratio=0.0
-                        sim_length = 1.0
+                        sim_length = 150.0
                         f_eff = 0.3
                         theta_0 = 3.14159265359/2.1#*0.9
                         freq_shift = 0.0  # This was for a frequency gradient study
@@ -228,7 +228,7 @@ class DRIVER:
 
             command = f"export OPENBLAS_NUM_THREADS=1; \
                         export CUDA_VISIBLE_DEVICES={self.cuda_device}; \
-                        nohup ./bin/{self.exe_name} > {self.dir}.out &"
+                        nohup ./bin/{self.exe_name} > {self.dir}{num_fils}.out &"
                         # ./bin/{self.exe_name}"
 
                            
