@@ -12,9 +12,15 @@ from pathlib import Path
 
 try:
     import cmcrameri.cm as cmc
-    DEFAULT_CMAP = cmc.romaO
+    DEFAULT_CMAP = cmc.romaO  # For periodic phase data
+    SEQUENTIAL_CMAP = cmc.batlow  # For sequential data
+    DIVERGING_CMAP = cmc.vik  # For diverging data
+    DISCRETE_CMAP = cmc.batlowK  # For discrete categories
 except Exception:  # fallback if cmcrameri not installed
     DEFAULT_CMAP = plt.cm.twilight
+    SEQUENTIAL_CMAP = plt.cm.viridis
+    DIVERGING_CMAP = plt.cm.RdBu_r
+    DISCRETE_CMAP = plt.cm.tab10
 
 # ----------------------------- Data Structures -----------------------------
 
@@ -554,7 +560,7 @@ def plot_basal_positions(base_path: str,
                         sim: Optional[SimulationData]=None,
                         num_steps: Optional[int]=None,
                         color_by: str = "azimuth",  # "azimuth", "index", or "uniform"
-                        cmap=DEFAULT_CMAP,
+                        cmap=None,
                         show: bool = True,
                         save: bool = True,
                         fig_ax: Optional[Tuple[Any,Any]] = None):
@@ -574,17 +580,25 @@ def plot_basal_positions(base_path: str,
     else:
         fig, ax = fig_ax
 
-    # Color mapping
+    # Color mapping with appropriate colormaps
     if color_by == "azimuth":
         colors = sim.basal_phi
         cbar_label = r"azimuth $\phi$ (rad)"
         vmin, vmax = 0, 2*np.pi
+        if cmap is None:
+            cmap = DEFAULT_CMAP  # romaO for periodic azimuth
     elif color_by == "index":
         colors = np.arange(len(x))
         cbar_label = "cilia index"
         vmin, vmax = 0, len(x)-1
+        if cmap is None:
+            cmap = SEQUENTIAL_CMAP  # batlow for sequential index
     else:  # uniform
-        colors = 'blue'
+        # Use batlow color for uniform (single color from sequential palette)
+        try:
+            colors = SEQUENTIAL_CMAP(0.5)  # Mid-range color from batlow
+        except:
+            colors = 'blue'
         cbar_label = None
         vmin = vmax = None
 
@@ -639,11 +653,11 @@ def plot_basal_positions(base_path: str,
 def plot_blob_positions(base_path: str,
                        sim: Optional[SimulationData]=None,
                        num_steps: Optional[int]=None,
-                       view: str = "top",  # "top", "iso", or "sphere"
-                       color_by: str = "azimuth",  # "azimuth", "altitude", "index", or "uniform"
+                       view: str = "top",
+                       color_by: str = "azimuth",
                        show_sphere: bool = True,
-                       split_hemispheres: bool = True,  # NEW: whether to split into two plots
-                       cmap=DEFAULT_CMAP,
+                       split_hemispheres: bool = True,
+                       cmap=None,
                        show: bool = True,
                        save: bool = True,
                        fig_ax: Optional[Tuple[Any,Any]] = None):
@@ -655,7 +669,7 @@ def plot_blob_positions(base_path: str,
         color_by: "azimuth" (φ angle), "altitude" (θ angle), "index", or "uniform"
         show_sphere: If True and 3D view, show sphere surface
         split_hemispheres: If True, plot top and bottom hemispheres separately (splits by z-coordinate)
-        cmap: Colormap to use
+        cmap: Colormap to use (if None, appropriate cmap chosen based on color_by)
         show: Whether to display the plot
         save: Whether to save the plot
         fig_ax: Optional existing figure and axes to use
@@ -677,21 +691,31 @@ def plot_blob_positions(base_path: str,
     phi = np.mod(np.arctan2(y, x), 2*np.pi)  # azimuth [0, 2π]
     theta = np.arccos(np.clip(z / (r + 1e-14), -1, 1))  # polar angle [0, π]
     
-    # Determine coloring
+    # Determine coloring with appropriate colormaps
     if color_by == "azimuth":
         colors = phi
         cbar_label = r"azimuth $\phi$ (rad)"
         vmin, vmax = 0, 2*np.pi
+        if cmap is None:
+            cmap = DEFAULT_CMAP  # romaO for periodic azimuth
     elif color_by == "altitude":
         colors = theta
         cbar_label = r"polar angle $\theta$ (rad)"
         vmin, vmax = 0, np.pi
+        if cmap is None:
+            cmap = SEQUENTIAL_CMAP  # batlow for sequential altitude
     elif color_by == "index":
         colors = np.arange(len(x))
         cbar_label = "blob index"
         vmin, vmax = 0, len(x)-1
+        if cmap is None:
+            cmap = SEQUENTIAL_CMAP  # batlow for sequential index
     else:  # uniform
-        colors = 'grey'
+        # Use batlow color for uniform
+        try:
+            colors = SEQUENTIAL_CMAP(0.3)  # Color from batlow
+        except:
+            colors = 'grey'
         cbar_label = None
         vmin = vmax = None
     
@@ -1046,8 +1070,20 @@ def estimate_wavelength_fourier(base_path: str,
     
     wavelength_filaments = wavelength_arc / filament_length
     
-    # Visualization
+    # Visualization with cmcrameri colors
     if show_analysis:
+        # Define colors from cmcrameri palettes
+        try:
+            highlight_color = SEQUENTIAL_CMAP(0.15)  # Dark color from batlow for main data
+            mean_color = SEQUENTIAL_CMAP(0.85)  # Light color from batlow for mean
+            std_color = SEQUENTIAL_CMAP(0.65)  # Mid color from batlow for std dev
+            guide_color = SEQUENTIAL_CMAP(0.95)  # Very light for guide lines
+        except:
+            highlight_color = 'blue'
+            mean_color = 'red'
+            std_color = 'orange'
+            guide_color = 'red'
+        
         fig = plt.figure(figsize=(14, 10))
         gs = fig.add_gridspec(3, 2, hspace=0.3, wspace=0.3)
         
@@ -1055,8 +1091,10 @@ def estimate_wavelength_fourier(base_path: str,
         ax1 = fig.add_subplot(gs[0, :])
         t_example = -1
         phase_example = phases_sorted[t_example, :]
-        ax1.plot(phi_sorted, phase_example, 'b.-', markersize=4, label='phase pattern', alpha=0.7)
-        ax1.plot(phi_sorted, np.unwrap(phase_example), 'r.-', markersize=4, label='unwrapped', alpha=0.7)
+        ax1.plot(phi_sorted, phase_example, '.-', markersize=4, 
+                label='phase pattern', alpha=0.7, color=highlight_color)
+        ax1.plot(phi_sorted, np.unwrap(phase_example), '.-', markersize=4, 
+                label='unwrapped', alpha=0.7, color=mean_color)
         ax1.set_xlabel('azimuth φ (rad)')
         ax1.set_ylabel('phase ψ (rad)')
         ax1.set_title(f'Example phase pattern (t={sim.times[t_start + t_example]:.2f})')
@@ -1064,7 +1102,7 @@ def estimate_wavelength_fourier(base_path: str,
         ax1.legend()
         ax1.set_xticks([0, np.pi, 2*np.pi])
         ax1.set_xticklabels(['0', 'π', '2π'])
-        ax1.set_xlim(0, 2*np.pi)  # Show full circle to visualize gap
+        ax1.set_xlim(0, 2*np.pi)
         
         # Plot 2: Power spectrum (example from last time point)
         ax2 = fig.add_subplot(gs[1, 0])
@@ -1084,26 +1122,27 @@ def estimate_wavelength_fourier(base_path: str,
         freqs_pos = freqs[positive_mask]
         power_pos = power_spectrum[positive_mask]
         
-        ax2.semilogy(freqs_pos, power_pos, 'b-', linewidth=1)
-        ax2.axvline(mean_wavenumber, color='red', linestyle='--', linewidth=2,
+        ax2.semilogy(freqs_pos, power_pos, '-', linewidth=1, color=highlight_color)
+        ax2.axvline(mean_wavenumber, color=mean_color, linestyle='--', linewidth=2,
                    label=f'dominant k={mean_wavenumber:.2f}')
         ax2.set_xlabel('wavenumber k (cycles per 2π)')
         ax2.set_ylabel('power')
         ax2.set_title('Power spectrum (example)')
         ax2.grid(True, alpha=0.3)
         ax2.legend()
-        ax2.set_xlim(0, 20)  # Focus on low wavenumbers
+        ax2.set_xlim(0, 20)
         
         # Plot 3: Wavelength over time
         ax3 = fig.add_subplot(gs[1, 1])
         valid_times = sim.times[t_start:t_end][valid_mask]
-        ax3.plot(valid_times, wavelength_distances, 'b.-', markersize=3, alpha=0.5)
-        ax3.axhline(mean_wavelength_rad, color='red', linestyle='--', linewidth=2,
+        ax3.plot(valid_times, wavelength_distances, '.-', markersize=3, 
+                alpha=0.5, color=highlight_color)
+        ax3.axhline(mean_wavelength_rad, color=mean_color, linestyle='--', linewidth=2,
                    label=f'mean={mean_wavelength_rad:.3f} rad')
         ax3.fill_between([valid_times[0], valid_times[-1]], 
                         mean_wavelength_rad - std_wavelength_rad,
                         mean_wavelength_rad + std_wavelength_rad,
-                        alpha=0.2, color='red', label=f'±1σ')
+                        alpha=0.2, color=std_color, label=f'±1σ')
         ax3.set_xlabel('time (periods)' if sim.num_steps else 'time')
         ax3.set_ylabel('wavelength (rad)')
         ax3.set_title('Wavelength evolution')
@@ -1115,17 +1154,18 @@ def estimate_wavelength_fourier(base_path: str,
         if len(wavelength_distances) > 1:
             bins = min(50, max(10, len(wavelength_distances) // 10))
             ax4.hist(wavelength_distances, bins=bins, alpha=0.7, density=True,
-                    edgecolor='black', linewidth=0.5, color='skyblue')
-            ax4.axvline(mean_wavelength_rad, color='red', linestyle='--', linewidth=2,
+                    edgecolor='black', linewidth=0.5, color=highlight_color)
+            ax4.axvline(mean_wavelength_rad, color=mean_color, linestyle='--', linewidth=2,
                        label=f'mean = {mean_wavelength_rad:.3f} rad = {wavelength_filaments:.2f} L')
             
             if std_wavelength_rad > 0:
-                ax4.axvline(mean_wavelength_rad - std_wavelength_rad, color='orange',
-                           linestyle=':', alpha=0.7)
-                ax4.axvline(mean_wavelength_rad + std_wavelength_rad, color='orange',
-                           linestyle=':', alpha=0.7, label=f'±1σ = ±{std_wavelength_rad:.3f} rad')
+                ax4.axvline(mean_wavelength_rad - std_wavelength_rad, color=std_color,
+                           linestyle=':', alpha=0.7, linewidth=2)
+                ax4.axvline(mean_wavelength_rad + std_wavelength_rad, color=std_color,
+                           linestyle=':', alpha=0.7, linewidth=2, 
+                           label=f'±1σ = ±{std_wavelength_rad:.3f} rad')
         else:
-            ax4.axvline(wavelength_distances[0], color='red', linewidth=3,
+            ax4.axvline(wavelength_distances[0], color=mean_color, linewidth=3,
                        label=f'single measurement = {wavelength_distances[0]:.3f} rad')
         
         ax4.set_xlabel('wavelength (rad)')
