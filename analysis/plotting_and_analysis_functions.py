@@ -167,7 +167,7 @@ def plot_kymograph(base_path: str,
         X, Y = np.meshgrid(sim.times, phi_sorted)
         im = ax.contourf(X, Y, phases_sorted.T, levels=100, cmap=cmap, 
                          vmin=0, vmax=2*np.pi)
-        ax.set_ylabel("azimuth φ (rad)")
+        ax.set_ylabel(r"azimuth $\phi$ [rad]")
         ax.set_yticks([0, np.pi, 2*np.pi])
         ax.set_yticklabels(['0', 'π', '2π'])
         ax.set_ylim(0, 2*np.pi)  # Show full circle to visualize the gap
@@ -176,21 +176,21 @@ def plot_kymograph(base_path: str,
         im = ax.imshow(phases_sorted.T, aspect='auto', cmap=cmap,
                        extent=[sim.times[0], sim.times[-1], 0, N],
                        origin='lower', vmin=0, vmax=2*np.pi)
-        ax.set_ylabel("cilia index (sorted)")
+        ax.set_ylabel("cilium index")
 
     # Update x-axis label based on whether we have num_steps
     if sim.num_steps is not None:
-        ax.set_xlabel("time (periods)")
+        ax.set_xlabel(r"$t/T$")
     else:
         ax.set_xlabel("normalized time")
         
-    title = "Kymograph"
+    title = "kymograph"
     ax.set_title(title)
 
     # Only add colorbar if we're not using an existing figure
     if fig_ax is None:
         cbar = fig.colorbar(im, ax=ax)
-        cbar.set_label(r"phase $\psi$ (rad)")
+        cbar.set_label(r"$\psi_1$")
         cbar.set_ticks([0, np.pi, 2*np.pi])
         cbar.set_ticklabels([r"$0$", r"$\pi$", r"$2\pi$"])
 
@@ -593,13 +593,13 @@ def plot_basal_positions(base_path: str,
     # Color mapping with appropriate colormaps
     if color_by == "azimuth":
         colors = sim.basal_phi
-        cbar_label = r"azimuth $\phi$ (rad)"
+        cbar_label = r"azimuth $\phi$ [rad]"
         vmin, vmax = 0, 2*np.pi
         if cmap is None:
             cmap = DEFAULT_CMAP  # romaO for periodic azimuth
     elif color_by == "index":
         colors = np.arange(len(x))
-        cbar_label = "cilia index"
+        cbar_label = "cilium index"
         vmin, vmax = 0, len(x)-1
         if cmap is None:
             cmap = SEQUENTIAL_CMAP  # batlow for sequential index
@@ -624,7 +624,7 @@ def plot_basal_positions(base_path: str,
     circle_x = sim.sphere_radius * np.cos(theta)
     circle_y = sim.sphere_radius * np.sin(theta)
     ax.plot(circle_x, circle_y, color='grey', lw=2, alpha=0.6, 
-           label='Sphere equator')
+           label='sphere equator')
 
     # Formatting
     ax.set_aspect('equal')
@@ -632,7 +632,7 @@ def plot_basal_positions(base_path: str,
     ax.set_ylabel('y') 
     ax.grid(True, alpha=0.3)
     
-    title = f"Basal positions (N={len(x)})"
+    title = f"basal positions (N={len(x)})"
     
     ax.set_title(title)
 
@@ -709,13 +709,13 @@ def plot_blob_positions(base_path: str,
     # Determine coloring with appropriate colormaps
     if color_by == "azimuth":
         colors = phi
-        cbar_label = r"azimuth $\phi$ (rad)"
+        cbar_label = r"azimuth $\phi$ [rad]"
         vmin, vmax = 0, 2*np.pi
         if cmap is None:
             cmap = DEFAULT_CMAP  # romaO for periodic azimuth
     elif color_by == "altitude":
         colors = theta
-        cbar_label = r"polar angle $\theta$ (rad)"
+        cbar_label = r"altitude $\theta$ [rad]"
         vmin, vmax = 0, np.pi
         if cmap is None:
             cmap = SEQUENTIAL_CMAP  # batlow for sequential altitude
@@ -775,7 +775,7 @@ def plot_blob_positions(base_path: str,
             ax.set_xlabel('x')
             ax.set_ylabel('y')
             ax.grid(True, alpha=0.3)
-            ax.set_title(f"Surface blobs (N={len(x)})")
+            ax.set_title(f"surface blobs (N={len(x)})")
             
         else:
             # 3D view
@@ -809,7 +809,7 @@ def plot_blob_positions(base_path: str,
             ax.set_ylim(-max_range, max_range)
             ax.set_zlim(-max_range, max_range)
             
-            ax.set_title(f"Surface blobs (N={len(x)})")
+            ax.set_title(f"surface blobs (N={len(x)})")
         
         # Colorbar for non-uniform coloring
         if color_by != "uniform" and cbar_label:
@@ -828,8 +828,8 @@ def plot_blob_positions(base_path: str,
         bottom_mask = z < 0
         
         for idx, (mask, hemisphere_ax, title) in enumerate([
-            (top_mask, axes[0], "Top hemisphere (z ≥ 0)"),
-            (bottom_mask, axes[1], "Bottom hemisphere (z < 0)")
+            (top_mask, axes[0], "top hemisphere"),
+            (bottom_mask, axes[1], "bottom hemisphere")
         ]):
             x_hem = x[mask]
             y_hem = y[mask]
@@ -1095,10 +1095,10 @@ def estimate_wavelength_fourier(base_path: str,
     if show_analysis:
         # Define colors from cmcrameri palettes
         try:
-            highlight_color = SEQUENTIAL_CMAP(0.15)  # Dark color from batlow for main data
-            mean_color = SEQUENTIAL_CMAP(0.85)  # Light color from batlow for mean
-            std_color = SEQUENTIAL_CMAP(0.65)  # Mid color from batlow for std dev
-            guide_color = SEQUENTIAL_CMAP(0.95)  # Very light for guide lines
+            highlight_color = DISCRETE_CMAP(0.0)  # Dark color from batlow for main data
+            mean_color = DISCRETE_CMAP(0.75)  # Light color from batlow for mean
+            std_color = DISCRETE_CMAP(0.5)  # Mid color from batlow for std dev
+            guide_color = DISCRETE_CMAP(1.0)  # Very light for guide lines
         except:
             highlight_color = 'blue'
             mean_color = 'red'
@@ -1116,9 +1116,9 @@ def estimate_wavelength_fourier(base_path: str,
                 label='phase pattern', alpha=0.7, color=highlight_color)
         ax1.plot(phi_sorted, np.unwrap(phase_example), '.-', markersize=4, 
                 label='unwrapped', alpha=0.7, color=mean_color)
-        ax1.set_xlabel('azimuth φ (rad)')
-        ax1.set_ylabel('phase ψ (rad)')
-        ax1.set_title(f'Example phase pattern (t={sim.times[t_start + t_example]:.2f})')
+        ax1.set_xlabel(r'azimuth $\phi$ [rad]')
+        ax1.set_ylabel(r'$\psi_1$')
+        ax1.set_title(f'example phase pattern'+r' ($t/T$'+f'={sim.times[t_start + t_example]:.2f})')
         ax1.grid(True, alpha=0.3)
         ax1.legend()
         ax1.set_xticks([0, np.pi, 2*np.pi])
@@ -1145,10 +1145,10 @@ def estimate_wavelength_fourier(base_path: str,
         
         ax2.semilogy(freqs_pos, power_pos, '-', linewidth=1, color=highlight_color)
         ax2.axvline(mean_wavenumber, color=mean_color, linestyle='--', linewidth=2,
-                   label=f'dominant k={mean_wavenumber:.2f}')
-        ax2.set_xlabel('wavenumber k (cycles per 2π)')
+                   label=f'dominant wavenumber={mean_wavenumber:.2f}')
+        ax2.set_xlabel(r'wavenumber $k$')
         ax2.set_ylabel('power')
-        ax2.set_title('Power spectrum (example)')
+        ax2.set_title('power spectrum (example)')
         ax2.grid(True, alpha=0.3)
         ax2.legend()
         ax2.set_xlim(0, 20)
@@ -1163,14 +1163,14 @@ def estimate_wavelength_fourier(base_path: str,
         ax3.plot(valid_times, wavelength_in_L, '.-', markersize=3, 
                 alpha=0.5, color=highlight_color)
         ax3.axhline(mean_wavelength_in_L, color=mean_color, linestyle='--', linewidth=2,
-                   label=f'mean={mean_wavelength_in_L:.2f} L')
+                   label=f'mean={mean_wavelength_in_L:.2f}'+r'$L$')
         ax3.fill_between([valid_times[0], valid_times[-1]], 
                         mean_wavelength_in_L - std_wavelength_in_L,
                         mean_wavelength_in_L + std_wavelength_in_L,
-                        alpha=0.2, color=std_color, label=f'±1σ')
-        ax3.set_xlabel('time (periods)' if sim.num_steps else 'time')
-        ax3.set_ylabel('wavelength (L)')
-        ax3.set_title('Wavelength evolution')
+                        alpha=0.2, color=std_color, label=r'$\pm \sigma$')
+        ax3.set_xlabel(r'$t/T$' if sim.num_steps else 'time')
+        ax3.set_ylabel(r'$\lambda/L$')
+        ax3.set_title('wavelength evolution')
         ax3.grid(True, alpha=0.3)
         ax3.legend()
         
@@ -1181,22 +1181,22 @@ def estimate_wavelength_fourier(base_path: str,
             ax4.hist(wavelength_in_L, bins=bins, alpha=0.7, density=True,
                     edgecolor='black', linewidth=0.5, color=highlight_color)
             ax4.axvline(mean_wavelength_in_L, color=mean_color, linestyle='--', linewidth=2,
-                       label=f'mean = {mean_wavelength_in_L:.2f} L')
+                       label=f'mean = {mean_wavelength_in_L:.2f}'+r'$L$')
             
             if std_wavelength_in_L > 0:
                 ax4.axvline(mean_wavelength_in_L - std_wavelength_in_L, color=std_color,
                            linestyle=':', alpha=0.7, linewidth=2)
                 ax4.axvline(mean_wavelength_in_L + std_wavelength_in_L, color=std_color,
                            linestyle=':', alpha=0.7, linewidth=2, 
-                           label=f'±1σ = ±{std_wavelength_in_L:.2f} L')
+                           label=r'$\pm\sigma$' +r' = $\pm$'+f'{std_wavelength_in_L:.2f}'+r'$L$')
         else:
             single_wavelength_in_L = wavelength_distances[0] * sim.sphere_radius / filament_length
             ax4.axvline(single_wavelength_in_L, color=mean_color, linewidth=3,
-                       label=f'single measurement = {single_wavelength_in_L:.2f} L')
+                       label=f'single measurement = {single_wavelength_in_L:.2f}'+r'$L$')
         
-        ax4.set_xlabel('wavelength (L)')
+        ax4.set_xlabel(r'$\lambda/L$')
         ax4.set_ylabel('probability density')
-        ax4.set_title(f'Wavelength distribution (n={len(wavelength_distances)} measurements)')
+        ax4.set_title(f'wavelength distribution (n={len(wavelength_distances)} measurements)')
         ax4.grid(True, alpha=0.3)
         ax4.legend()
         
