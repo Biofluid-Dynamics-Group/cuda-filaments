@@ -139,6 +139,9 @@ def plot_kymograph(base_path: str,
     """
     Plot kymograph of phases vs time. If use_phi_axis, y-axis = true azimuths φ
     so gaps appear as blank regions (no interpolation).
+    
+    Note: With ablation creating a single contiguous gap at the end of the azimuthal
+    ring, the gap will naturally appear as a blank region in the φ-axis plot.
     """
     if sim is None:
         sim = load_simulation(base_path, num_steps=num_steps)
@@ -153,13 +156,15 @@ def plot_kymograph(base_path: str,
         fig, ax = fig_ax
 
     if use_phi_axis:
-        # Use contourf like in the notebook - this works correctly
+        # Use contourf - gaps will automatically appear as blank regions
+        # since we're plotting at the true φ positions
         X, Y = np.meshgrid(sim.times, phi_sorted)
         im = ax.contourf(X, Y, phases_sorted.T, levels=100, cmap=cmap, 
                          vmin=0, vmax=2*np.pi)
         ax.set_ylabel("azimuth φ (rad)")
         ax.set_yticks([0, np.pi, 2*np.pi])
         ax.set_yticklabels(['0', 'π', '2π'])
+        ax.set_ylim(0, 2*np.pi)  # Show full circle to visualize the gap
     else:
         # For index-based y-axis, use imshow
         im = ax.imshow(phases_sorted.T, aspect='auto', cmap=cmap,
@@ -549,7 +554,6 @@ def plot_basal_positions(base_path: str,
                         sim: Optional[SimulationData]=None,
                         num_steps: Optional[int]=None,
                         color_by: str = "azimuth",  # "azimuth", "index", or "uniform"
-                        show_gap: bool = True,
                         cmap=DEFAULT_CMAP,
                         show: bool = True,
                         save: bool = True,
@@ -559,7 +563,6 @@ def plot_basal_positions(base_path: str,
     
     Args:
         color_by: "azimuth" (angle-based), "index" (sequential), or "uniform" (all same color)
-        show_gap: If True and gap detected, highlight the largest gap
     """
     if sim is None:
         sim = load_simulation(base_path, num_steps=num_steps)
@@ -897,85 +900,123 @@ def plot_blob_positions(base_path: str,
 
 @dataclass
 class WavelengthResult:
-    wavelength_distances: np.ndarray    # all measured 2π accumulation distances
+    wavelength_distances: np.ndarray    # all measured wavelengths (one per time point analyzed)
     mean_wavelength_rad: float          # mean wavelength in radians
     std_wavelength_rad: float           # standard deviation
     wavelength_arc: float               # mean wavelength in arc length
     wavelength_filaments: float         # mean wavelength in filament lengths
-    n_measurements: int                 # number of 2π accumulation measurements
+    n_measurements: int                 # number of time points analyzed
+    dominant_wavenumber: Optional[float] = None  # dominant spatial frequency (for Fourier method)
+    power_spectrum: Optional[np.ndarray] = None  # full power spectrum (for Fourier method)
+    wavenumbers: Optional[np.ndarray] = None     # wavenumber array (for Fourier method)
 
-def estimate_wavelength_statistical(base_path: str,
-                                   sim: Optional[SimulationData]=None,
-                                   num_steps: Optional[int]=None,
-                                   filament_length: Optional[float]=None,
-                                   show_analysis: bool = True) -> WavelengthResult:
+def estimate_wavelength_fourier(base_path: str,
+                               sim: Optional[SimulationData]=None,
+                               num_steps: Optional[int]=None,
+                               filament_length: Optional[float]=None,
+                               time_window: Optional[Tuple[int, int]]=None,
+                               n_interp: int = 1024,
+                               show_analysis: bool = True) -> WavelengthResult:
     """
-    Statistical wavelength estimation: measure 2π phase accumulation distances.
+    Estimate wavelength using Fourier analysis of the phase pattern in space.
     
-    Simple approach: start at index 0, walk around accumulating phase differences,
-    record wavelength each time we cross 2π.
+    Interprets phases as a spatial signal ψ(φ) and uses FFT to find dominant wavelength.
+    This method handles ablation gaps naturally through interpolation onto a uniform grid.
+    
+    Args:
+        base_path: Simulation file prefix
+        sim: Pre-loaded simulation data (optional)
+        num_steps: Steps per period for time normalization
+        filament_length: Physical filament length (if None, estimated from data)
+        time_window: (start, end) indices for time points to analyze. If None, uses last 20% of simulation
+        n_interp: Number of points for interpolation (should be power of 2 for FFT efficiency)
+        show_analysis: Whether to show diagnostic plots
+    
+    Returns:
+        WavelengthResult with Fourier-based wavelength estimates
+        
+    Note: The interpolation step effectively "fills in" the ablation gap, which is
+    appropriate for wavelength analysis since we're interested in the spatial frequency
+    of the wave pattern where cilia exist. The gap doesn't affect the wavelength itself.
     """
     if sim is None:
         sim = load_simulation(base_path, num_steps=num_steps)
     
-    # Get phases in sorted azimuthal order (last frame only)
-    phases_sorted = sim.phases[:, sim.order_idx]  # (T, N)
-    phi_sorted = sim.basal_phi[sim.order_idx]
-    phase_pattern = phases_sorted[-1, :]  # shape (N,) - last frame only
+    # Determine time window
+    T = sim.phases.shape[0]
+    if time_window is None:
+        # Use last 20% of simulation (presumably settled state)
+        t_start = int(0.8 * T)
+        t_end = T
+    else:
+        t_start, t_end = time_window
     
-    N = len(phase_pattern)
+    # Get phases in sorted azimuthal order
+    phases_sorted = sim.phases[t_start:t_end, sim.order_idx]  # shape (T_window, N)
+    phi_sorted = sim.basal_phi[sim.order_idx]  # shape (N,)
+    N = len(phi_sorted)
     
-    # Compute phase differences between adjacent cilia (handling 2π wraparound)
-    phase_diffs = []
-    for i in range(N):
-        j = (i + 1) % N  # wrap around to handle the last->first connection
-        diff = phase_pattern[j] - phase_pattern[i]
-        # Wrap difference to [-π, π]
-        while diff > np.pi:
-            diff -= 2*np.pi
-        while diff < -np.pi:
-            diff += 2*np.pi
-        phase_diffs.append(abs(diff))  # we want absolute differences
+    print(f"[info] Analyzing {t_end - t_start} time points with {N} cilia")
     
-    phase_diffs = np.array(phase_diffs)
+    # Storage for wavelength estimates at each time point
+    wavelength_estimates = []
+    dominant_wavenumbers = []
     
-    # Simple approach: start at 0, walk around once, record each 2π crossing
-    wavelength_distances = []
-    cumulative_phase = 0.0
-    phi_start = phi_sorted[0]
-    last_wavelength_start = 0
+    # Create uniform grid for interpolation (FFT requires uniform spacing)
+    phi_uniform = np.linspace(0, 2*np.pi, n_interp, endpoint=False)
     
-    # Walk around the entire circle once (plus a bit to handle wraparound)
-    for step in range(1, 2*N):  # Go one past N to handle the wrap-around case
-        idx = step % N
-        cumulative_phase += phase_diffs[step - 1]
+    for t_idx in range(phases_sorted.shape[0]):
+        phase_pattern = phases_sorted[t_idx, :]  # shape (N,)
         
-        # Check if we've accumulated 2π (found one wavelength)
-        if cumulative_phase >= 2*np.pi:
-            # Calculate the azimuthal distance for this wavelength
-            phi_end = phi_sorted[idx]
-            phi_wavelength_start = phi_sorted[last_wavelength_start]
-            
-            wavelength_dist = phi_end - phi_wavelength_start
-            
-            # Handle wraparound case
-            if wavelength_dist < 0:
-                wavelength_dist += 2*np.pi
-            
-            wavelength_distances.append(wavelength_dist)
-            
-            # Reset for next wavelength measurement
-            cumulative_phase = 0.0
-            last_wavelength_start = idx
-            if step >= N:
-                break  # Stop if we've wrapped around once
+        # Unwrap phases to avoid 2π discontinuities
+        phase_unwrapped = np.unwrap(phase_pattern)
+        
+        # Interpolate onto uniform grid
+        # Handle periodicity: append first point at end with appropriate phase shift
+        phi_extended = np.concatenate([phi_sorted, [2*np.pi]])
+        phase_extended = np.concatenate([phase_unwrapped, [phase_unwrapped[0] + 2*np.pi]])
+        
+        phase_interp = np.interp(phi_uniform, phi_extended, phase_extended)
+        
+        # Remove linear trend (DC component and mean slope)
+        # This helps focus on the oscillatory component
+        phase_detrended = phase_interp - np.mean(phase_interp)
+        p = np.polyfit(phi_uniform, phase_detrended, 1)
+        phase_detrended -= np.polyval(p, phi_uniform)
+        
+        # Compute FFT
+        fft_result = np.fft.fft(phase_detrended)
+        power_spectrum = np.abs(fft_result)**2
+        
+        # Frequency array (in terms of cycles per 2π)
+        freqs = np.fft.fftfreq(n_interp, d=(2*np.pi/n_interp))
+        
+        # Only look at positive frequencies (due to symmetry)
+        positive_mask = freqs > 0
+        freqs_pos = freqs[positive_mask]
+        power_pos = power_spectrum[positive_mask]
+        
+        # Find dominant frequency (excluding DC and very low frequencies)
+        # Skip first few bins to avoid numerical artifacts
+        min_freq_idx = 2
+        dominant_idx = min_freq_idx + np.argmax(power_pos[min_freq_idx:])
+        dominant_freq = freqs_pos[dominant_idx]  # cycles per 2π radians
+        
+        # Convert to wavelength: if we have k cycles in 2π, wavelength = 2π/k
+        wavelength_rad = 2*np.pi / dominant_freq if dominant_freq > 0 else np.inf
+        
+        wavelength_estimates.append(wavelength_rad)
+        dominant_wavenumbers.append(dominant_freq)
     
     # Convert to array
-    wavelength_distances = np.array(wavelength_distances)
+    wavelength_distances = np.array(wavelength_estimates)
     
-    # Handle case where no wavelengths found
+    # Remove infinite/invalid values
+    valid_mask = np.isfinite(wavelength_distances) & (wavelength_distances > 0)
+    wavelength_distances = wavelength_distances[valid_mask]
+    
     if len(wavelength_distances) == 0:
-        print("[warn] No wavelength measurements could be made")
+        print("[warn] No valid wavelength measurements could be made")
         return WavelengthResult(
             wavelength_distances=np.array([]),
             mean_wavelength_rad=np.inf,
@@ -988,9 +1029,7 @@ def estimate_wavelength_statistical(base_path: str,
     # Statistical analysis
     mean_wavelength_rad = np.mean(wavelength_distances)
     std_wavelength_rad = np.std(wavelength_distances)
-    
-    # # Coherence: higher when measurements are consistent
-    # coherence_spatial = 1.0 / (1.0 + std_wavelength_rad / mean_wavelength_rad) if mean_wavelength_rad > 0 else 0
+    mean_wavenumber = np.mean([k for k, v in zip(dominant_wavenumbers, valid_mask) if v])
     
     # Convert to other units
     wavelength_arc = sim.sphere_radius * mean_wavelength_rad
@@ -1007,52 +1046,93 @@ def estimate_wavelength_statistical(base_path: str,
     
     wavelength_filaments = wavelength_arc / filament_length
     
-    # Visualization (same as before...)
+    # Visualization
     if show_analysis:
-        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10))
+        fig = plt.figure(figsize=(14, 10))
+        gs = fig.add_gridspec(3, 2, hspace=0.3, wspace=0.3)
         
-        # Top plot: Phase pattern
-        ax1.plot(phi_sorted, phase_pattern, 'b.-', markersize=4, label='phase pattern')
+        # Plot 1: Example phase pattern (last time point)
+        ax1 = fig.add_subplot(gs[0, :])
+        t_example = -1
+        phase_example = phases_sorted[t_example, :]
+        ax1.plot(phi_sorted, phase_example, 'b.-', markersize=4, label='phase pattern', alpha=0.7)
+        ax1.plot(phi_sorted, np.unwrap(phase_example), 'r.-', markersize=4, label='unwrapped', alpha=0.7)
         ax1.set_xlabel('azimuth φ (rad)')
         ax1.set_ylabel('phase ψ (rad)')
-        ax1.set_title(f'Phase pattern (last frame)\nMean wavelength: {mean_wavelength_rad:.3f} rad = {wavelength_filaments:.2f} fil lengths')
+        ax1.set_title(f'Example phase pattern (t={sim.times[t_start + t_example]:.2f})')
         ax1.grid(True, alpha=0.3)
-        ax1.set_ylim(0, 2*np.pi)
-        ax1.set_yticks([0, np.pi, 2*np.pi])
-        ax1.set_yticklabels(['0', 'π', '2π'])
-        
-        # Mark measured wavelengths
-        if len(wavelength_distances) > 0:
-            for i, wl in enumerate(wavelength_distances):
-                x_mark = i * mean_wavelength_rad
-                if x_mark <= phi_sorted.max():
-                    ax1.axvline(x_mark, color='red', linestyle='--', alpha=0.5, 
-                              label='measured λ' if i == 0 else '')
         ax1.legend()
+        ax1.set_xticks([0, np.pi, 2*np.pi])
+        ax1.set_xticklabels(['0', 'π', '2π'])
+        ax1.set_xlim(0, 2*np.pi)  # Show full circle to visualize gap
         
-        # Bottom plot: Histogram of wavelength measurements
-        if len(wavelength_distances) > 1:
-            bins = max(3, len(wavelength_distances) // 2)
-            ax2.hist(wavelength_distances, bins=bins, alpha=0.7, density=True, 
-                    edgecolor='black', linewidth=0.5, color='skyblue')
-            ax2.axvline(mean_wavelength_rad, color='red', linestyle='--', linewidth=2,
-                       label=f'mean = {mean_wavelength_rad:.3f} rad')
-            
-            if std_wavelength_rad > 0:
-                ax2.axvline(mean_wavelength_rad - std_wavelength_rad, color='orange', 
-                           linestyle=':', alpha=0.7)
-                ax2.axvline(mean_wavelength_rad + std_wavelength_rad, color='orange', 
-                           linestyle=':', alpha=0.7, label=f'±1σ = ±{std_wavelength_rad:.3f} rad')
-        else:
-            # Just show single value
-            ax2.axvline(wavelength_distances[0], color='red', linewidth=3,
-                       label=f'single measurement = {wavelength_distances[0]:.3f} rad')
+        # Plot 2: Power spectrum (example from last time point)
+        ax2 = fig.add_subplot(gs[1, 0])
+        # Recompute for visualization
+        phase_unwrapped = np.unwrap(phase_example)
+        phi_extended = np.concatenate([phi_sorted, [2*np.pi]])
+        phase_extended = np.concatenate([phase_unwrapped, [phase_unwrapped[0] + 2*np.pi]])
+        phase_interp = np.interp(phi_uniform, phi_extended, phase_extended)
+        phase_detrended = phase_interp - np.mean(phase_interp)
+        p = np.polyfit(phi_uniform, phase_detrended, 1)
+        phase_detrended -= np.polyval(p, phi_uniform)
         
-        ax2.set_xlabel('wavelength (rad)')
-        ax2.set_ylabel('probability density')
-        ax2.set_title(f'Wavelength measurements (n={len(wavelength_distances)})')
+        fft_result = np.fft.fft(phase_detrended)
+        power_spectrum = np.abs(fft_result)**2
+        freqs = np.fft.fftfreq(n_interp, d=(2*np.pi/n_interp))
+        positive_mask = freqs > 0
+        freqs_pos = freqs[positive_mask]
+        power_pos = power_spectrum[positive_mask]
+        
+        ax2.semilogy(freqs_pos, power_pos, 'b-', linewidth=1)
+        ax2.axvline(mean_wavenumber, color='red', linestyle='--', linewidth=2,
+                   label=f'dominant k={mean_wavenumber:.2f}')
+        ax2.set_xlabel('wavenumber k (cycles per 2π)')
+        ax2.set_ylabel('power')
+        ax2.set_title('Power spectrum (example)')
         ax2.grid(True, alpha=0.3)
         ax2.legend()
+        ax2.set_xlim(0, 20)  # Focus on low wavenumbers
+        
+        # Plot 3: Wavelength over time
+        ax3 = fig.add_subplot(gs[1, 1])
+        valid_times = sim.times[t_start:t_end][valid_mask]
+        ax3.plot(valid_times, wavelength_distances, 'b.-', markersize=3, alpha=0.5)
+        ax3.axhline(mean_wavelength_rad, color='red', linestyle='--', linewidth=2,
+                   label=f'mean={mean_wavelength_rad:.3f} rad')
+        ax3.fill_between([valid_times[0], valid_times[-1]], 
+                        mean_wavelength_rad - std_wavelength_rad,
+                        mean_wavelength_rad + std_wavelength_rad,
+                        alpha=0.2, color='red', label=f'±1σ')
+        ax3.set_xlabel('time (periods)' if sim.num_steps else 'time')
+        ax3.set_ylabel('wavelength (rad)')
+        ax3.set_title('Wavelength evolution')
+        ax3.grid(True, alpha=0.3)
+        ax3.legend()
+        
+        # Plot 4: Histogram of wavelengths
+        ax4 = fig.add_subplot(gs[2, :])
+        if len(wavelength_distances) > 1:
+            bins = min(50, max(10, len(wavelength_distances) // 10))
+            ax4.hist(wavelength_distances, bins=bins, alpha=0.7, density=True,
+                    edgecolor='black', linewidth=0.5, color='skyblue')
+            ax4.axvline(mean_wavelength_rad, color='red', linestyle='--', linewidth=2,
+                       label=f'mean = {mean_wavelength_rad:.3f} rad = {wavelength_filaments:.2f} L')
+            
+            if std_wavelength_rad > 0:
+                ax4.axvline(mean_wavelength_rad - std_wavelength_rad, color='orange',
+                           linestyle=':', alpha=0.7)
+                ax4.axvline(mean_wavelength_rad + std_wavelength_rad, color='orange',
+                           linestyle=':', alpha=0.7, label=f'±1σ = ±{std_wavelength_rad:.3f} rad')
+        else:
+            ax4.axvline(wavelength_distances[0], color='red', linewidth=3,
+                       label=f'single measurement = {wavelength_distances[0]:.3f} rad')
+        
+        ax4.set_xlabel('wavelength (rad)')
+        ax4.set_ylabel('probability density')
+        ax4.set_title(f'Wavelength distribution (n={len(wavelength_distances)} measurements)')
+        ax4.grid(True, alpha=0.3)
+        ax4.legend()
         
         plt.tight_layout()
         plt.show()
@@ -1063,5 +1143,72 @@ def estimate_wavelength_statistical(base_path: str,
         std_wavelength_rad=std_wavelength_rad,
         wavelength_arc=wavelength_arc,
         wavelength_filaments=wavelength_filaments,
-        n_measurements=len(wavelength_distances)
+        n_measurements=len(wavelength_distances),
+        dominant_wavenumber=mean_wavenumber,
+        power_spectrum=power_pos if show_analysis else None,
+        wavenumbers=freqs_pos if show_analysis else None
     )
+
+def estimate_wavelength_statistical(base_path: str,
+                                   sim: Optional[SimulationData]=None,
+                                   num_steps: Optional[int]=None,
+                                   filament_length: Optional[float]=None,
+                                   show_analysis: bool = True) -> WavelengthResult:
+    """
+    Statistical wavelength estimation: measure 2π phase accumulation distances.
+    
+    DEPRECATED: Consider using estimate_wavelength_fourier() instead for more robust
+    wavelength estimation, especially with non-uniform cilia spacing.
+    
+    Simple approach: start at index 0, walk around accumulating phase differences,
+    record wavelength each time we cross 2π.
+    """
+    if sim is None:
+        sim = load_simulation(base_path, num_steps=num_steps)
+
+    phases_sorted = sim.phases[:, sim.order_idx]  # (T, N)
+    phi_sorted = sim.basal_phi[sim.order_idx]
+
+    if period_steps is None or period_steps <= 0 or period_steps > phases_sorted.shape[0]:
+        window = phases_sorted
+    else:
+        window = phases_sorted[-period_steps:]
+
+    # Use complex exponential method to handle periodicity
+    # Let f(y,t) = exp(i * psi(y,t)). Then
+    # df/dt = -psi(y, t) * f(y,t) * d(psi)/dt and
+    # df/dy = -psi(y, t) * f(y,t) * d(psi)/dy.
+    # Then, d(psi)/dt = -df/dt / (psi(y, t) * f(y,t)) and
+    # d(psi)/dy = -df/dy / (psi(y, t) * f(y,t)).
+    
+    psi = window.T  # Shape: (N, W) where W is time window length
+    f_array = np.exp(1j * psi)  # Complex exponential
+    
+    # Compute gradients of f
+    df_dy = np.gradient(f_array, phi_sorted, axis=0)  # gradient along spatial dimension
+    df_dt = np.gradient(f_array, axis=1)              # gradient along time dimension
+    
+    # Velocity dy/dt = - (∂ψ/∂t) / (∂ψ/∂y)
+    velocity = -df_dt / (df_dy + 1e-14)
+
+    # Average direction at each position over the time window
+    vel_mean = np.mean(velocity, axis=1)  # average over time (axis=1)
+
+    # Take real part for directionality (imaginary part should be small)
+    vel_real = np.real(vel_mean)
+
+    # Classify direction
+    labels = np.where(vel_real > tol, 1, np.where(vel_real < -tol, -1, 0))
+    num_pos = np.sum(labels == 1)
+    num_neg = np.sum(labels == -1)
+    num_sta = np.sum(labels == 0)
+    N = labels.size
+
+    return WaveDirectionResult(
+        percent_positive = 100.0 * num_pos / N,
+        percent_negative = 100.0 * num_neg / N,
+        percent_stationary = 100.0 * num_sta / N,
+        labels = labels,
+        velocity = vel_real
+    )
+
