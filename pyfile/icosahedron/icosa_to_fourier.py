@@ -36,6 +36,55 @@ def read_dat_file(filepath):
     return coordinates
 
 
+def rescale_sphere(coordinates, target_radius=None):
+    """
+    Rescale sphere coordinates to a target radius.
+    
+    Args:
+        coordinates: List of coordinates [x1, y1, z1, x2, y2, z2, ...]
+        target_radius: Desired radius (if None, no rescaling)
+    
+    Returns:
+        Rescaled coordinates list
+    """
+    if target_radius is None:
+        return coordinates
+    
+    # Calculate current radii for all points and find mean
+    num_points = len(coordinates) // 3
+    radii = []
+    for i in range(num_points):
+        x = coordinates[3*i]
+        y = coordinates[3*i + 1]
+        z = coordinates[3*i + 2]
+        r = math.sqrt(x*x + y*y + z*z)
+        radii.append(r)
+    
+    current_radius = sum(radii) / len(radii)
+    scale_factor = target_radius / current_radius
+    
+    print(f"Current mean radius: {current_radius:.6f}")
+    print(f"Target radius: {target_radius:.6f}")
+    print(f"Scale factor: {scale_factor:.6f}")
+    
+    # Apply scaling
+    rescaled = [coord * scale_factor for coord in coordinates]
+    
+    # Verify rescaling
+    new_radii = []
+    for i in range(num_points):
+        x = rescaled[3*i]
+        y = rescaled[3*i + 1]
+        z = rescaled[3*i + 2]
+        r = math.sqrt(x*x + y*y + z*z)
+        new_radii.append(r)
+    
+    new_mean_radius = sum(new_radii) / len(new_radii)
+    print(f"New mean radius: {new_mean_radius:.6f}")
+    
+    return rescaled
+
+
 def write_seed_file(filepath, coordinates):
     """Write coordinates to seed file with 6 decimal places (truncated)."""
     truncated = [truncate_to_decimals(coord, 6) for coord in coordinates]
@@ -47,12 +96,24 @@ def write_seed_file(filepath, coordinates):
 def main():
     """Main conversion function."""
     parser = argparse.ArgumentParser(
-        description='Convert icosa dat file to sphere seed file'
+        description='Convert icosa dat file to sphere seed file with optional rescaling'
     )
     parser.add_argument(
         'input_file',
         type=str,
         help='Input dat file (e.g., icosa_d5_N42.dat)'
+    )
+    parser.add_argument(
+        '-r', '--radius',
+        type=float,
+        default=None,
+        help='Target radius for rescaling (default: no rescaling)'
+    )
+    parser.add_argument(
+        '-o', '--output',
+        type=str,
+        default=None,
+        help='Output file path (default: sphere{m}.seed in same directory)'
     )
     args = parser.parse_args()
 
@@ -71,7 +132,15 @@ def main():
             f"got {len(coordinates)}"
         )
 
-    output_path = input_path.parent / f"sphere{m}.seed"
+    # Rescale if radius specified
+    coordinates = rescale_sphere(coordinates, args.radius)
+
+    # Determine output path
+    if args.output:
+        output_path = Path(args.output)
+    else:
+        output_path = input_path.parent / f"sphere{m}.seed"
+    
     write_seed_file(output_path, coordinates)
     print(f"Successfully wrote {output_path}")
 
