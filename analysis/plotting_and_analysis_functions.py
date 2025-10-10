@@ -199,10 +199,15 @@ def plot_kymograph(base_path: str,
         plt.show()
 
     if save:
-        out_dir = Path("analysis_output")
+        # Create output directory structure: analysis_output/category_date/Nfil/
+        base_path_obj = Path(base_path)
+        parent_name = base_path_obj.parent.name  # e.g., "20251010"
+        grandparent_name = base_path_obj.parent.parent.name  # e.g., "ablation_study_0"
+        out_subdir = f"{grandparent_name}_{parent_name}/{sim.num_fils}fil"
+        out_dir = Path("analysis_output") / out_subdir
         out_dir.mkdir(exist_ok=True, parents=True)
         suffix = "_kymograph_phi.png" if use_phi_axis else "_kymograph_idx.png"
-        out_path = out_dir / (Path(base_path).name + suffix)
+        out_path = out_dir / (base_path_obj.name + suffix)
         fig.savefig(out_path.as_posix(), dpi=180)
         print(f"[info] Saved kymograph to {out_path}")
     return fig, ax
@@ -389,10 +394,15 @@ def plot_frame(base_path: str,
         plt.show()
 
     if save:
-        out_dir = Path("analysis_output")
+        # Create output directory structure
+        base_path_obj = Path(base_path)
+        parent_name = base_path_obj.parent.name
+        grandparent_name = base_path_obj.parent.parent.name
+        out_subdir = f"{grandparent_name}_{parent_name}/{sim.num_fils}fil"
+        out_dir = Path("analysis_output") / out_subdir
         out_dir.mkdir(exist_ok=True, parents=True)
         suffix = f"_frame_{frame}_{view}.png"
-        out_path = out_dir / (Path(base_path).name + suffix)
+        out_path = out_dir / (base_path_obj.name + suffix)
         fig.savefig(out_path.as_posix(), dpi=180)
         print(f"[info] Saved frame to {out_path}")
     return fig, ax
@@ -639,10 +649,15 @@ def plot_basal_positions(base_path: str,
         plt.show()
 
     if save:
-        out_dir = Path("analysis_output")
+        # Create output directory structure
+        base_path_obj = Path(base_path)
+        parent_name = base_path_obj.parent.name
+        grandparent_name = base_path_obj.parent.parent.name
+        out_subdir = f"{grandparent_name}_{parent_name}/{sim.num_fils}fil"
+        out_dir = Path("analysis_output") / out_subdir
         out_dir.mkdir(exist_ok=True, parents=True)
         suffix = f"_basal_{color_by}.png"
-        out_path = out_dir / (Path(base_path).name + suffix)
+        out_path = out_dir / (base_path_obj.name + suffix)
         fig.savefig(out_path.as_posix(), dpi=180, bbox_inches='tight')
         print(f"[info] Saved basal positions to {out_path}")
         
@@ -910,11 +925,16 @@ def plot_blob_positions(base_path: str,
         plt.show()
     
     if save:
-        out_dir = Path("analysis_output")
+        # Create output directory structure
+        base_path_obj = Path(base_path)
+        parent_name = base_path_obj.parent.name
+        grandparent_name = base_path_obj.parent.parent.name
+        out_subdir = f"{grandparent_name}_{parent_name}/{sim.num_fils}fil"
+        out_dir = Path("analysis_output") / out_subdir
         out_dir.mkdir(exist_ok=True, parents=True)
         hemisphere_suffix = "_split" if split_hemispheres else ""
         suffix = f"_blobs_{view}_{color_by}{hemisphere_suffix}.png"
-        out_path = out_dir / (Path(base_path).name + suffix)
+        out_path = out_dir / (base_path_obj.name + suffix)
         fig.savefig(out_path.as_posix(), dpi=180, bbox_inches='tight')
         print(f"[info] Saved blob positions to {out_path}")
     
@@ -1067,6 +1087,7 @@ def estimate_wavelength_fourier(base_path: str,
             seg_dists.extend(dists)
         mean_seg_length = np.mean(seg_dists)
         filament_length = mean_seg_length * (sim.num_segs - 1)
+        print(f"[info] Estimated filament length: {filament_length:.2f} units")
     
     wavelength_filaments = wavelength_arc / filament_length
     
@@ -1132,43 +1153,48 @@ def estimate_wavelength_fourier(base_path: str,
         ax2.legend()
         ax2.set_xlim(0, 20)
         
-        # Plot 3: Wavelength over time
+        # Plot 3: Wavelength over time (in units of L)
         ax3 = fig.add_subplot(gs[1, 1])
         valid_times = sim.times[t_start:t_end][valid_mask]
-        ax3.plot(valid_times, wavelength_distances, '.-', markersize=3, 
+        wavelength_in_L = wavelength_distances * sim.sphere_radius / filament_length
+        mean_wavelength_in_L = mean_wavelength_rad * sim.sphere_radius / filament_length
+        std_wavelength_in_L = std_wavelength_rad * sim.sphere_radius / filament_length
+        
+        ax3.plot(valid_times, wavelength_in_L, '.-', markersize=3, 
                 alpha=0.5, color=highlight_color)
-        ax3.axhline(mean_wavelength_rad, color=mean_color, linestyle='--', linewidth=2,
-                   label=f'mean={mean_wavelength_rad:.3f} rad')
+        ax3.axhline(mean_wavelength_in_L, color=mean_color, linestyle='--', linewidth=2,
+                   label=f'mean={mean_wavelength_in_L:.2f} L')
         ax3.fill_between([valid_times[0], valid_times[-1]], 
-                        mean_wavelength_rad - std_wavelength_rad,
-                        mean_wavelength_rad + std_wavelength_rad,
+                        mean_wavelength_in_L - std_wavelength_in_L,
+                        mean_wavelength_in_L + std_wavelength_in_L,
                         alpha=0.2, color=std_color, label=f'±1σ')
         ax3.set_xlabel('time (periods)' if sim.num_steps else 'time')
-        ax3.set_ylabel('wavelength (rad)')
+        ax3.set_ylabel('wavelength (L)')
         ax3.set_title('Wavelength evolution')
         ax3.grid(True, alpha=0.3)
         ax3.legend()
         
-        # Plot 4: Histogram of wavelengths
+        # Plot 4: Histogram of wavelengths (in units of L)
         ax4 = fig.add_subplot(gs[2, :])
         if len(wavelength_distances) > 1:
             bins = min(50, max(10, len(wavelength_distances) // 10))
-            ax4.hist(wavelength_distances, bins=bins, alpha=0.7, density=True,
+            ax4.hist(wavelength_in_L, bins=bins, alpha=0.7, density=True,
                     edgecolor='black', linewidth=0.5, color=highlight_color)
-            ax4.axvline(mean_wavelength_rad, color=mean_color, linestyle='--', linewidth=2,
-                       label=f'mean = {mean_wavelength_rad:.3f} rad = {wavelength_filaments:.2f} L')
+            ax4.axvline(mean_wavelength_in_L, color=mean_color, linestyle='--', linewidth=2,
+                       label=f'mean = {mean_wavelength_in_L:.2f} L')
             
-            if std_wavelength_rad > 0:
-                ax4.axvline(mean_wavelength_rad - std_wavelength_rad, color=std_color,
+            if std_wavelength_in_L > 0:
+                ax4.axvline(mean_wavelength_in_L - std_wavelength_in_L, color=std_color,
                            linestyle=':', alpha=0.7, linewidth=2)
-                ax4.axvline(mean_wavelength_rad + std_wavelength_rad, color=std_color,
+                ax4.axvline(mean_wavelength_in_L + std_wavelength_in_L, color=std_color,
                            linestyle=':', alpha=0.7, linewidth=2, 
-                           label=f'±1σ = ±{std_wavelength_rad:.3f} rad')
+                           label=f'±1σ = ±{std_wavelength_in_L:.2f} L')
         else:
-            ax4.axvline(wavelength_distances[0], color=mean_color, linewidth=3,
-                       label=f'single measurement = {wavelength_distances[0]:.3f} rad')
+            single_wavelength_in_L = wavelength_distances[0] * sim.sphere_radius / filament_length
+            ax4.axvline(single_wavelength_in_L, color=mean_color, linewidth=3,
+                       label=f'single measurement = {single_wavelength_in_L:.2f} L')
         
-        ax4.set_xlabel('wavelength (rad)')
+        ax4.set_xlabel('wavelength (L)')
         ax4.set_ylabel('probability density')
         ax4.set_title(f'Wavelength distribution (n={len(wavelength_distances)} measurements)')
         ax4.grid(True, alpha=0.3)
