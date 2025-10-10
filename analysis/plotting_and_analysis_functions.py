@@ -195,6 +195,141 @@ def plot_kymograph(base_path: str,
         fig.savefig(out_path.as_posix(), dpi=180)
         print(f"[info] Saved kymograph to {out_path}")
     return fig, ax
+# ----------------------------- Helper Functions -----------------------------
+
+def plot_sphere_surface(ax, radius, alpha=0.1, color='grey', resolution=100):
+    """
+    Add a sphere surface to a 3D axes.
+    
+    Args:
+        ax: The 3D axes
+        radius: Sphere radius
+        alpha: Transparency (default 0.1)
+        color: Sphere color (default 'grey')
+        resolution: Number of points for sphere mesh (default 100)
+    """
+    u = np.linspace(0, 2 * np.pi, resolution)
+    v = np.linspace(0, np.pi, resolution)
+    x = radius * np.outer(np.cos(u), np.sin(v))
+    y = radius * np.outer(np.sin(u), np.sin(v))
+    z = radius * np.outer(np.ones(np.size(u)), np.cos(v))
+    ax.plot_surface(x, y, z, color=color, alpha=alpha, linewidth=0, antialiased=True)
+
+def setup_3d_axes(ax, seg_positions, sphere_radius, margin=2.0, view='top'):
+    """
+    Configure 3D axes for cilia visualization.
+    
+    Args:
+        ax: The 3D axes
+        seg_positions: Segment position data for determining bounds
+        sphere_radius: Sphere radius
+        margin: Extra space around data (default 2.0)
+        view: 'top' or 'iso' (default 'top')
+    """
+    x_coords = seg_positions[:, :, 0]
+    y_coords = seg_positions[:, :, 1]
+    z_coords = seg_positions[:, :, 2]
+
+    ax.set_xlim(np.min(x_coords) - margin, np.max(x_coords) + margin)
+    ax.set_ylim(np.min(y_coords) - margin, np.max(y_coords) + margin)
+    ax.set_zlim(np.min(z_coords) - margin, np.max(z_coords) + margin)
+
+    ax.set_xlabel('')
+    ax.set_ylabel('')
+    ax.set_zlabel('')
+    ax.set_xticklabels([])
+    ax.set_yticklabels([])
+    ax.set_zticklabels([])
+    ax.set_title('')
+    ax.set_aspect('equal')
+    ax.grid(True, alpha=0.3)
+    ax.set_zticks([])
+
+    if view == "top":
+        ax.view_init(elev=90, azim=-90)
+    else:
+        ax.view_init(elev=30, azim=-45)
+
+def add_phase_legend(fig, ax, cmap=DEFAULT_CMAP, f_eff=0.3):
+    """
+    Add a circular phase legend to a 3D plot.
+    
+    Args:
+        fig: The matplotlib figure
+        ax: The 3D axes to add the legend to
+        cmap: The colormap to use
+        f_eff: The effective stroke fraction (default 0.3)
+    
+    Returns:
+        The polar axes object for the legend
+    """
+    fig.canvas.draw()
+    bbox = ax.get_position()
+    side = 0.18
+
+    left = np.clip(bbox.x1 - side + 5.0, 0.0, 1.0 - side)
+    bottom = np.clip(bbox.y1 - side, 0.0, 1.0 - side)
+    circ = fig.add_axes([left, bottom, side, side], projection='polar')
+
+    # Build a colored ring
+    theta = np.linspace(0, 2*np.pi, 361)
+    r = np.linspace(0.82, 1.00, 2)
+    Theta, R = np.meshgrid(theta, r)
+    Z = Theta
+    circ.pcolormesh(Theta, R, Z, cmap=cmap, shading='auto', vmin=0, vmax=2*np.pi)
+
+    # Style the circular legend
+    circ.set_yticks([])
+    circ.set_xticks([])
+    circ.spines['polar'].set_visible(False)
+    circ.set_theta_zero_location('N')
+    circ.set_theta_direction(1)
+    circ.set_rlim(0.8, 1.00)
+
+    # Add radial guide lines and labels at ψ = 0 and ψ = 2π f_eff
+    theta0 = 0.0
+    theta_eff = 2.0 * np.pi * f_eff
+    
+    circ.plot([theta0, theta0], [0.85, 1.02], color='k', lw=1.0, zorder=10)
+    circ.plot([theta_eff, theta_eff], [0.85, 1.02], color='k', lw=1.0, zorder=10)
+    
+    circ.text(theta0, 1.0, r'$0$', ha='center', va='bottom', fontsize=12,
+              transform=circ.transData, clip_on=False, zorder=11)
+    circ.text(theta_eff, 1.075, r'$2\pi f_{\mathrm{eff}}$', ha='center', va='bottom', fontsize=12,
+              transform=circ.transData, clip_on=False, zorder=11)
+
+    # Center label
+    circ.text(0.5, 0.5, r'$\psi_1$', ha='center', va='center', fontsize=14, transform=circ.transAxes)
+    
+    return circ
+
+def plot_cilia_at_frame(ax, seg_positions, phases, frame_idx, cmap, color_by_phase=True):
+    """
+    Plot cilia at a specific frame.
+    
+    Args:
+        ax: The 3D axes
+        seg_positions: Segment positions array (T, N, S, 3)
+        phases: Phase array (T, N)
+        frame_idx: Frame index to plot
+        cmap: Colormap
+        color_by_phase: Whether to color by phase (default True)
+    """
+    num_fils = seg_positions.shape[1]
+    
+    if color_by_phase:
+        norm = mcolors.Normalize(vmin=0, vmax=2*np.pi)
+        for i in range(num_fils):
+            cilium_positions = seg_positions[frame_idx, i, :, :]
+            color = cmap(norm(phases[frame_idx, i]))
+            ax.plot(cilium_positions[:, 0], cilium_positions[:, 1], 
+                   cilium_positions[:, 2], '-', lw=2, color=color)
+    else:
+        for i in range(num_fils):
+            cilium_positions = seg_positions[frame_idx, i, :, :]
+            ax.plot(cilium_positions[:, 0], cilium_positions[:, 1], 
+                   cilium_positions[:, 2], '-', lw=2)
+
 # ----------------------------- 3D Frame Plot -----------------------------
 
 def plot_frame(base_path: str,
@@ -227,86 +362,16 @@ def plot_frame(base_path: str,
     else:
         fig, ax = fig_ax
 
-    # Plot the sphere
-    u = np.linspace(0, 2 * np.pi, 100)
-    v = np.linspace(0, np.pi, 100)
-    x_sphere = sim.sphere_radius * np.outer(np.cos(u), np.sin(v))
-    y_sphere = sim.sphere_radius * np.outer(np.sin(u), np.sin(v))
-    z_sphere = sim.sphere_radius * np.outer(np.ones(np.size(u)), np.cos(v))
-    ax.plot_surface(x_sphere, y_sphere, z_sphere, color='grey', alpha=0.1)
+    # Plot sphere and setup axes
+    plot_sphere_surface(ax, sim.sphere_radius)
+    setup_3d_axes(ax, sim.seg_positions[0], sim.sphere_radius, view=view)
 
-    # Axes limits
-    x_coords = sim.seg_positions[0, :, :, 0]
-    y_coords = sim.seg_positions[0, :, :, 1]
-    z_coords = sim.seg_positions[0, :, :, 2]
+    # Plot cilia
+    plot_cilia_at_frame(ax, sim.seg_positions, sim.phases, f, cmap, color_by_phase)
 
-    margin = 2.0
-    ax.set_xlim(np.min(x_coords) - margin, np.max(x_coords) + margin)
-    ax.set_ylim(np.min(y_coords) - margin, np.max(y_coords) + margin)
-    ax.set_zlim(np.min(z_coords) - margin, np.max(z_coords) + margin)
-
-    ax.set_xlabel('')
-    ax.set_ylabel('')
-    ax.set_zlabel('')
-    ax.set_xticklabels([])
-    ax.set_yticklabels([])
-    ax.set_zticklabels([])
-    ax.set_title(r'')
-    ax.set_aspect('equal')
-    ax.grid(True, alpha=0.3)
-    ax.set_zticks([])
-
-    if view == "top":
-        ax.view_init(elev=90, azim=-90)
-    else:
-        ax.view_init(elev=30, azim=-45)
-
-    # Plot cilia with phase-based coloring
+    # Add phase legend
     if color_by_phase:
-        norm = mcolors.Normalize(vmin=0, vmax=2*np.pi)
-        for i in range(sim.num_fils):
-            cilium_positions = sim.seg_positions[f, i, :, :]
-            x_data = cilium_positions[:, 0]
-            y_data = cilium_positions[:, 1]
-            z_data = cilium_positions[:, 2]
-            color = cmap(norm(sim.phases[f, i]))
-            ax.plot(x_data, y_data, z_data, '-', lw=2, color=color)
-    else:
-        for i in range(sim.num_fils):
-            cilium_positions = sim.seg_positions[f, i, :, :]
-            x_data = cilium_positions[:, 0]
-            y_data = cilium_positions[:, 1]
-            z_data = cilium_positions[:, 2]
-            ax.plot(x_data, y_data, z_data, '-', lw=2)
-
-    if color_by_phase:
-        # Place a polar inset in the top-right of the 3D axes
-        fig.canvas.draw()  # ensure bbox is valid before querying
-        bbox = ax.get_position()  # figure coords [0..1]
-        side = 0.18                       # inset size (fraction of figure)
-        pad  = 0.02                       # padding from top-right
-
-        # Clamp so left/bottom are finite and in [0, 1-side]
-        left   = np.clip(bbox.x1 - side - pad, 0.0, 1.0 - side)
-        bottom = np.clip(bbox.y1 - side - pad, 0.0, 1.0 - side)
-        circ = fig.add_axes([left, bottom, side, side], projection='polar')
-
-        # Build a colored ring
-        theta = np.linspace(0, 2*np.pi, 361)
-        r = np.linspace(0.82, 1.00, 2)    # thin ring
-        Theta, R = np.meshgrid(theta, r)
-        Z = Theta                          # values -> colormap in [0, 2π]
-        im_circ = circ.pcolormesh(Theta, R, Z, cmap=cmap, shading='auto', vmin=0, vmax=2*np.pi)
-
-        # Style the circular legend
-        circ.set_yticks([]); circ.set_xticks([])
-        circ.spines['polar'].set_visible(False)
-        circ.set_theta_zero_location('N')
-        circ.set_theta_direction(-1)
-        circ.set_rlim(0.78, 1.02)
-
-        # Center label in axes coords (avoid polar-data transform issues)
-        circ.text(0.5, 0.5, r'$\psi_1$', ha='center', va='center', fontsize=14, transform=circ.transAxes)
+        add_phase_legend(fig, ax, cmap=cmap, f_eff=0.3)
 
     if show:
         plt.tight_layout()
@@ -348,62 +413,28 @@ def make_topdown_video(base_path: str,
     times = range(0, sim.phases.shape[0], stride)
     norm = mcolors.Normalize(vmin=0, vmax=2*np.pi)
 
-    # CHANGE: Match cell 6 figure size
-    fig = plt.figure(figsize=(12, 12))  # was (8,8)
+    fig = plt.figure(figsize=(12, 12))
     ax = fig.add_subplot(111, projection='3d')
 
-    # Bounds
-    x_all = sim.seg_positions[...,0]; y_all = sim.seg_positions[...,1]; z_all = sim.seg_positions[...,2]
+    # Setup axes and sphere
+    x_all = sim.seg_positions[...,0]
+    y_all = sim.seg_positions[...,1]
+    z_all = sim.seg_positions[...,2]
     margin = 2.0
     ax.set_xlim(np.min(x_all)-margin, np.max(x_all)+margin)
     ax.set_ylim(np.min(y_all)-margin, np.max(y_all)+margin)
     ax.set_zlim(np.min(z_all)-margin, np.max(z_all)+margin)
     ax.view_init(elev=90, azim=-90)
-    ax.set_xticklabels([]); ax.set_yticklabels([]); ax.set_zticklabels([])
-    ax.set_xlabel(""); ax.set_ylabel(""); ax.set_zlabel("")
-    ax.set_title("")  # Remove title to match cell 6
+    ax.set_xticklabels([])
+    ax.set_yticklabels([])
+    ax.set_zticklabels([])
+    ax.set_xlabel("")
+    ax.set_ylabel("")
+    ax.set_zlabel("")
+    ax.set_title("")
 
-    # CHANGE: Match cell 6 sphere rendering
-    u = np.linspace(0, 2*np.pi, 100)  # was 80
-    v = np.linspace(0, np.pi, 100)    # was 40
-    xs = sim.sphere_radius * np.outer(np.cos(u), np.sin(v))
-    ys = sim.sphere_radius * np.outer(np.sin(u), np.sin(v))
-    zs = sim.sphere_radius * np.outer(np.ones_like(u), np.cos(v))
-    ax.plot_surface(xs, ys, zs, color='grey', alpha=0.15, linewidth=0, antialiased=True)
-
-    # ADD: Circular legend matching cell 6
-    fig.canvas.draw()
-    bbox = ax.get_position()
-    side = 0.18
-    pad = 0.02
-    left = np.clip(bbox.x1 - side - pad, 0.0, 1.0 - side)
-    bottom = np.clip(bbox.y1 - side - pad, 0.0, 1.0 - side)
-    circ = fig.add_axes([left, bottom, side, side], projection='polar')
-
-    # Build colored ring
-    theta = np.linspace(0, 2*np.pi, 361)
-    r_inner, r_outer = 0.82, 1.50
-    Theta, R = np.meshgrid(theta, np.linspace(r_inner, r_outer, 2))
-    Z = Theta
-    im_circ = circ.pcolormesh(Theta, R, Z, cmap=cmap, shading='auto', vmin=0, vmax=2*np.pi)
-
-    # Style circular legend
-    circ.set_yticks([]); circ.set_xticks([])
-    circ.spines['polar'].set_visible(False)
-    circ.set_theta_zero_location('N')
-    circ.set_theta_direction(1)
-    circ.set_rlim(0.78, 1.02)
-
-    # Add radial guides and labels
-    theta0 = 0.0
-    theta_eff = 0.6*np.pi
-    circ.plot([theta0, theta0], [r_inner, r_outer], color='k', lw=1.0, zorder=10)
-    circ.plot([theta_eff, theta_eff], [r_inner, r_outer], color='k', lw=1.0, zorder=10)
-    
-    circ.text(theta0, 1.03, r'$0$', ha='center', va='bottom', fontsize=14,
-              transform=circ.transData, clip_on=False, zorder=11)
-    circ.text(theta_eff, 1.09, r'$2\pi f_{\mathrm{eff}}$', ha='center', va='bottom', fontsize=14,
-              transform=circ.transData, clip_on=False, zorder=11)
+    plot_sphere_surface(ax, sim.sphere_radius, alpha=0.15)
+    add_phase_legend(fig, ax, cmap=cmap, f_eff=0.3)
 
     lines = [ax.plot([], [], [], '-', lw=2)[0] for _ in range(sim.phases.shape[1])]
 
@@ -608,6 +639,7 @@ def plot_blob_positions(base_path: str,
                        view: str = "top",  # "top", "iso", or "sphere"
                        color_by: str = "azimuth",  # "azimuth", "altitude", "index", or "uniform"
                        show_sphere: bool = True,
+                       split_hemispheres: bool = True,  # NEW: whether to split into two plots
                        cmap=DEFAULT_CMAP,
                        show: bool = True,
                        save: bool = True,
@@ -619,6 +651,11 @@ def plot_blob_positions(base_path: str,
         view: "top" (2D top-down), "iso" (3D isometric), or "sphere" (3D with sphere surface)
         color_by: "azimuth" (φ angle), "altitude" (θ angle), "index", or "uniform"
         show_sphere: If True and 3D view, show sphere surface
+        split_hemispheres: If True, plot top and bottom hemispheres separately (splits by z-coordinate)
+        cmap: Colormap to use
+        show: Whether to display the plot
+        save: Whether to save the plot
+        fig_ax: Optional existing figure and axes to use
     """
     if sim is None:
         sim = load_simulation(base_path, num_steps=num_steps)
@@ -657,81 +694,189 @@ def plot_blob_positions(base_path: str,
     
     # Create figure
     if fig_ax is None:
-        if view == "top":
-            fig, ax = plt.subplots(figsize=(8, 8))
+        if split_hemispheres:
+            # Create side-by-side subplots for hemispheres
+            if view == "top":
+                fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))
+            else:
+                fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8), 
+                                                subplot_kw={'projection': '3d'})
+            axes = [ax1, ax2]
         else:
-            fig = plt.figure(figsize=(10, 10))
-            ax = fig.add_subplot(111, projection='3d')
+            if view == "top":
+                fig, ax = plt.subplots(figsize=(8, 8))
+            else:
+                fig = plt.figure(figsize=(10, 10))
+                ax = fig.add_subplot(111, projection='3d')
     else:
         fig, ax = fig_ax
+        split_hemispheres = False  # Don't split if using provided axes
     
     # Plot based on view
-    if view == "top":
-        # 2D top-down view
-        if color_by == "uniform":
-            sc = ax.scatter(x, y, c=colors, s=10, alpha=0.6, edgecolor='k', linewidth=0.2)
-        else:
-            sc = ax.scatter(x, y, c=colors, cmap=cmap, s=10, alpha=0.6, 
-                          edgecolor='k', linewidth=0.2, vmin=vmin, vmax=vmax)
-        
-        # Sphere outline
-        theta_circle = np.linspace(0, 2*np.pi, 400)
-        circle_x = sim.sphere_radius * np.cos(theta_circle)
-        circle_y = sim.sphere_radius * np.sin(theta_circle)
-        ax.plot(circle_x, circle_y, color='grey', lw=2, alpha=0.6)
-        
-        ax.set_aspect('equal')
-        ax.set_xlabel('x')
-        ax.set_ylabel('y')
-        ax.grid(True, alpha=0.3)
-        
-    else:
-        # 3D view
-        if color_by == "uniform":
-            sc = ax.scatter(x, y, z, c=colors, s=10, alpha=0.6, edgecolor='k', linewidth=0.2)
-        else:
-            sc = ax.scatter(x, y, z, c=colors, cmap=cmap, s=10, alpha=0.6,
-                          edgecolor='k', linewidth=0.2, vmin=vmin, vmax=vmax)
-        
-        # Sphere surface
-        if show_sphere:
-            u = np.linspace(0, 2*np.pi, 50)
-            v = np.linspace(0, np.pi, 50)
-            xs = sim.sphere_radius * np.outer(np.cos(u), np.sin(v))
-            ys = sim.sphere_radius * np.outer(np.sin(u), np.sin(v))
-            zs = sim.sphere_radius * np.outer(np.ones_like(u), np.cos(v))
-            ax.plot_surface(xs, ys, zs, color='grey', alpha=0.1, linewidth=0)
-        
-        ax.set_xlabel('x')
-        ax.set_ylabel('y')
-        ax.set_zlabel('z')
-        ax.set_aspect('equal')
-        
+    if not split_hemispheres:
+        # Original single-view behavior
         if view == "top":
-            ax.view_init(elev=90, azim=-90)
-        else:  # iso
-            ax.view_init(elev=30, azim=-45)
+            # 2D top-down view
+            if color_by == "uniform":
+                sc = ax.scatter(x, y, c=colors, s=10, alpha=0.6, edgecolor='k', linewidth=0.2)
+            else:
+                sc = ax.scatter(x, y, c=colors, cmap=cmap, s=10, alpha=0.6, 
+                              edgecolor='k', linewidth=0.2, vmin=vmin, vmax=vmax)
+            
+            # Sphere outline
+            theta_circle = np.linspace(0, 2*np.pi, 400)
+            circle_x = sim.sphere_radius * np.cos(theta_circle)
+            circle_y = sim.sphere_radius * np.sin(theta_circle)
+            ax.plot(circle_x, circle_y, color='grey', lw=2, alpha=0.6)
+            
+            ax.set_aspect('equal')
+            ax.set_xlabel('x')
+            ax.set_ylabel('y')
+            ax.grid(True, alpha=0.3)
+            ax.set_title(f"Surface blobs (N={len(x)})")
+            
+        else:
+            # 3D view
+            if color_by == "uniform":
+                sc = ax.scatter(x, y, z, c=colors, s=10, alpha=0.6, edgecolor='k', linewidth=0.2)
+            else:
+                sc = ax.scatter(x, y, z, c=colors, cmap=cmap, s=10, alpha=0.6,
+                              edgecolor='k', linewidth=0.2, vmin=vmin, vmax=vmax)
+            
+            # Sphere surface
+            if show_sphere:
+                u = np.linspace(0, 2*np.pi, 50)
+                v = np.linspace(0, np.pi, 50)
+                xs = sim.sphere_radius * np.outer(np.cos(u), np.sin(v))
+                ys = sim.sphere_radius * np.outer(np.sin(u), np.sin(v))
+                zs = sim.sphere_radius * np.outer(np.ones_like(u), np.cos(v))
+                ax.plot_surface(xs, ys, zs, color='grey', alpha=0.1, linewidth=0)
+            
+            ax.set_xlabel('x')
+            ax.set_ylabel('y')
+            ax.set_zlabel('z')
+            ax.set_aspect('equal')
+            
+            if view == "iso":
+                ax.view_init(elev=30, azim=-45)
+            
+            # Set limits
+            margin = sim.sphere_radius * 0.1
+            max_range = sim.sphere_radius + margin
+            ax.set_xlim(-max_range, max_range)
+            ax.set_ylim(-max_range, max_range)
+            ax.set_zlim(-max_range, max_range)
+            
+            ax.set_title(f"Surface blobs (N={len(x)})")
         
-        # Set limits
-        margin = sim.sphere_radius * 0.1
-        max_range = sim.sphere_radius + margin
-        ax.set_xlim(-max_range, max_range)
-        ax.set_ylim(-max_range, max_range)
-        ax.set_zlim(-max_range, max_range)
-    
-    title = f"Surface blobs (N={len(x)})"
-    ax.set_title(title)
-    
-    # Colorbar for non-uniform coloring
-    if color_by != "uniform" and cbar_label:
-        cbar = fig.colorbar(sc, ax=ax, fraction=0.045, pad=0.04)
-        cbar.set_label(cbar_label)
-        if color_by == "azimuth":
-            cbar.set_ticks([0, np.pi, 2*np.pi])
-            cbar.set_ticklabels([r'$0$', r'$\pi$', r'$2\pi$'])
-        elif color_by == "altitude":
-            cbar.set_ticks([0, np.pi/2, np.pi])
-            cbar.set_ticklabels([r'$0$', r'$\pi/2$', r'$\pi$'])
+        # Colorbar for non-uniform coloring
+        if color_by != "uniform" and cbar_label:
+            cbar = fig.colorbar(sc, ax=ax, fraction=0.045, pad=0.04)
+            cbar.set_label(cbar_label)
+            if color_by == "azimuth":
+                cbar.set_ticks([0, np.pi, 2*np.pi])
+                cbar.set_ticklabels([r'$0$', r'$\pi$', r'$2\pi$'])
+            elif color_by == "altitude":
+                cbar.set_ticks([0, np.pi/2, np.pi])
+                cbar.set_ticklabels([r'$0$', r'$\pi/2$', r'$\pi$'])
+                
+    else:
+        # Split hemispheres by z-coordinate: top (z >= 0) and bottom (z < 0)
+        top_mask = z >= 0
+        bottom_mask = z < 0
+        
+        for idx, (mask, hemisphere_ax, title) in enumerate([
+            (top_mask, axes[0], "Top hemisphere (z ≥ 0)"),
+            (bottom_mask, axes[1], "Bottom hemisphere (z < 0)")
+        ]):
+            x_hem = x[mask]
+            y_hem = y[mask]
+            z_hem = z[mask]
+            colors_hem = colors[mask] if color_by != "uniform" else colors
+            
+            if view == "top":
+                # 2D top-down view for both hemispheres
+                if color_by == "uniform":
+                    sc = hemisphere_ax.scatter(x_hem, y_hem, c=colors, s=10, 
+                                              alpha=0.6, edgecolor='k', linewidth=0.2)
+                else:
+                    sc = hemisphere_ax.scatter(x_hem, y_hem, c=colors_hem, 
+                                              cmap=cmap, s=10, alpha=0.6,
+                                              edgecolor='k', linewidth=0.2, 
+                                              vmin=vmin, vmax=vmax)
+                
+                # Sphere outline
+                theta_circle = np.linspace(0, 2*np.pi, 400)
+                circle_x = sim.sphere_radius * np.cos(theta_circle)
+                circle_y = sim.sphere_radius * np.sin(theta_circle)
+                hemisphere_ax.plot(circle_x, circle_y, color='grey', lw=2, alpha=0.6)
+                
+                hemisphere_ax.set_aspect('equal')
+                hemisphere_ax.set_xlabel('x')
+                hemisphere_ax.set_ylabel('y')
+                hemisphere_ax.grid(True, alpha=0.3)
+                
+            else:
+                # 3D view
+                if color_by == "uniform":
+                    sc = hemisphere_ax.scatter(x_hem, y_hem, z_hem, c=colors, s=10, 
+                                              alpha=0.6, edgecolor='k', linewidth=0.2)
+                else:
+                    sc = hemisphere_ax.scatter(x_hem, y_hem, z_hem, c=colors_hem, 
+                                              cmap=cmap, s=10, alpha=0.6,
+                                              edgecolor='k', linewidth=0.2, 
+                                              vmin=vmin, vmax=vmax)
+                
+                # Sphere surface (half sphere)
+                if show_sphere:
+                    u = np.linspace(0, 2*np.pi, 50)
+                    v = np.linspace(0, np.pi, 50)
+                    xs = sim.sphere_radius * np.outer(np.cos(u), np.sin(v))
+                    ys = sim.sphere_radius * np.outer(np.sin(u), np.sin(v))
+                    zs = sim.sphere_radius * np.outer(np.ones_like(u), np.cos(v))
+                    
+                    # Only show the relevant hemisphere by masking z
+                    if idx == 0:  # top
+                        zs[zs < 0] = np.nan
+                    else:  # bottom
+                        zs[zs >= 0] = np.nan
+                        
+                    hemisphere_ax.plot_surface(xs, ys, zs, color='grey', 
+                                              alpha=0.1, linewidth=0)
+                
+                hemisphere_ax.set_xlabel('x')
+                hemisphere_ax.set_ylabel('y')
+                hemisphere_ax.set_zlabel('z')
+                hemisphere_ax.set_aspect('equal')
+                
+                # Adjust viewing angle for each hemisphere
+                if idx == 0:  # top
+                    hemisphere_ax.view_init(elev=30, azim=-45)
+                else:  # bottom
+                    hemisphere_ax.view_init(elev=-30, azim=-45)
+                
+                # Set limits
+                margin = sim.sphere_radius * 0.1
+                max_range = sim.sphere_radius + margin
+                hemisphere_ax.set_xlim(-max_range, max_range)
+                hemisphere_ax.set_ylim(-max_range, max_range)
+                hemisphere_ax.set_zlim(-max_range, max_range)
+            
+            hemisphere_ax.set_title(title)
+        
+        # Add a shared colorbar
+        if color_by != "uniform" and cbar_label:
+            # Position colorbar between the two subplots
+            fig.subplots_adjust(right=0.85)
+            cbar_ax = fig.add_axes([0.88, 0.15, 0.02, 0.7])
+            cbar = fig.colorbar(sc, cax=cbar_ax)
+            cbar.set_label(cbar_label)
+            if color_by == "azimuth":
+                cbar.set_ticks([0, np.pi, 2*np.pi])
+                cbar.set_ticklabels([r'$0$', r'$\pi$', r'$2\pi$'])
+            elif color_by == "altitude":
+                cbar.set_ticks([0, np.pi/2, np.pi])
+                cbar.set_ticklabels([r'$0$', r'$\pi/2$', r'$\pi$'])
     
     if show:
         plt.tight_layout()
@@ -740,12 +885,13 @@ def plot_blob_positions(base_path: str,
     if save:
         out_dir = Path("analysis_output")
         out_dir.mkdir(exist_ok=True, parents=True)
-        suffix = f"_blobs_{view}_{color_by}.png"
+        hemisphere_suffix = "_split" if split_hemispheres else ""
+        suffix = f"_blobs_{view}_{color_by}{hemisphere_suffix}.png"
         out_path = out_dir / (Path(base_path).name + suffix)
         fig.savefig(out_path.as_posix(), dpi=180, bbox_inches='tight')
         print(f"[info] Saved blob positions to {out_path}")
     
-    return fig, ax
+    return fig, (axes if split_hemispheres else ax)
 
 # ----------------------------- Wavelength Analysis -----------------------------
 
