@@ -2,9 +2,8 @@ import configparser
 import os
 import util
 
-ablation_fraction = 0.0
-
-num_fils = 360*(1 - ablation_fraction)
+ablation_fraction = 0.25
+num_fils = int(360*(1 - ablation_fraction))
 gmres_tol = 7
 precon = 'precon'
 k = 60
@@ -16,7 +15,7 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'sphere_seeding_test_2/'
+        self.category = f'ablation_test_3/'
         self.exe_name = f'cilia_1e-7'
         self.date = '20251010'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
