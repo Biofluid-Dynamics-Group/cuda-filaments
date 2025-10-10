@@ -38,7 +38,7 @@ def read_dat_file(filepath):
 
 def rescale_sphere(coordinates, target_radius=None):
     """
-    Rescale sphere coordinates to a target radius.
+    Rescale sphere coordinates to a target radius. Should be 0.5 for a .seed file.
     
     Args:
         coordinates: List of coordinates [x1, y1, z1, x2, y2, z2, ...]
