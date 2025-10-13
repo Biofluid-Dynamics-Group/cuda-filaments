@@ -165,7 +165,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
     #define NUM_PLATY_GROUPS 12             // number of groups
   #endif
 
-  #define ABLATE true  // Ablate cilia, as in, remove the last cilia in the ring
+  #define ABLATE false  // Ablate cilia, as in, remove the last cilia in the ring
   #if ABLATE
     #define SEED_LIKE 360 // amount of cilia without gaps, with tilt
   #endif  
