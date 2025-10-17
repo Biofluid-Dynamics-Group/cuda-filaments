@@ -165,9 +165,9 @@ def plot_kymograph(base_path: str,
         # Use contourf - gaps will automatically appear as blank regions
         # since we're plotting at the true φ positions
         X, Y = np.meshgrid(sim.times, phi_sorted)
-        im = ax.contourf(X, Y, phases_sorted.T, levels=100, cmap=cmap, 
-                         vmin=0, vmax=2*np.pi)
-        ax.set_ylabel(r"azimuth $\phi$ [rad]")
+        im = ax.contourf(X, Y, phases_sorted.T, levels=101, cmap=cmap, 
+                         vmin=0, vmax=2*np.pi, antialiased=False)
+        ax.set_ylabel("azimuth φ (rad)")
         ax.set_yticks([0, np.pi, 2*np.pi])
         ax.set_yticklabels(['0', 'π', '2π'])
         ax.set_ylim(0, 2*np.pi)  # Show full circle to visualize the gap
@@ -176,21 +176,21 @@ def plot_kymograph(base_path: str,
         im = ax.imshow(phases_sorted.T, aspect='auto', cmap=cmap,
                        extent=[sim.times[0], sim.times[-1], 0, N],
                        origin='lower', vmin=0, vmax=2*np.pi)
-        ax.set_ylabel("cilium index")
+        ax.set_ylabel("cilia index (sorted)")
 
     # Update x-axis label based on whether we have num_steps
     if sim.num_steps is not None:
-        ax.set_xlabel(r"$t/T$")
+        ax.set_xlabel("time (periods)")
     else:
         ax.set_xlabel("normalized time")
         
-    title = "kymograph"
+    title = "Kymograph"
     ax.set_title(title)
 
     # Only add colorbar if we're not using an existing figure
     if fig_ax is None:
         cbar = fig.colorbar(im, ax=ax)
-        cbar.set_label(r"$\psi_1$")
+        cbar.set_label(r"phase $\psi$ (rad)")
         cbar.set_ticks([0, np.pi, 2*np.pi])
         cbar.set_ticklabels([r"$0$", r"$\pi$", r"$2\pi$"])
 
@@ -199,15 +199,10 @@ def plot_kymograph(base_path: str,
         plt.show()
 
     if save:
-        # Create output directory structure: analysis_output/category_date/Nfil/
-        base_path_obj = Path(base_path)
-        parent_name = base_path_obj.parent.name  # e.g., "20251010"
-        grandparent_name = base_path_obj.parent.parent.name  # e.g., "ablation_study_0"
-        out_subdir = f"{grandparent_name}_{parent_name}/{sim.num_fils}fil"
-        out_dir = Path("analysis_output") / out_subdir
+        out_dir = Path("analysis_output")
         out_dir.mkdir(exist_ok=True, parents=True)
         suffix = "_kymograph_phi.png" if use_phi_axis else "_kymograph_idx.png"
-        out_path = out_dir / (base_path_obj.name + suffix)
+        out_path = out_dir / (Path(base_path).name + suffix)
         fig.savefig(out_path.as_posix(), dpi=180)
         print(f"[info] Saved kymograph to {out_path}")
     return fig, ax
@@ -394,15 +389,10 @@ def plot_frame(base_path: str,
         plt.show()
 
     if save:
-        # Create output directory structure
-        base_path_obj = Path(base_path)
-        parent_name = base_path_obj.parent.name
-        grandparent_name = base_path_obj.parent.parent.name
-        out_subdir = f"{grandparent_name}_{parent_name}/{sim.num_fils}fil"
-        out_dir = Path("analysis_output") / out_subdir
+        out_dir = Path("analysis_output")
         out_dir.mkdir(exist_ok=True, parents=True)
         suffix = f"_frame_{frame}_{view}.png"
-        out_path = out_dir / (base_path_obj.name + suffix)
+        out_path = out_dir / (Path(base_path).name + suffix)
         fig.savefig(out_path.as_posix(), dpi=180)
         print(f"[info] Saved frame to {out_path}")
     return fig, ax
@@ -593,13 +583,13 @@ def plot_basal_positions(base_path: str,
     # Color mapping with appropriate colormaps
     if color_by == "azimuth":
         colors = sim.basal_phi
-        cbar_label = r"azimuth $\phi$ [rad]"
+        cbar_label = r"azimuth $\phi$ (rad)"
         vmin, vmax = 0, 2*np.pi
         if cmap is None:
             cmap = DEFAULT_CMAP  # romaO for periodic azimuth
     elif color_by == "index":
         colors = np.arange(len(x))
-        cbar_label = "cilium index"
+        cbar_label = "cilia index"
         vmin, vmax = 0, len(x)-1
         if cmap is None:
             cmap = SEQUENTIAL_CMAP  # batlow for sequential index
@@ -624,7 +614,7 @@ def plot_basal_positions(base_path: str,
     circle_x = sim.sphere_radius * np.cos(theta)
     circle_y = sim.sphere_radius * np.sin(theta)
     ax.plot(circle_x, circle_y, color='grey', lw=2, alpha=0.6, 
-           label='sphere equator')
+           label='Sphere equator')
 
     # Formatting
     ax.set_aspect('equal')
@@ -632,7 +622,7 @@ def plot_basal_positions(base_path: str,
     ax.set_ylabel('y') 
     ax.grid(True, alpha=0.3)
     
-    title = f"basal positions (N={len(x)})"
+    title = f"Basal positions (N={len(x)})"
     
     ax.set_title(title)
 
@@ -649,15 +639,10 @@ def plot_basal_positions(base_path: str,
         plt.show()
 
     if save:
-        # Create output directory structure
-        base_path_obj = Path(base_path)
-        parent_name = base_path_obj.parent.name
-        grandparent_name = base_path_obj.parent.parent.name
-        out_subdir = f"{grandparent_name}_{parent_name}/{sim.num_fils}fil"
-        out_dir = Path("analysis_output") / out_subdir
+        out_dir = Path("analysis_output")
         out_dir.mkdir(exist_ok=True, parents=True)
         suffix = f"_basal_{color_by}.png"
-        out_path = out_dir / (base_path_obj.name + suffix)
+        out_path = out_dir / (Path(base_path).name + suffix)
         fig.savefig(out_path.as_posix(), dpi=180, bbox_inches='tight')
         print(f"[info] Saved basal positions to {out_path}")
         
@@ -709,13 +694,13 @@ def plot_blob_positions(base_path: str,
     # Determine coloring with appropriate colormaps
     if color_by == "azimuth":
         colors = phi
-        cbar_label = r"azimuth $\phi$ [rad]"
+        cbar_label = r"azimuth $\phi$ (rad)"
         vmin, vmax = 0, 2*np.pi
         if cmap is None:
             cmap = DEFAULT_CMAP  # romaO for periodic azimuth
     elif color_by == "altitude":
         colors = theta
-        cbar_label = r"altitude $\theta$ [rad]"
+        cbar_label = r"polar angle $\theta$ (rad)"
         vmin, vmax = 0, np.pi
         if cmap is None:
             cmap = SEQUENTIAL_CMAP  # batlow for sequential altitude
@@ -775,7 +760,7 @@ def plot_blob_positions(base_path: str,
             ax.set_xlabel('x')
             ax.set_ylabel('y')
             ax.grid(True, alpha=0.3)
-            ax.set_title(f"surface blobs (N={len(x)})")
+            ax.set_title(f"Surface blobs (N={len(x)})")
             
         else:
             # 3D view
@@ -809,7 +794,7 @@ def plot_blob_positions(base_path: str,
             ax.set_ylim(-max_range, max_range)
             ax.set_zlim(-max_range, max_range)
             
-            ax.set_title(f"surface blobs (N={len(x)})")
+            ax.set_title(f"Surface blobs (N={len(x)})")
         
         # Colorbar for non-uniform coloring
         if color_by != "uniform" and cbar_label:
@@ -828,8 +813,8 @@ def plot_blob_positions(base_path: str,
         bottom_mask = z < 0
         
         for idx, (mask, hemisphere_ax, title) in enumerate([
-            (top_mask, axes[0], "top hemisphere"),
-            (bottom_mask, axes[1], "bottom hemisphere")
+            (top_mask, axes[0], "Top hemisphere (z ≥ 0)"),
+            (bottom_mask, axes[1], "Bottom hemisphere (z < 0)")
         ]):
             x_hem = x[mask]
             y_hem = y[mask]
@@ -837,7 +822,7 @@ def plot_blob_positions(base_path: str,
             colors_hem = colors[mask] if color_by != "uniform" else colors
             
             if view == "top":
-                # 2D top-down view for both hemispheres
+                # 2D top-down view
                 if color_by == "uniform":
                     sc = hemisphere_ax.scatter(x_hem, y_hem, c=colors, s=10, 
                                               alpha=0.6, edgecolor='k', linewidth=0.2)
@@ -925,16 +910,11 @@ def plot_blob_positions(base_path: str,
         plt.show()
     
     if save:
-        # Create output directory structure
-        base_path_obj = Path(base_path)
-        parent_name = base_path_obj.parent.name
-        grandparent_name = base_path_obj.parent.parent.name
-        out_subdir = f"{grandparent_name}_{parent_name}/{sim.num_fils}fil"
-        out_dir = Path("analysis_output") / out_subdir
+        out_dir = Path("analysis_output")
         out_dir.mkdir(exist_ok=True, parents=True)
         hemisphere_suffix = "_split" if split_hemispheres else ""
         suffix = f"_blobs_{view}_{color_by}{hemisphere_suffix}.png"
-        out_path = out_dir / (base_path_obj.name + suffix)
+        out_path = out_dir / (Path(base_path).name + suffix)
         fig.savefig(out_path.as_posix(), dpi=180, bbox_inches='tight')
         print(f"[info] Saved blob positions to {out_path}")
     
@@ -944,337 +924,268 @@ def plot_blob_positions(base_path: str,
 
 @dataclass
 class WavelengthResult:
-    wavelength_distances: np.ndarray    # all measured wavelengths (one per time point analyzed)
-    mean_wavelength_rad: float          # mean wavelength in radians
-    std_wavelength_rad: float           # standard deviation
-    wavelength_arc: float               # mean wavelength in arc length
-    wavelength_filaments: float         # mean wavelength in filament lengths
-    n_measurements: int                 # number of time points analyzed
-    dominant_wavenumber: Optional[float] = None  # dominant spatial frequency (for Fourier method)
-    power_spectrum: Optional[np.ndarray] = None  # full power spectrum (for Fourier method)
-    wavenumbers: Optional[np.ndarray] = None     # wavenumber array (for Fourier method)
+    """Results from wavelength analysis using slope-based segmentation."""
+    coherent_wavelengths: np.ndarray    # wavelengths of coherent wave segments (in radians)
+    coherent_wave_types: np.ndarray     # +1 for positive wave, -1 for negative wave
+    coherent_fractions: np.ndarray      # fraction of equator covered by each segment
+    mean_wavelength_positive: float     # mean wavelength of positive waves (rad)
+    mean_wavelength_negative: float     # mean wavelength of negative waves (rad)
+    std_wavelength_positive: float      # std of positive wave wavelengths
+    std_wavelength_negative: float      # std of negative wave wavelengths
+    percent_positive_wave: float        # percentage of equator with positive waves
+    percent_negative_wave: float        # percentage of equator with negative waves
+    percent_incoherent: float           # percentage with no coherent wave
+    n_positive_segments: int            # number of positive wave segments
+    n_negative_segments: int            # number of negative wave segments
+    n_time_points: int                  # number of time points analyzed
 
-def estimate_wavelength_fourier(base_path: str,
+def estimate_wavelength_slopes(base_path: str,
                                sim: Optional[SimulationData]=None,
                                num_steps: Optional[int]=None,
-                               filament_length: Optional[float]=None,
-                               time_window: Optional[Tuple[int, int]]=None,
-                               n_interp: int = 1024,
+                               n_time_points: int = 20,
+                               ruptures_penalty: float = 5.0,
+                               min_slope_threshold: float = 0.1,
                                show_analysis: bool = True) -> WavelengthResult:
     """
-    Estimate wavelength using Fourier analysis of the phase pattern in space.
+    Estimate wavelength using slope-based segmentation of phase patterns.
     
-    Interprets phases as a spatial signal ψ(φ) and uses FFT to find dominant wavelength.
-    This method handles ablation gaps naturally through interpolation onto a uniform grid.
+    For each of the last n_time_points, this function:
+    1. Takes phase as a function of azimuthal position
+    2. Numerically differentiates to get slope
+    3. Uses ruptures library to detect constant-slope segments
+    4. Classifies segments as positive/negative waves
+    5. Calculates wavelength for each coherent segment
     
     Args:
         base_path: Simulation file prefix
         sim: Pre-loaded simulation data (optional)
         num_steps: Steps per period for time normalization
-        filament_length: Physical filament length (if None, estimated from data)
-        time_window: (start, end) indices for time points to analyze. If None, uses last 20% of simulation
-        n_interp: Number of points for interpolation (should be power of 2 for FFT efficiency)
+        n_time_points: Number of final time points to analyze
+        ruptures_penalty: Penalty parameter for ruptures algorithm (higher = fewer segments)
+        min_slope_threshold: Minimum absolute slope to be considered coherent
         show_analysis: Whether to show diagnostic plots
     
     Returns:
-        WavelengthResult with Fourier-based wavelength estimates
-        
-    Note: The interpolation step effectively "fills in" the ablation gap, which is
-    appropriate for wavelength analysis since we're interested in the spatial frequency
-    of the wave pattern where cilia exist. The gap doesn't affect the wavelength itself.
+        WavelengthResult with slope-based wavelength estimates
     """
+    try:
+        import ruptures as rpt
+    except ImportError:
+        raise ImportError("This analysis requires the 'ruptures' package. Install with: pip install ruptures")
+    
     if sim is None:
         sim = load_simulation(base_path, num_steps=num_steps)
     
-    # Determine time window
+    # Get phases in sorted azimuthal order for the last n_time_points
     T = sim.phases.shape[0]
-    if time_window is None:
-        # Use last 20% of simulation (presumably settled state)
-        t_start = int(0.8 * T)
-        t_end = T
-    else:
-        t_start, t_end = time_window
-    
-    # Get phases in sorted azimuthal order
-    phases_sorted = sim.phases[t_start:t_end, sim.order_idx]  # shape (T_window, N)
+    t_start = max(0, T - n_time_points)
+    phases_sorted = sim.phases[t_start:, sim.order_idx]  # shape (n_time_points, N)
     phi_sorted = sim.basal_phi[sim.order_idx]  # shape (N,)
     N = len(phi_sorted)
     
-    print(f"[info] Analyzing {t_end - t_start} time points with {N} cilia")
+    print(f"[info] Analyzing {n_time_points} time points with {N} cilia")
     
-    # Storage for wavelength estimates at each time point
-    wavelength_estimates = []
-    dominant_wavenumbers = []
+    # Storage for all segments across all time points
+    all_wavelengths = []
+    all_wave_types = []
+    all_fractions = []
     
-    # Create uniform grid for interpolation (FFT requires uniform spacing)
-    phi_uniform = np.linspace(0, 2*np.pi, n_interp, endpoint=False)
+    # For visualization
+    example_time_idx = -1  # Last time point
+    example_segments = None
+    example_slopes = None
+    example_breakpoints = None
     
     for t_idx in range(phases_sorted.shape[0]):
         phase_pattern = phases_sorted[t_idx, :]  # shape (N,)
         
-        # Unwrap phases to avoid 2π discontinuities
+        # Make phase continuous by unwrapping, then wrap back for periodicity
         phase_unwrapped = np.unwrap(phase_pattern)
         
-        # Interpolate onto uniform grid
-        # Handle periodicity: append first point at end with appropriate phase shift
+        # Handle periodicity: append first point at end with 2π shift
         phi_extended = np.concatenate([phi_sorted, [2*np.pi]])
         phase_extended = np.concatenate([phase_unwrapped, [phase_unwrapped[0] + 2*np.pi]])
         
-        phase_interp = np.interp(phi_uniform, phi_extended, phase_extended)
+        # Compute slopes (numerical derivative)
+        # Using central differences where possible
+        slopes = np.gradient(phase_extended, phi_extended)
+        slopes = slopes[:-1]  # Remove last point (was added for periodicity)
         
-        # Remove linear trend (DC component and mean slope)
-        # This helps focus on the oscillatory component
-        phase_detrended = phase_interp - np.mean(phase_interp)
-        p = np.polyfit(phi_uniform, phase_detrended, 1)
-        phase_detrended -= np.polyval(p, phi_uniform)
+        # Detect changepoints in slope using ruptures
+        algo = rpt.Pelt(model="rbf").fit(slopes)
+        breakpoints = algo.predict(pen=ruptures_penalty)
         
-        # Compute FFT
-        fft_result = np.fft.fft(phase_detrended)
-        power_spectrum = np.abs(fft_result)**2
-        
-        # Frequency array (in terms of cycles per 2π)
-        freqs = np.fft.fftfreq(n_interp, d=(2*np.pi/n_interp))
-        
-        # Only look at positive frequencies (due to symmetry)
-        positive_mask = freqs > 0
-        freqs_pos = freqs[positive_mask]
-        power_pos = power_spectrum[positive_mask]
-        
-        # Find dominant frequency (excluding DC and very low frequencies)
-        # Skip first few bins to avoid numerical artifacts
-        min_freq_idx = 2
-        dominant_idx = min_freq_idx + np.argmax(power_pos[min_freq_idx:])
-        dominant_freq = freqs_pos[dominant_idx]  # cycles per 2π radians
-        
-        # Convert to wavelength: if we have k cycles in 2π, wavelength = 2π/k
-        wavelength_rad = 2*np.pi / dominant_freq if dominant_freq > 0 else np.inf
-        
-        wavelength_estimates.append(wavelength_rad)
-        dominant_wavenumbers.append(dominant_freq)
-    
-    # Convert to array
-    wavelength_distances = np.array(wavelength_estimates)
-    
-    # Remove infinite/invalid values
-    valid_mask = np.isfinite(wavelength_distances) & (wavelength_distances > 0)
-    wavelength_distances = wavelength_distances[valid_mask]
-    
-    if len(wavelength_distances) == 0:
-        print("[warn] No valid wavelength measurements could be made")
-        return WavelengthResult(
-            wavelength_distances=np.array([]),
-            mean_wavelength_rad=np.inf,
-            std_wavelength_rad=0.0,
-            wavelength_arc=np.inf,
-            wavelength_filaments=np.inf,
-            n_measurements=0
-        )
-    
-    # Statistical analysis
-    mean_wavelength_rad = np.mean(wavelength_distances)
-    std_wavelength_rad = np.std(wavelength_distances)
-    mean_wavenumber = np.mean([k for k, v in zip(dominant_wavenumbers, valid_mask) if v])
-    
-    # Convert to other units
-    wavelength_arc = sim.sphere_radius * mean_wavelength_rad
-    
-    # Estimate filament length if needed
-    if filament_length is None:
-        seg_dists = []
-        for i in range(min(10, sim.phases.shape[1])):
-            segs = sim.seg_positions[-1, i, :, :]
-            dists = np.linalg.norm(np.diff(segs, axis=0), axis=1)
-            seg_dists.extend(dists)
-        mean_seg_length = np.mean(seg_dists)
-        filament_length = mean_seg_length * (sim.num_segs - 1)
-        print(f"[info] Estimated filament length: {filament_length:.2f} units")
-    
-    wavelength_filaments = wavelength_arc / filament_length
-    
-    # Visualization with cmcrameri colors
-    if show_analysis:
-        # Define colors from cmcrameri palettes
-        try:
-            highlight_color = DISCRETE_CMAP(0.0)  # Dark color from batlow for main data
-            mean_color = DISCRETE_CMAP(0.75)  # Light color from batlow for mean
-            std_color = DISCRETE_CMAP(0.5)  # Mid color from batlow for std dev
-            guide_color = DISCRETE_CMAP(1.0)  # Very light for guide lines
-        except:
-            highlight_color = 'blue'
-            mean_color = 'red'
-            std_color = 'orange'
-            guide_color = 'red'
-        
-        fig = plt.figure(figsize=(14, 10))
-        gs = fig.add_gridspec(3, 2, hspace=0.3, wspace=0.3)
-        
-        # Plot 1: Example phase pattern (last time point)
-        ax1 = fig.add_subplot(gs[0, :])
-        t_example = -1
-        phase_example = phases_sorted[t_example, :]
-        ax1.plot(phi_sorted, phase_example, '.-', markersize=4, 
-                label='phase pattern', alpha=0.7, color=highlight_color)
-        ax1.plot(phi_sorted, np.unwrap(phase_example), '.-', markersize=4, 
-                label='unwrapped', alpha=0.7, color=mean_color)
-        ax1.set_xlabel(r'azimuth $\phi$ [rad]')
-        ax1.set_ylabel(r'$\psi_1$')
-        ax1.set_title(f'example phase pattern'+r' ($t/T$'+f'={sim.times[t_start + t_example]:.2f})')
-        ax1.grid(True, alpha=0.3)
-        ax1.legend()
-        ax1.set_xticks([0, np.pi, 2*np.pi])
-        ax1.set_xticklabels(['0', 'π', '2π'])
-        ax1.set_xlim(0, 2*np.pi)
-        
-        # Plot 2: Power spectrum (example from last time point)
-        ax2 = fig.add_subplot(gs[1, 0])
-        # Recompute for visualization
-        phase_unwrapped = np.unwrap(phase_example)
-        phi_extended = np.concatenate([phi_sorted, [2*np.pi]])
-        phase_extended = np.concatenate([phase_unwrapped, [phase_unwrapped[0] + 2*np.pi]])
-        phase_interp = np.interp(phi_uniform, phi_extended, phase_extended)
-        phase_detrended = phase_interp - np.mean(phase_interp)
-        p = np.polyfit(phi_uniform, phase_detrended, 1)
-        phase_detrended -= np.polyval(p, phi_uniform)
-        
-        fft_result = np.fft.fft(phase_detrended)
-        power_spectrum = np.abs(fft_result)**2
-        freqs = np.fft.fftfreq(n_interp, d=(2*np.pi/n_interp))
-        positive_mask = freqs > 0
-        freqs_pos = freqs[positive_mask]
-        power_pos = power_spectrum[positive_mask]
-        
-        ax2.semilogy(freqs_pos, power_pos, '-', linewidth=1, color=highlight_color)
-        ax2.axvline(mean_wavenumber, color=mean_color, linestyle='--', linewidth=2,
-                   label=f'dominant wavenumber={mean_wavenumber:.2f}')
-        ax2.set_xlabel(r'wavenumber $k$')
-        ax2.set_ylabel('power')
-        ax2.set_title('power spectrum (example)')
-        ax2.grid(True, alpha=0.3)
-        ax2.legend()
-        ax2.set_xlim(0, 20)
-        
-        # Plot 3: Wavelength over time (in units of L)
-        ax3 = fig.add_subplot(gs[1, 1])
-        valid_times = sim.times[t_start:t_end][valid_mask]
-        wavelength_in_L = wavelength_distances * sim.sphere_radius / filament_length
-        mean_wavelength_in_L = mean_wavelength_rad * sim.sphere_radius / filament_length
-        std_wavelength_in_L = std_wavelength_rad * sim.sphere_radius / filament_length
-        
-        ax3.plot(valid_times, wavelength_in_L, '.-', markersize=3, 
-                alpha=0.5, color=highlight_color)
-        ax3.axhline(mean_wavelength_in_L, color=mean_color, linestyle='--', linewidth=2,
-                   label=f'mean={mean_wavelength_in_L:.2f}'+r'$L$')
-        ax3.fill_between([valid_times[0], valid_times[-1]], 
-                        mean_wavelength_in_L - std_wavelength_in_L,
-                        mean_wavelength_in_L + std_wavelength_in_L,
-                        alpha=0.2, color=std_color, label=r'$\pm \sigma$')
-        ax3.set_xlabel(r'$t/T$' if sim.num_steps else 'time')
-        ax3.set_ylabel(r'$\lambda/L$')
-        ax3.set_title('wavelength evolution')
-        ax3.grid(True, alpha=0.3)
-        ax3.legend()
-        
-        # Plot 4: Histogram of wavelengths (in units of L)
-        ax4 = fig.add_subplot(gs[2, :])
-        if len(wavelength_distances) > 1:
-            bins = min(50, max(10, len(wavelength_distances) // 10))
-            ax4.hist(wavelength_in_L, bins=bins, alpha=0.7, density=True,
-                    edgecolor='black', linewidth=0.5, color=highlight_color)
-            ax4.axvline(mean_wavelength_in_L, color=mean_color, linestyle='--', linewidth=2,
-                       label=f'mean = {mean_wavelength_in_L:.2f}'+r'$L$')
+        # breakpoints includes the final index, so we process segments
+        start_idx = 0
+        for break_idx in breakpoints:
+            # Get segment
+            segment_slopes = slopes[start_idx:break_idx]
+            segment_phi = phi_sorted[start_idx:break_idx]
             
-            if std_wavelength_in_L > 0:
-                ax4.axvline(mean_wavelength_in_L - std_wavelength_in_L, color=std_color,
-                           linestyle=':', alpha=0.7, linewidth=2)
-                ax4.axvline(mean_wavelength_in_L + std_wavelength_in_L, color=std_color,
-                           linestyle=':', alpha=0.7, linewidth=2, 
-                           label=r'$\pm\sigma$' +r' = $\pm$'+f'{std_wavelength_in_L:.2f}'+r'$L$')
-        else:
-            single_wavelength_in_L = wavelength_distances[0] * sim.sphere_radius / filament_length
-            ax4.axvline(single_wavelength_in_L, color=mean_color, linewidth=3,
-                       label=f'single measurement = {single_wavelength_in_L:.2f}'+r'$L$')
+            if len(segment_slopes) == 0:
+                start_idx = break_idx
+                continue
+            
+            # Compute mean slope for this segment
+            mean_slope = np.mean(segment_slopes)
+            
+            # Check if slope is significant (coherent wave)
+            if abs(mean_slope) > min_slope_threshold:
+                # This is a coherent wave segment
+                wave_type = 1 if mean_slope > 0 else -1
+                
+                # Calculate wavelength: slope = dψ/dφ
+                # For 2π phase advance: Δφ = 2π / slope
+                wavelength_rad = abs(2*np.pi / mean_slope)
+                
+                # Calculate fraction of equator covered by this segment
+                segment_length = phi_sorted[break_idx-1] - phi_sorted[start_idx]
+                if start_idx == 0 and break_idx == len(phi_sorted):
+                    # Wraps around
+                    segment_length = 2*np.pi
+                fraction = segment_length / (2*np.pi)
+                
+                all_wavelengths.append(wavelength_rad)
+                all_wave_types.append(wave_type)
+                all_fractions.append(fraction)
+            
+            start_idx = break_idx
         
-        ax4.set_xlabel(r'$\lambda/L$')
-        ax4.set_ylabel('probability density')
-        ax4.set_title(f'wavelength distribution (n={len(wavelength_distances)} measurements)')
-        ax4.grid(True, alpha=0.3)
-        ax4.legend()
-        
-        plt.tight_layout()
-        plt.show()
+        # Save example for visualization
+        if t_idx == phases_sorted.shape[0] - 1:
+            example_slopes = slopes
+            example_breakpoints = breakpoints
+    
+    # Convert to arrays
+    all_wavelengths = np.array(all_wavelengths)
+    all_wave_types = np.array(all_wave_types)
+    all_fractions = np.array(all_fractions)
+    
+    # Separate by wave type
+    pos_mask = all_wave_types > 0
+    neg_mask = all_wave_types < 0
+    
+    pos_wavelengths = all_wavelengths[pos_mask]
+    neg_wavelengths = all_wavelengths[neg_mask]
+    pos_fractions = all_fractions[pos_mask]
+    neg_fractions = all_fractions[neg_mask]
+    
+    # Calculate statistics
+    mean_wl_pos = np.mean(pos_wavelengths) if len(pos_wavelengths) > 0 else np.inf
+    mean_wl_neg = np.mean(neg_wavelengths) if len(neg_wavelengths) > 0 else np.inf
+    std_wl_pos = np.std(pos_wavelengths) if len(pos_wavelengths) > 0 else 0.0
+    std_wl_neg = np.std(neg_wavelengths) if len(neg_wavelengths) > 0 else 0.0
+    
+    percent_pos = 100.0 * np.sum(pos_fractions)
+    percent_neg = 100.0 * np.sum(neg_fractions)
+    percent_incoherent = 100.0 - percent_pos - percent_neg
+    
+    # Visualization
+    if show_analysis and example_slopes is not None:
+        try:
+            fig = plt.figure(figsize=(14, 10))
+            gs = fig.add_gridspec(3, 2, hspace=0.3, wspace=0.3)
+            
+            # Define colors from cmcrameri palettes
+            highlight_color = SEQUENTIAL_CMAP(0.15)
+            pos_color = SEQUENTIAL_CMAP(0.85)
+            neg_color = SEQUENTIAL_CMAP(0.45)
+            
+            # Plot 1: Phase pattern (example from last time point)
+            ax1 = fig.add_subplot(gs[0, :])
+            phase_example = phases_sorted[-1, :]
+            ax1.plot(phi_sorted, phase_example, '.-', markersize=4, 
+                    label='phase pattern', alpha=0.7, color=highlight_color)
+            ax1.set_xlabel('azimuth φ (rad)')
+            ax1.set_ylabel('phase ψ (rad)')
+            ax1.set_title('Example phase pattern (last time point)')
+            ax1.grid(True, alpha=0.3)
+            ax1.set_xticks([0, np.pi, 2*np.pi])
+            ax1.set_xticklabels(['0', 'π', '2π'])
+            ax1.set_xlim(0, 2*np.pi)
+            
+            # Plot 2: Slopes with detected segments
+            ax2 = fig.add_subplot(gs[1, :])
+            rpt.display(example_slopes, example_breakpoints, figsize=(12, 3))
+            ax2 = plt.gca()
+            ax2.set_xlabel('cilia index')
+            ax2.set_ylabel('dψ/dφ (slope)')
+            ax2.set_title('Detected slope segments')
+            
+            # Plot 3: Wavelength distributions
+            ax3 = fig.add_subplot(gs[2, 0])
+            if len(pos_wavelengths) > 0:
+                ax3.hist(pos_wavelengths, bins=20, alpha=0.7, 
+                        color=pos_color, edgecolor='black', linewidth=0.5,
+                        label=f'Positive waves (n={len(pos_wavelengths)})')
+            if len(neg_wavelengths) > 0:
+                ax3.hist(neg_wavelengths, bins=20, alpha=0.7,
+                        color=neg_color, edgecolor='black', linewidth=0.5,
+                        label=f'Negative waves (n={len(neg_wavelengths)})')
+            ax3.axvline(mean_wl_pos, color=pos_color, linestyle='--', linewidth=2)
+            ax3.axvline(mean_wl_neg, color=neg_color, linestyle='--', linewidth=2)
+            ax3.set_xlabel('wavelength (rad)')
+            ax3.set_ylabel('count')
+            ax3.set_title('Wavelength distribution')
+            ax3.legend()
+            ax3.grid(True, alpha=0.3)
+            
+            # Plot 4: Summary statistics
+            ax4 = fig.add_subplot(gs[2, 1])
+            ax4.axis('off')
+            
+            summary_text = f"""
+WAVELENGTH ANALYSIS SUMMARY
+{'='*35}
+
+Positive Waves:
+  Mean wavelength: {mean_wl_pos:.3f} rad
+  Std deviation:   {std_wl_pos:.3f} rad
+  Coverage:        {percent_pos:.1f}%
+  N segments:      {np.sum(pos_mask)}
+
+Negative Waves:
+  Mean wavelength: {mean_wl_neg:.3f} rad
+  Std deviation:   {std_wl_neg:.3f} rad
+  Coverage:        {percent_neg:.1f}%
+  N segments:      {np.sum(neg_mask)}
+
+Incoherent:        {percent_incoherent:.1f}%
+
+Time points analyzed: {n_time_points}
+            """
+            
+            ax4.text(0.1, 0.5, summary_text, fontfamily='monospace',
+                    fontsize=10, verticalalignment='center')
+            
+            plt.tight_layout()
+            plt.show()
+            
+        except Exception as e:
+            print(f"[warn] Visualization failed: {e}")
+    
+    print("\n" + "="*60)
+    print("WAVELENGTH ANALYSIS RESULTS (Slope-Based Method)")
+    print("="*60)
+    print(f"Positive waves: {percent_pos:.1f}% coverage, mean λ = {mean_wl_pos:.3f} rad")
+    print(f"Negative waves: {percent_neg:.1f}% coverage, mean λ = {mean_wl_neg:.3f} rad")
+    print(f"Incoherent:     {percent_incoherent:.1f}%")
+    print(f"Total segments analyzed: {len(all_wavelengths)}")
+    print("="*60)
     
     return WavelengthResult(
-        wavelength_distances=wavelength_distances,
-        mean_wavelength_rad=mean_wavelength_rad,
-        std_wavelength_rad=std_wavelength_rad,
-        wavelength_arc=wavelength_arc,
-        wavelength_filaments=wavelength_filaments,
-        n_measurements=len(wavelength_distances),
-        dominant_wavenumber=mean_wavenumber,
-        power_spectrum=power_pos if show_analysis else None,
-        wavenumbers=freqs_pos if show_analysis else None
-    )
-
-def estimate_wavelength_statistical(base_path: str,
-                                   sim: Optional[SimulationData]=None,
-                                   num_steps: Optional[int]=None,
-                                   filament_length: Optional[float]=None,
-                                   show_analysis: bool = True) -> WavelengthResult:
-    """
-    Statistical wavelength estimation: measure 2π phase accumulation distances.
-    
-    DEPRECATED: Consider using estimate_wavelength_fourier() instead for more robust
-    wavelength estimation, especially with non-uniform cilia spacing.
-    
-    Simple approach: start at index 0, walk around accumulating phase differences,
-    record wavelength each time we cross 2π.
-    """
-    if sim is None:
-        sim = load_simulation(base_path, num_steps=num_steps)
-
-    phases_sorted = sim.phases[:, sim.order_idx]  # (T, N)
-    phi_sorted = sim.basal_phi[sim.order_idx]
-
-    if period_steps is None or period_steps <= 0 or period_steps > phases_sorted.shape[0]:
-        window = phases_sorted
-    else:
-        window = phases_sorted[-period_steps:]
-
-    # Use complex exponential method to handle periodicity
-    # Let f(y,t) = exp(i * psi(y,t)). Then
-    # df/dt = -psi(y, t) * f(y,t) * d(psi)/dt and
-    # df/dy = -psi(y, t) * f(y,t) * d(psi)/dy.
-    # Then, d(psi)/dt = -df/dt / (psi(y, t) * f(y,t)) and
-    # d(psi)/dy = -df/dy / (psi(y, t) * f(y,t)).
-    
-    psi = window.T  # Shape: (N, W) where W is time window length
-    f_array = np.exp(1j * psi)  # Complex exponential
-    
-    # Compute gradients of f
-    df_dy = np.gradient(f_array, phi_sorted, axis=0)  # gradient along spatial dimension
-    df_dt = np.gradient(f_array, axis=1)              # gradient along time dimension
-    
-    # Velocity dy/dt = - (∂ψ/∂t) / (∂ψ/∂y)
-    velocity = -df_dt / (df_dy + 1e-14)
-
-    # Average direction at each position over the time window
-    vel_mean = np.mean(velocity, axis=1)  # average over time (axis=1)
-
-    # Take real part for directionality (imaginary part should be small)
-    vel_real = np.real(vel_mean)
-
-    # Classify direction
-    labels = np.where(vel_real > tol, 1, np.where(vel_real < -tol, -1, 0))
-    num_pos = np.sum(labels == 1)
-    num_neg = np.sum(labels == -1)
-    num_sta = np.sum(labels == 0)
-    N = labels.size
-
-    return WaveDirectionResult(
-        percent_positive = 100.0 * num_pos / N,
-        percent_negative = 100.0 * num_neg / N,
-        percent_stationary = 100.0 * num_sta / N,
-        labels = labels,
-        velocity = vel_real
+        coherent_wavelengths=all_wavelengths,
+        coherent_wave_types=all_wave_types,
+        coherent_fractions=all_fractions,
+        mean_wavelength_positive=mean_wl_pos,
+        mean_wavelength_negative=mean_wl_neg,
+        std_wavelength_positive=std_wl_pos,
+        std_wavelength_negative=std_wl_neg,
+        percent_positive_wave=percent_pos,
+        percent_negative_wave=percent_neg,
+        percent_incoherent=percent_incoherent,
+        n_positive_segments=int(np.sum(pos_mask)),
+        n_negative_segments=int(np.sum(neg_mask)),
+        n_time_points=n_time_points
     )
 

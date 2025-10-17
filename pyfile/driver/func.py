@@ -5,7 +5,7 @@ import util
 # ablation_fraction = 0.0
 # num_fils = max(int(360*(1 - ablation_fraction)), 1)
 
-num_fils = 360
+num_fils = 210
 
 gmres_tol = 7
 precon = 'precon'
@@ -21,7 +21,7 @@ class DRIVER:
         self.category = f'spacing_0/'
         # self.exe_name = f'cilia_1e-7'
         self.exe_name = f'cilia_spacing_1e-7'
-        self.date = '20251013'
+        self.date = '20251017'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
