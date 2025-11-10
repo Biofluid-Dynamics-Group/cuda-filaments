@@ -5,7 +5,8 @@ import util
 # ablation_fraction = 0.0
 # num_fils = max(int(360*(1 - ablation_fraction)), 1)
 
-num_fils = 219 #+ 16*12
+num_fils = 216 #+ 16*12
+num_seg = 78
 
 gmres_tol = 4
 precon = 'precon'
@@ -18,11 +19,11 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'aspect_ratio_wgf/'
-        self.exe_name = f'cilia_1e-7_wgf'
-        # self.exe_name = f'cilia_spacing_1e-4'
+        self.category = f'aspect_ratio{num_seg}/'
+        # self.exe_name = f'cilia_1e-7_wgf'
+        self.exe_name = f'cilia_spacing_1e-4'
         # self.exe_name = f'cilia_prescribed_swimming_1e-7'
-        self.date = '20251107'
+        self.date = '20251110'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -102,7 +103,7 @@ class DRIVER:
                         nfil = num_fils
                         
                         # nseg = 78
-                        nseg = 78
+                        nseg = num_seg
                         ar = 8  # This is D/L, not R/L. This is for Platynaereis
                         # Since D/L = 8 and L = 20um, D = 160um
                         # In the simulation, L is around  49 units
@@ -235,7 +236,7 @@ class DRIVER:
 
             command = f"export OPENBLAS_NUM_THREADS=1; \
                         export CUDA_VISIBLE_DEVICES={self.cuda_device}; \
-                        nohup ./bin/{self.exe_name} > {self.dir}{num_fils}.out &"
+                        nohup ./bin/{self.exe_name} > {self.dir}{num_fils}_nseg{num_seg}.out &"
                         # ./bin/{self.exe_name}"
 
                            
