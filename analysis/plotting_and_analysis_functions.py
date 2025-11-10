@@ -27,7 +27,8 @@ except Exception:  # fallback if cmcrameri not installed
 @dataclass
 class SimulationData:
     base_path: str
-    phases: np.ndarray          # shape (T, N)
+    phases: np.ndarray          # shape (T, N) - wrapped phases [0, 2π)
+    phases_raw: np.ndarray      # shape (T, N) - raw unwrapped phases from file
     times: np.ndarray           # shape (T,) - in units of periods
     seg_positions: np.ndarray   # shape (T, N, S, 3)
     basal_pos: np.ndarray       # shape (N, 3)
@@ -87,7 +88,10 @@ def load_simulation(base_path: str,
     phase_data = np.loadtxt(phase_file)
     times_raw = phase_data[:, 0]  # simulation step counter
     T = len(times_raw)
-    phases = np.mod(phase_data[:, 2:num_fils+2], 2*np.pi)  # only psi 1
+    
+    # Load BOTH wrapped and raw phases
+    phases_raw = phase_data[:, 2:num_fils+2]  # Raw unwrapped phases from simulation
+    phases = np.mod(phases_raw, 2*np.pi)      # Wrapped phases [0, 2π) for visualization
 
     # Time normalization: convert simulation steps to periods/cycles
     if num_steps is not None and num_steps > 0:
@@ -102,6 +106,7 @@ def load_simulation(base_path: str,
     seg_data = np.loadtxt(seg_file)
     if seg_data.shape[0] != T:
         raise ValueError("Phase and segment files have mismatched time length.")
+        pass
     flat_len = seg_data.shape[1] - 1
     if num_segs is None:
         # Solve S from flat_len = num_fils * S * 3
@@ -122,6 +127,7 @@ def load_simulation(base_path: str,
     return SimulationData(
         base_path=base_path,
         phases=phases,
+        phases_raw=phases_raw,  # NEW: store raw unwrapped phases
         times=times,
         seg_positions=seg_positions,
         basal_pos=basal_pos,
@@ -141,6 +147,7 @@ def plot_kymograph(base_path: str,
                    cmap=DEFAULT_CMAP,
                    show: bool = True,
                    save: bool = True,
+                   extra_folder: str = "",
                    fig_ax: Optional[Tuple[Any,Any]] = None):
     """
     Plot kymograph of phases vs time. If use_phi_axis, y-axis = true azimuths φ
@@ -157,7 +164,7 @@ def plot_kymograph(base_path: str,
     T, N = phases_sorted.shape
 
     if fig_ax is None:
-        fig, ax = plt.subplots(figsize=(10, 5))
+        fig, ax = plt.subplots(figsize=(15, 5))
     else:
         fig, ax = fig_ax
 
@@ -199,7 +206,7 @@ def plot_kymograph(base_path: str,
         plt.show()
 
     if save:
-        out_dir = Path("analysis_output")
+        out_dir = Path("analysis_output/"+extra_folder)
         out_dir.mkdir(exist_ok=True, parents=True)
         suffix = "_kymograph_phi.png" if use_phi_axis else "_kymograph_idx.png"
         out_path = out_dir / (Path(base_path).name + suffix)
@@ -352,6 +359,7 @@ def plot_frame(base_path: str,
                cmap=DEFAULT_CMAP,
                show: bool = True,
                save: bool = True,
+               extra_folder: str = "",
                fig_ax: Optional[Tuple[Any,Any]] = None):
     """
     Plot a single frame (first, last or int index) in 3D.
@@ -389,7 +397,7 @@ def plot_frame(base_path: str,
         plt.show()
 
     if save:
-        out_dir = Path("analysis_output")
+        out_dir = Path("analysis_output/"+extra_folder)
         out_dir.mkdir(exist_ok=True, parents=True)
         suffix = f"_frame_{frame}_{view}.png"
         out_path = out_dir / (Path(base_path).name + suffix)
@@ -563,6 +571,7 @@ def plot_basal_positions(base_path: str,
                         cmap=None,
                         show: bool = True,
                         save: bool = True,
+                        extra_folder: str = "",
                         fig_ax: Optional[Tuple[Any,Any]] = None):
     """
     Plot basal positions of cilia (top-down view).
@@ -639,7 +648,7 @@ def plot_basal_positions(base_path: str,
         plt.show()
 
     if save:
-        out_dir = Path("analysis_output")
+        out_dir = Path("analysis_output/"+extra_folder)
         out_dir.mkdir(exist_ok=True, parents=True)
         suffix = f"_basal_{color_by}.png"
         out_path = out_dir / (Path(base_path).name + suffix)
@@ -660,6 +669,7 @@ def plot_blob_positions(base_path: str,
                        cmap=None,
                        show: bool = True,
                        save: bool = True,
+                       extra_folder: str = "",
                        fig_ax: Optional[Tuple[Any,Any]] = None):
     """
     Plot surface blob positions.
@@ -910,7 +920,7 @@ def plot_blob_positions(base_path: str,
         plt.show()
     
     if save:
-        out_dir = Path("analysis_output")
+        out_dir = Path("analysis_output/"+extra_folder)
         out_dir.mkdir(exist_ok=True, parents=True)
         hemisphere_suffix = "_split" if split_hemispheres else ""
         suffix = f"_blobs_{view}_{color_by}{hemisphere_suffix}.png"
@@ -924,259 +934,390 @@ def plot_blob_positions(base_path: str,
 
 @dataclass
 class WavelengthResult:
-    """Results from wavelength analysis using slope-based segmentation."""
+    """Results from wavelength analysis using stationary curve detection."""
     coherent_wavelengths: np.ndarray    # wavelengths of coherent wave segments (in radians)
     coherent_wave_types: np.ndarray     # +1 for positive wave, -1 for negative wave
-    coherent_fractions: np.ndarray      # fraction of equator covered by each segment
+    coherent_coverage_indices: list     # list of arrays containing cilia indices for each coherent segment
     mean_wavelength_positive: float     # mean wavelength of positive waves (rad)
     mean_wavelength_negative: float     # mean wavelength of negative waves (rad)
     std_wavelength_positive: float      # std of positive wave wavelengths
     std_wavelength_negative: float      # std of negative wave wavelengths
-    percent_positive_wave: float        # percentage of equator with positive waves
-    percent_negative_wave: float        # percentage of equator with negative waves
+    percent_positive_wave: float        # percentage of cilia with positive waves
+    percent_negative_wave: float        # percentage of cilia with negative waves
     percent_incoherent: float           # percentage with no coherent wave
     n_positive_segments: int            # number of positive wave segments
     n_negative_segments: int            # number of negative wave segments
     n_time_points: int                  # number of time points analyzed
 
-def estimate_wavelength_slopes(base_path: str,
-                               sim: Optional[SimulationData]=None,
-                               num_steps: Optional[int]=None,
-                               n_time_points: int = 20,
-                               ruptures_penalty: float = 5.0,
-                               min_slope_threshold: float = 0.1,
-                               show_analysis: bool = True) -> WavelengthResult:
+def estimate_wavelength_stationary_curves(base_path: str,
+                                         sim: Optional[SimulationData]=None,
+                                         num_steps: Optional[int]=None,
+                                         n_time_points: int = 100,
+                                         min_coherent_cilia: int = 3,
+                                         velocity_threshold: float = 0.5,
+                                         filament_length: Optional[float] = None,
+                                         show_analysis: bool = True) -> WavelengthResult:
     """
-    Estimate wavelength using slope-based segmentation of phase patterns.
+    Estimate wavelength by analyzing stationary curves in the kymograph.
     
-    For each of the last n_time_points, this function:
-    1. Takes phase as a function of azimuthal position
-    2. Numerically differentiates to get slope
-    3. Uses ruptures library to detect constant-slope segments
-    4. Classifies segments as positive/negative waves
-    5. Calculates wavelength for each coherent segment
+    This method:
+    1. Computes wave velocity at each cilium position from ∂ψ/∂t and ∂ψ/∂φ using complex exponentials
+    2. Identifies coherent sections where velocity sign is consistent
+    3. Requires at least min_coherent_cilia adjacent cilia for a coherent wave
+    4. Computes wavelength from velocity: λ = v * T (where T is the period)
     
     Args:
         base_path: Simulation file prefix
         sim: Pre-loaded simulation data (optional)
         num_steps: Steps per period for time normalization
         n_time_points: Number of final time points to analyze
-        ruptures_penalty: Penalty parameter for ruptures algorithm (higher = fewer segments)
-        min_slope_threshold: Minimum absolute slope to be considered coherent
+        min_coherent_cilia: Minimum number of adjacent cilia for coherent wave (default 3)
+        velocity_threshold: Minimum |velocity| to be considered a wave (default 0.5)
+        filament_length: Filament length L for conversion to L units (required for L-based reporting)
         show_analysis: Whether to show diagnostic plots
     
     Returns:
-        WavelengthResult with slope-based wavelength estimates
+        WavelengthResult with stationary-curve-based wavelength estimates
     """
-    try:
-        import ruptures as rpt
-    except ImportError:
-        raise ImportError("This analysis requires the 'ruptures' package. Install with: pip install ruptures")
-    
     if sim is None:
         sim = load_simulation(base_path, num_steps=num_steps)
+    
+    if filament_length is None:
+        raise ValueError("filament_length must be provided to report wavelengths in units of L")
     
     # Get phases in sorted azimuthal order for the last n_time_points
     T = sim.phases.shape[0]
     t_start = max(0, T - n_time_points)
-    phases_sorted = sim.phases[t_start:, sim.order_idx]  # shape (n_time_points, N)
+    
+    phases_sorted_wrapped = sim.phases[t_start:, sim.order_idx]  # shape (n_time_points, N)
     phi_sorted = sim.basal_phi[sim.order_idx]  # shape (N,)
+    times = sim.times[t_start:]
     N = len(phi_sorted)
     
-    print(f"[info] Analyzing {n_time_points} time points with {N} cilia")
+    # Use complex exponential method to compute wave velocity (same as analyze_wave_direction)
+    # Let f(φ,t) = exp(i * ψ(φ,t))
+    # Then velocity = -∂ψ/∂t / ∂ψ/∂φ = -df/dt / df/dφ (after canceling the f terms)
     
-    # Storage for all segments across all time points
-    all_wavelengths = []
+    psi = phases_sorted_wrapped.T  # Shape: (N, T) where T is time window length
+    f_array = np.exp(1j * psi)  # Complex exponential
+    
+    # Compute gradients of f
+    df_dphi = np.gradient(f_array, phi_sorted, axis=0)  # gradient along spatial dimension
+    df_dt = np.gradient(f_array, times, axis=1)         # gradient along time dimension
+    
+    # Velocity dφ/dt = - (∂ψ/∂t) / (∂ψ/∂φ)
+    # Using complex exponentials: velocity = -df/dt / df/dφ
+    velocity = -df_dt / (df_dphi + 1e-14)
+    
+    # Average direction at each position over the time window
+    vel_mean = np.mean(velocity, axis=1)  # average over time (axis=1)
+    
+    # Take real part for directionality (imaginary part should be small for well-behaved data)
+    velocity_mean = np.real(vel_mean)
+    
+    # Classify each cilium by wave direction
+    # Positive velocity means phase moves in +φ direction
+    # Negative velocity means phase moves in -φ direction
+    wave_direction = np.zeros(N, dtype=int)
+    wave_direction[velocity_mean > velocity_threshold] = 1
+    wave_direction[velocity_mean < -velocity_threshold] = -1
+    
+    # Find coherent sections: groups of min_coherent_cilia or more adjacent cilia with same direction
+    coherent_sections = []
+    i = 0
+    while i < N:
+        if wave_direction[i] != 0:
+            # Start of potential coherent section
+            direction = wave_direction[i]
+            j = i + 1
+            while j < N and wave_direction[j] == direction:
+                j += 1
+            
+            # Check if section is long enough
+            if j - i >= min_coherent_cilia:
+                coherent_sections.append({
+                    'start': i,
+                    'end': j,
+                    'direction': direction,
+                    'indices': np.arange(i, j)
+                })
+            i = j
+        else:
+            i += 1
+    
+    # Check for wrap-around coherent section (first and last sections with same direction)
+    if len(coherent_sections) >= 2:
+        first_sec = coherent_sections[0]
+        last_sec = coherent_sections[-1]
+        
+        if (first_sec['start'] == 0 and last_sec['end'] == N and 
+            first_sec['direction'] == last_sec['direction']):
+            # Merge first and last sections
+            merged_indices = np.concatenate([last_sec['indices'], first_sec['indices']])
+            if len(merged_indices) >= min_coherent_cilia:
+                coherent_sections = coherent_sections[1:-1]  # Remove first and last
+                coherent_sections.insert(0, {
+                    'start': last_sec['start'],
+                    'end': first_sec['end'],
+                    'direction': first_sec['direction'],
+                    'indices': merged_indices,
+                    'is_wrapped': True
+                })
+    
+    print(f"[info] Found {len(coherent_sections)} coherent sections")
+    
+    # Compute wavelength for each coherent section
+    # Wavelength λ = velocity * period
+    # where velocity is in rad/period (since times are in periods)
+    all_wavelengths_rad = []
+    all_wavelengths_L = []
     all_wave_types = []
-    all_fractions = []
+    all_coverage_indices = []
     
-    # For visualization
-    example_time_idx = -1  # Last time point
-    example_segments = None
-    example_slopes = None
-    example_breakpoints = None
+    # Use last time point for wavelength calculation
+    phase_final = phases_sorted_wrapped[-1, :]
     
-    for t_idx in range(phases_sorted.shape[0]):
-        phase_pattern = phases_sorted[t_idx, :]  # shape (N,)
+    for sec in coherent_sections:
+        indices = sec['indices']
         
-        # Make phase continuous by unwrapping, then wrap back for periodicity
-        phase_unwrapped = np.unwrap(phase_pattern)
+        # Average velocity in this section
+        section_velocity_mean = np.mean(np.abs(velocity_mean[indices]))
         
-        # Handle periodicity: append first point at end with 2π shift
-        phi_extended = np.concatenate([phi_sorted, [2*np.pi]])
-        phase_extended = np.concatenate([phase_unwrapped, [phase_unwrapped[0] + 2*np.pi]])
+        # Wavelength in radians: λ = |v| * T where T = 1 period
+        # Since velocity is already in rad/period, wavelength is just |v| * 1
+        wavelength_rad = section_velocity_mean
         
-        # Compute slopes (numerical derivative)
-        # Using central differences where possible
-        slopes = np.gradient(phase_extended, phi_extended)
-        slopes = slopes[:-1]  # Remove last point (was added for periodicity)
+        # Convert to arc length then to L units
+        wavelength_arc = wavelength_rad * sim.sphere_radius
+        wavelength_L = wavelength_arc / filament_length
         
-        # Detect changepoints in slope using ruptures
-        algo = rpt.Pelt(model="rbf").fit(slopes)
-        breakpoints = algo.predict(pen=ruptures_penalty)
-        
-        # breakpoints includes the final index, so we process segments
-        start_idx = 0
-        for break_idx in breakpoints:
-            # Get segment
-            segment_slopes = slopes[start_idx:break_idx]
-            segment_phi = phi_sorted[start_idx:break_idx]
-            
-            if len(segment_slopes) == 0:
-                start_idx = break_idx
-                continue
-            
-            # Compute mean slope for this segment
-            mean_slope = np.mean(segment_slopes)
-            
-            # Check if slope is significant (coherent wave)
-            if abs(mean_slope) > min_slope_threshold:
-                # This is a coherent wave segment
-                wave_type = 1 if mean_slope > 0 else -1
-                
-                # Calculate wavelength: slope = dψ/dφ
-                # For 2π phase advance: Δφ = 2π / slope
-                wavelength_rad = abs(2*np.pi / mean_slope)
-                
-                # Calculate fraction of equator covered by this segment
-                segment_length = phi_sorted[break_idx-1] - phi_sorted[start_idx]
-                if start_idx == 0 and break_idx == len(phi_sorted):
-                    # Wraps around
-                    segment_length = 2*np.pi
-                fraction = segment_length / (2*np.pi)
-                
-                all_wavelengths.append(wavelength_rad)
-                all_wave_types.append(wave_type)
-                all_fractions.append(fraction)
-            
-            start_idx = break_idx
-        
-        # Save example for visualization
-        if t_idx == phases_sorted.shape[0] - 1:
-            example_slopes = slopes
-            example_breakpoints = breakpoints
+        all_wavelengths_rad.append(wavelength_rad)
+        all_wavelengths_L.append(wavelength_L)
+        all_wave_types.append(sec['direction'])
+        all_coverage_indices.append(indices)
     
     # Convert to arrays
-    all_wavelengths = np.array(all_wavelengths)
+    all_wavelengths_rad = np.array(all_wavelengths_rad)
+    all_wavelengths_L = np.array(all_wavelengths_L)
     all_wave_types = np.array(all_wave_types)
-    all_fractions = np.array(all_fractions)
     
     # Separate by wave type
     pos_mask = all_wave_types > 0
     neg_mask = all_wave_types < 0
     
-    pos_wavelengths = all_wavelengths[pos_mask]
-    neg_wavelengths = all_wavelengths[neg_mask]
-    pos_fractions = all_fractions[pos_mask]
-    neg_fractions = all_fractions[neg_mask]
+    pos_wavelengths_L = all_wavelengths_L[pos_mask]
+    neg_wavelengths_L = all_wavelengths_L[neg_mask]
     
-    # Calculate statistics
-    mean_wl_pos = np.mean(pos_wavelengths) if len(pos_wavelengths) > 0 else np.inf
-    mean_wl_neg = np.mean(neg_wavelengths) if len(neg_wavelengths) > 0 else np.inf
-    std_wl_pos = np.std(pos_wavelengths) if len(pos_wavelengths) > 0 else 0.0
-    std_wl_neg = np.std(neg_wavelengths) if len(neg_wavelengths) > 0 else 0.0
+    # Calculate coverage (percentage of cilia in coherent waves)
+    n_pos_cilia = sum(len(all_coverage_indices[i]) for i in range(len(all_wave_types)) if all_wave_types[i] > 0)
+    n_neg_cilia = sum(len(all_coverage_indices[i]) for i in range(len(all_wave_types)) if all_wave_types[i] < 0)
     
-    percent_pos = 100.0 * np.sum(pos_fractions)
-    percent_neg = 100.0 * np.sum(neg_fractions)
+    percent_pos = 100.0 * n_pos_cilia / N
+    percent_neg = 100.0 * n_neg_cilia / N
     percent_incoherent = 100.0 - percent_pos - percent_neg
     
+    # Calculate statistics in L units
+    mean_wl_pos = np.mean(pos_wavelengths_L) if len(pos_wavelengths_L) > 0 else np.inf
+    mean_wl_neg = np.mean(neg_wavelengths_L) if len(neg_wavelengths_L) > 0 else np.inf
+    std_wl_pos = np.std(pos_wavelengths_L) if len(pos_wavelengths_L) > 0 else 0.0
+    std_wl_neg = np.std(neg_wavelengths_L) if len(neg_wavelengths_L) > 0 else 0.0
+    
     # Visualization
-    if show_analysis and example_slopes is not None:
+    if show_analysis:
         try:
-            fig = plt.figure(figsize=(14, 10))
-            gs = fig.add_gridspec(3, 2, hspace=0.3, wspace=0.3)
+            fig = plt.figure(figsize=(16, 6))
+            gs = fig.add_gridspec(1, 2, hspace=0.3, wspace=0.3, width_ratios=[3, 1])
             
-            # Define colors from cmcrameri palettes
-            highlight_color = SEQUENTIAL_CMAP(0.15)
-            pos_color = SEQUENTIAL_CMAP(0.85)
-            neg_color = SEQUENTIAL_CMAP(0.45)
+            # Reversed colormaps: intense colors at low wavelengths
+            # _r suffix reverses the colormap
+            pos_cmap = plt.cm.Reds_r    # Dark red = low λ, light red = high λ
+            neg_cmap = plt.cm.Blues_r   # Dark blue = low λ, light blue = high λ
             
-            # Plot 1: Phase pattern (example from last time point)
-            ax1 = fig.add_subplot(gs[0, :])
-            phase_example = phases_sorted[-1, :]
-            ax1.plot(phi_sorted, phase_example, '.-', markersize=4, 
-                    label='phase pattern', alpha=0.7, color=highlight_color)
-            ax1.set_xlabel('azimuth φ (rad)')
-            ax1.set_ylabel('phase ψ (rad)')
-            ax1.set_title('Example phase pattern (last time point)')
-            ax1.grid(True, alpha=0.3)
-            ax1.set_xticks([0, np.pi, 2*np.pi])
-            ax1.set_xticklabels(['0', 'π', '2π'])
-            ax1.set_xlim(0, 2*np.pi)
+            # Plot: Unwrapped phase with linear fits colored by wavelength
+            ax_phase = fig.add_subplot(gs[0, 0])
+            phase_final_unwrapped = np.unwrap(phase_final)
+            ax_phase.plot(phi_sorted, phase_final_unwrapped, 'k.', markersize=3, alpha=0.3, label='Data')
             
-            # Plot 2: Slopes with detected segments
-            ax2 = fig.add_subplot(gs[1, :])
-            rpt.display(example_slopes, example_breakpoints, figsize=(12, 3))
-            ax2 = plt.gca()
-            ax2.set_xlabel('cilia index')
-            ax2.set_ylabel('dψ/dφ (slope)')
-            ax2.set_title('Detected slope segments')
+            # Determine colormap normalization range
+            if len(all_wavelengths_L) > 0:
+                max_wl = np.max(all_wavelengths_L[np.isfinite(all_wavelengths_L)])
+                min_wl = 0.0
+                
+                # Plot each coherent section with color based on wavelength
+                for i, sec in enumerate(coherent_sections):
+                    indices = sec['indices']
+                    
+                    # Handle wrapped sections specially
+                    if sec.get('is_wrapped', True):
+                        # Split into two parts: end section and beginning section
+                        # Find where indices wrap (where there's a jump > 1)
+                        idx_diff = np.diff(indices)
+                        wrap_point = np.where(idx_diff < -1)[0]
+                        
+                        if len(wrap_point) > 0:
+                            wrap_idx = wrap_point[0] + 1
+                            end_indices = indices[:wrap_idx]  # last part (high φ values)
+                            start_indices = indices[wrap_idx:]  # first part (low φ values)
+                            
+                            # Extract phases and phi for each part
+                            end_phi = phi_sorted[end_indices]
+                            start_phi = phi_sorted[start_indices]
+                            end_phases = phase_final[end_indices]
+                            start_phases = phase_final[start_indices]
+                            
+                            # Combine: shift start_phi by 2π to make it continuous
+                            combined_phi = np.concatenate([end_phi, start_phi + 2*np.pi])
+                            combined_phases = np.concatenate([end_phases, start_phases])
+                            
+                            # Unwrap the combined phases
+                            combined_phases_unwrapped = np.unwrap(combined_phases)
+                            
+                            # Linear fit on the continuous combined data
+                            p = np.polyfit(combined_phi, combined_phases_unwrapped, 1)
+                            
+                            # Evaluate fit line for each part
+                            end_fit = np.polyval(p, end_phi)
+                            start_fit = np.polyval(p, start_phi + 2*np.pi)
+                            
+                            wavelength_L = all_wavelengths_L[i] if i < len(all_wavelengths_L) else np.inf
+                            
+                            if np.isfinite(wavelength_L):
+                                # Choose colormap based on wave direction
+                                if sec['direction'] > 0:
+                                    cmap = pos_cmap
+                                    cmap_norm = mcolors.Normalize(vmin=min_wl, vmax=max_wl)
+                                else:
+                                    cmap = neg_cmap
+                                    cmap_norm = mcolors.Normalize(vmin=min_wl, vmax=max_wl)
+                                
+                                color = cmap(cmap_norm(wavelength_L))
+                                
+                                # Plot both parts
+                                ax_phase.plot(end_phi, end_fit, '-', color=color, linewidth=2.5, alpha=0.9)
+                                ax_phase.plot(start_phi, start_fit, '-', color=color, linewidth=2.5, alpha=0.9)
+                        else:
+                            # Shouldn't happen, but fall back to regular handling
+                            section_phi = phi_sorted[indices]
+                            section_phases = phase_final[indices]
+                            section_phases_unwrapped = np.unwrap(section_phases)
+                            p = np.polyfit(section_phi, section_phases_unwrapped, 1)
+                            fit_line = np.polyval(p, section_phi)
+                            
+                            wavelength_L = all_wavelengths_L[i] if i < len(all_wavelengths_L) else np.inf
+                            if np.isfinite(wavelength_L):
+                                if sec['direction'] > 0:
+                                    cmap = pos_cmap
+                                    cmap_norm = mcolors.Normalize(vmin=min_wl, vmax=max_wl)
+                                else:
+                                    cmap = neg_cmap
+                                    cmap_norm = mcolors.Normalize(vmin=min_wl, vmax=max_wl)
+                                color = cmap(cmap_norm(wavelength_L))
+                                ax_phase.plot(section_phi, fit_line, '-', color=color, linewidth=2.5, alpha=0.9)
+                    else:
+                        # Regular non-wrapped section
+                        section_phi = phi_sorted[indices]
+                        section_phases = phase_final[indices]
+                        section_phases_unwrapped = np.unwrap(section_phases)
+                        
+                        # Linear fit
+                        p = np.polyfit(section_phi, section_phases_unwrapped, 1)
+                        fit_line = np.polyval(p, section_phi)
+                        
+                        wavelength_L = all_wavelengths_L[i] if i < len(all_wavelengths_L) else np.inf
+                        
+                        if np.isfinite(wavelength_L):
+                            # Choose colormap based on wave direction
+                            if sec['direction'] > 0:
+                                cmap = pos_cmap
+                                cmap_norm = mcolors.Normalize(vmin=min_wl, vmax=max_wl)
+                            else:
+                                cmap = neg_cmap
+                                cmap_norm = mcolors.Normalize(vmin=min_wl, vmax=max_wl)
+                            
+                            color = cmap(cmap_norm(wavelength_L))
+                            ax_phase.plot(section_phi, fit_line, '-', color=color, linewidth=2.5, alpha=0.9)
             
-            # Plot 3: Wavelength distributions
-            ax3 = fig.add_subplot(gs[2, 0])
-            if len(pos_wavelengths) > 0:
-                ax3.hist(pos_wavelengths, bins=20, alpha=0.7, 
-                        color=pos_color, edgecolor='black', linewidth=0.5,
-                        label=f'Positive waves (n={len(pos_wavelengths)})')
-            if len(neg_wavelengths) > 0:
-                ax3.hist(neg_wavelengths, bins=20, alpha=0.7,
-                        color=neg_color, edgecolor='black', linewidth=0.5,
-                        label=f'Negative waves (n={len(neg_wavelengths)})')
-            ax3.axvline(mean_wl_pos, color=pos_color, linestyle='--', linewidth=2)
-            ax3.axvline(mean_wl_neg, color=neg_color, linestyle='--', linewidth=2)
-            ax3.set_xlabel('wavelength (rad)')
-            ax3.set_ylabel('count')
-            ax3.set_title('Wavelength distribution')
-            ax3.legend()
-            ax3.grid(True, alpha=0.3)
+            ax_phase.set_xlabel('azimuth φ (rad)', fontsize=12)
+            ax_phase.set_ylabel('unwrapped phase ψ (rad)', fontsize=12)
+            ax_phase.set_title('Unwrapped phase with linear fits (colored by wavelength)', fontsize=13, fontweight='bold')
+            ax_phase.set_xticks([0, np.pi, 2*np.pi])
+            ax_phase.set_xticklabels(['0', 'π', '2π'])
+            ax_phase.set_xlim(0, 2*np.pi)
+            ax_phase.grid(True, alpha=0.3)
             
-            # Plot 4: Summary statistics
-            ax4 = fig.add_subplot(gs[2, 1])
-            ax4.axis('off')
+            # Summary statistics panel
+            ax_summary = fig.add_subplot(gs[0, 1])
+            ax_summary.axis('off')
             
             summary_text = f"""
-WAVELENGTH ANALYSIS SUMMARY
+WAVELENGTH ANALYSIS
 {'='*35}
 
-Positive Waves:
-  Mean wavelength: {mean_wl_pos:.3f} rad
-  Std deviation:   {std_wl_pos:.3f} rad
-  Coverage:        {percent_pos:.1f}%
-  N segments:      {np.sum(pos_mask)}
+Method: Stationary curves
+Velocity: Complex exponential
+λ = velocity × period
 
-Negative Waves:
-  Mean wavelength: {mean_wl_neg:.3f} rad
-  Std deviation:   {std_wl_neg:.3f} rad
-  Coverage:        {percent_neg:.1f}%
-  N segments:      {np.sum(neg_mask)}
+POSITIVE WAVES:
+  Coverage:  {percent_pos:5.1f}%
+             ({n_pos_cilia}/{N} cilia)
+  Mean λ:    {mean_wl_pos:.3f} L
+  Std:       {std_wl_pos:.3f} L
+  Segments:  {np.sum(pos_mask)}
 
-Incoherent:        {percent_incoherent:.1f}%
+NEGATIVE WAVES:
+  Coverage:  {percent_neg:5.1f}%
+             ({n_neg_cilia}/{N} cilia)
+  Mean λ:    {mean_wl_neg:.3f} L
+  Std:       {std_wl_neg:.3f} L
+  Segments:  {np.sum(neg_mask)}
 
-Time points analyzed: {n_time_points}
+INCOHERENT:  {percent_incoherent:5.1f}%
+
+Min. coherent: {min_coherent_cilia} cilia
+Time points:   {n_time_points}
             """
             
-            ax4.text(0.1, 0.5, summary_text, fontfamily='monospace',
-                    fontsize=10, verticalalignment='center')
+            ax_summary.text(0.05, 0.5, summary_text, fontfamily='monospace',
+                           fontsize=10, verticalalignment='center')
+            
+            # Add colorbars for positive and negative waves
+            if len(pos_wavelengths_L) > 0:
+                # Positive wave colorbar
+                ax_cbar_pos = fig.add_axes([0.70, 0.55, 0.015, 0.35])
+                norm_pos = mcolors.Normalize(vmin=min_wl, vmax=max_wl)
+                cbar_pos = plt.colorbar(plt.cm.ScalarMappable(norm=norm_pos, cmap=pos_cmap),
+                                       cax=ax_cbar_pos)
+                cbar_pos.set_label('Positive wave λ (L)', fontsize=10)
+            
+            if len(neg_wavelengths_L) > 0:
+                # Negative wave colorbar
+                ax_cbar_neg = fig.add_axes([0.70, 0.10, 0.015, 0.35])
+                norm_neg = mcolors.Normalize(vmin=min_wl, vmax=max_wl)
+                cbar_neg = plt.colorbar(plt.cm.ScalarMappable(norm=norm_neg, cmap=neg_cmap),
+                                       cax=ax_cbar_neg)
+                cbar_neg.set_label('Negative wave λ (L)', fontsize=10)
             
             plt.tight_layout()
             plt.show()
             
         except Exception as e:
             print(f"[warn] Visualization failed: {e}")
+            import traceback
+            traceback.print_exc()
     
     print("\n" + "="*60)
-    print("WAVELENGTH ANALYSIS RESULTS (Slope-Based Method)")
+    print("WAVELENGTH ANALYSIS RESULTS (Stationary Curve Method)")
     print("="*60)
-    print(f"Positive waves: {percent_pos:.1f}% coverage, mean λ = {mean_wl_pos:.3f} rad")
-    print(f"Negative waves: {percent_neg:.1f}% coverage, mean λ = {mean_wl_neg:.3f} rad")
+    print(f"Positive waves: {percent_pos:.1f}% coverage, mean λ = {mean_wl_pos:.3f} L")
+    print(f"Negative waves: {percent_neg:.1f}% coverage, mean λ = {mean_wl_neg:.3f} L")
     print(f"Incoherent:     {percent_incoherent:.1f}%")
-    print(f"Total segments analyzed: {len(all_wavelengths)}")
+    print(f"Total coherent segments: {len(coherent_sections)}")
     print("="*60)
     
     return WavelengthResult(
-        coherent_wavelengths=all_wavelengths,
+        coherent_wavelengths=all_wavelengths_L,  # Now in L units
         coherent_wave_types=all_wave_types,
-        coherent_fractions=all_fractions,
+        coherent_coverage_indices=all_coverage_indices,
         mean_wavelength_positive=mean_wl_pos,
         mean_wavelength_negative=mean_wl_neg,
         std_wavelength_positive=std_wl_pos,
@@ -1188,4 +1329,3 @@ Time points analyzed: {n_time_points}
         n_negative_segments=int(np.sum(neg_mask)),
         n_time_points=n_time_points
     )
-

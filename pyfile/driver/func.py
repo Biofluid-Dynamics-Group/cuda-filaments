@@ -5,9 +5,9 @@ import util
 # ablation_fraction = 0.0
 # num_fils = max(int(360*(1 - ablation_fraction)), 1)
 
-num_fils = 210
+num_fils = 219 #+ 16*12
 
-gmres_tol = 7
+gmres_tol = 4
 precon = 'precon'
 k = 60
 
@@ -18,10 +18,11 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'spacing_0/'
-        # self.exe_name = f'cilia_1e-7'
-        self.exe_name = f'cilia_spacing_1e-7'
-        self.date = '20251017'
+        self.category = f'aspect_ratio_wgf/'
+        self.exe_name = f'cilia_1e-7_wgf'
+        # self.exe_name = f'cilia_spacing_1e-4'
+        # self.exe_name = f'cilia_prescribed_swimming_1e-7'
+        self.date = '20251107'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -100,15 +101,16 @@ class DRIVER:
 
                         nfil = num_fils
                         
-                        nseg = 20
+                        # nseg = 78
+                        nseg = 78
                         ar = 8  # This is D/L, not R/L. This is for Platynaereis
                         # Since D/L = 8 and L = 20um, D = 160um
                         # In the simulation, L is around  49 units
                         period = 1
                         spring_factor = 1.5e-1
                         # nblob = 1*int(728.17*(ar/2)**2 + 1)  # According to Hang's paper, doubled to avoid overlap
-                        nblob = 10242  # icosa_d5_N10242.dat
-                        # nblob = 40962  # icosa_d6_N40962.dat
+                        # nblob = 10242  # icosa_d5_N10242.dat
+                        nblob = 40962  # icosa_d6_N40962.dat
 
                         nx=256
                         ny=256
@@ -120,7 +122,8 @@ class DRIVER:
                         blob_x_dim=160*(i+1)
                         hex_num=2
                         reverse_fil_direction_ratio=0.0
-                        sim_length = 150.0
+                        sim_length = 100.0
+                        # sim_length = 1.0
                         f_eff = 0.3
                         theta_0 = 3.14159265359/2.1#*0.9
                         freq_shift = 0.0  # This was for a frequency gradient study
