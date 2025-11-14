@@ -6,7 +6,8 @@ import util
 # num_fils = max(int(360*(1 - ablation_fraction)), 1)
 
 num_fils = 216 #+ 16*12
-num_seg = 78
+num_seg = 20
+box_size = 250
 
 gmres_tol = 4
 precon = 'precon'
@@ -19,11 +20,11 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'aspect_ratio{num_seg}/'
+        self.category = f'box_size_{box_size}/'
         # self.exe_name = f'cilia_1e-7_wgf'
         self.exe_name = f'cilia_spacing_1e-4'
         # self.exe_name = f'cilia_prescribed_swimming_1e-7'
-        self.date = '20251110'
+        self.date = '20251113'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -116,7 +117,7 @@ class DRIVER:
                         nx=256
                         ny=256
                         nz=256
-                        boxsize=4000
+                        boxsize=box_size
                         fil_spacing=80.0
                         blob_spacing=8.0
                         fil_x_dim=16*(i+1)
