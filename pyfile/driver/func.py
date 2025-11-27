@@ -7,7 +7,7 @@ import util
 
 num_fils = 216 #+ 16*12
 num_seg = 20
-box_size = 250
+box_size = 8000
 
 gmres_tol = 4
 precon = 'precon'
@@ -20,11 +20,19 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        self.category = f'box_size_{box_size}/'
+        # self.category = f'swimming_k25/'
+        self.category = f'no_tilt_swimming/'
         # self.exe_name = f'cilia_1e-7_wgf'
-        self.exe_name = f'cilia_spacing_1e-4'
+        # self.exe_name = f'cilia_spacing_1e-4'
+        # self.exe_name = f'platy_new_params_e-4'
         # self.exe_name = f'cilia_prescribed_swimming_1e-7'
-        self.date = '20251113'
+        # self.exe_name = f'platy_new_params_wgf'
+        # self.exe_name = f'platy_new_params_1e-4'
+        # self.exe_name = f'platy_new_params2_wgf'
+        # self.exe_name = f'platy_new_params3_1e-4'
+        self.exe_name = f'platy_new_parms_swimming'
+        # self.exe_name = f'platy_random_ic_swimming'
+        self.date = '20251127'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -98,8 +106,8 @@ class DRIVER:
 
                         seg_sep = 2.6
                         force_mag = 1
-                        tilt_angle = 0.2181662   # Platynaereis
-                        # tilt_angle = 0.0
+                        # tilt_angle = 0.2181662   # Platynaereis
+                        tilt_angle = 0.0
 
                         nfil = num_fils
                         
@@ -124,8 +132,8 @@ class DRIVER:
                         blob_x_dim=160*(i+1)
                         hex_num=2
                         reverse_fil_direction_ratio=0.0
-                        sim_length = 100.0
-                        # sim_length = 1.0
+                        # sim_length = 30.0
+                        sim_length = 1.0
                         f_eff = 0.3
                         theta_0 = 3.14159265359/2.1#*0.9
                         freq_shift = 0.0  # This was for a frequency gradient study
