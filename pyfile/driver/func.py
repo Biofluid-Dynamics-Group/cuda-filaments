@@ -20,8 +20,9 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        # self.category = f'swimming_k25/'
-        self.category = f'no_tilt_swimming/'
+        # self.category = f'swimming_k5/'
+        # self.category = f'no_tilt_swimming/'
+        self.category = f'random_9/'
         # self.exe_name = f'cilia_1e-7_wgf'
         # self.exe_name = f'cilia_spacing_1e-4'
         # self.exe_name = f'platy_new_params_e-4'
@@ -30,9 +31,9 @@ class DRIVER:
         # self.exe_name = f'platy_new_params_1e-4'
         # self.exe_name = f'platy_new_params2_wgf'
         # self.exe_name = f'platy_new_params3_1e-4'
-        self.exe_name = f'platy_new_parms_swimming'
-        # self.exe_name = f'platy_random_ic_swimming'
-        self.date = '20251127'
+        # self.exe_name = f'platy_new_parms_swimming'
+        self.exe_name = f'platy_random_ic_swimming'
+        self.date = '20251207'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -106,8 +107,8 @@ class DRIVER:
 
                         seg_sep = 2.6
                         force_mag = 1
-                        # tilt_angle = 0.2181662   # Platynaereis
-                        tilt_angle = 0.0
+                        tilt_angle = 0.2181662   # Platynaereis
+                        # tilt_angle = 0.0
 
                         nfil = num_fils
                         
