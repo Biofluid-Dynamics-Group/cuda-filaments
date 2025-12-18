@@ -125,10 +125,10 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
   #endif
 
   #if SHAPE_SEQUENCE==5
-    #define REC_TRAVELLING_WAVE_WINDOW 0.9 // Width of the travelling wave as fraction of the filament length, f_w in (0, 1)
-    #define REC_TRAVELLING_WAVE_IMPORTANCE 0.95 // Fraction of the recovery stroke that is due to the travelling wave, f_psi in (0, 1)
-    #define EFF_TRAVELLING_WAVE_WINDOW 0.95 // Width of the effective stroke wave as fraction of the filament length, f_e in (0, 1)
-    #define EFF_TRAVELLING_WAVE_IMPORTANCE 0.05 // Fraction of the effective stroke that is due to the travelling wave, f_psi in (0, 1)
+    #define REC_TRAVELLING_WAVE_WINDOW 0.65 // Width of the travelling wave as fraction of the filament length, f_w in (0, 1)
+    #define REC_TRAVELLING_WAVE_IMPORTANCE 0.9 // Fraction of the recovery stroke that is due to the travelling wave, f_psi in (0, 1)
+    #define EFF_TRAVELLING_WAVE_WINDOW 0.875 // Width of the effective stroke wave as fraction of the filament length, f_e in (0, 1)
+    #define EFF_TRAVELLING_WAVE_IMPORTANCE 0.75 // Fraction of the effective stroke that is due to the travelling wave, f_psi in (0, 1)
     #define ZERO_VELOCITY_AVOIDANCE_LENGTH 0.05 // A value in (0,1), giving the maximum fraction of the cycle by which we shift the tangent angle curve to ensure the velocity cannot be zero everywhere along the filament at once.
 
 
@@ -137,17 +137,17 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
     // #define TRAVELLING_WAVE_IMPORTANCE 0.7124255370527028 + 0.99*(1.0 - 0.7124255370527028)
   #endif
 
-  #define DYNAMIC_PHASE_EVOLUTION true
+  #define DYNAMIC_PHASE_EVOLUTION false
   // If true, cilia phase speeds are solved for as part of the dynamics. Note that this requires having run a reference simulation with WRITE_GENERALISED_FORCES=true previously.
   // If false, phase_dot = omega0 is constant for each cilium.
 
-  #define DYNAMIC_SHAPE_ROTATION true
+  #define DYNAMIC_SHAPE_ROTATION false
   // If true, the vertical in the cilia reference configuration can rotate with respect to the surface normal.
   // Essentially, the cilia can 'tip backwards or forwards' in their beat planes.
   // If false, no such rotation ever occurs.
   // In the Platynaereis case this changes to an elastic variable. NO LONGER TRUE
 
-  #define WRITE_GENERALISED_FORCES false
+  #define WRITE_GENERALISED_FORCES true
   // If true, this simulation will save its generalised forces to file for use as the reference values.
   // It will also generate reference s-values for shape sequences which don't result in inextensible filaments.
   // NOTE: This will overwrite any existing reference files unless their names have been changed.
@@ -165,7 +165,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
     #define NUM_PLATY_GROUPS 12             // number of groups
   #endif
 
-  #define ABLATE false  // Ablate cilia, as in, remove the last cilia in the ring
+  #define ABLATE true  // Ablate cilia, as in, remove the last cilia in the ring
   #if ABLATE
     #define SEED_LIKE 216 // amount of cilia without gaps, with tilt
   #endif  
@@ -376,8 +376,8 @@ extern Real FREQ_SHIFT;  // Frequency percentage shift
 
 #else
 
-  #define STEPS_PER_PERIOD 500
-  #define SAVES_PER_PERIOD 100
+  #define STEPS_PER_PERIOD 25000
+  #define SAVES_PER_PERIOD 25000
 
 #endif
 

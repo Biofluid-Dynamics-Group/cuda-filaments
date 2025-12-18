@@ -2,12 +2,13 @@ import configparser
 import os
 import util
 
-# ablation_fraction = 0.0
+ablation_fraction = 0.0
 # num_fils = max(int(360*(1 - ablation_fraction)), 1)
 
-num_fils = 216 #+ 16*12
+num_fils = int(max(216*(1 - ablation_fraction), 1)) #+ 16*12
 num_seg = 20
 box_size = 8000
+stiffness = 1.5e-1
 
 gmres_tol = 4
 precon = 'precon'
@@ -22,7 +23,8 @@ class DRIVER:
 
         # self.category = f'swimming_k5/'
         # self.category = f'no_tilt_swimming/'
-        self.category = f'random_9/'
+        self.category = f'platy_params1/'
+        # self.category = f'platynaereis_new_params_wgf/'
         # self.exe_name = f'cilia_1e-7_wgf'
         # self.exe_name = f'cilia_spacing_1e-4'
         # self.exe_name = f'platy_new_params_e-4'
@@ -32,8 +34,11 @@ class DRIVER:
         # self.exe_name = f'platy_new_params2_wgf'
         # self.exe_name = f'platy_new_params3_1e-4'
         # self.exe_name = f'platy_new_parms_swimming'
-        self.exe_name = f'platy_random_ic_swimming'
-        self.date = '20251207'
+        # self.exe_name = f'platy_random_ic_swimming'
+        self.exe_name = f'platy_new_params_emergent'
+        self.exe_name = f'platy_params1'
+        # self.exe_name = f'platy_new_params_wgf'
+        self.date = '20251218'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -118,7 +123,7 @@ class DRIVER:
                         # Since D/L = 8 and L = 20um, D = 160um
                         # In the simulation, L is around  49 units
                         period = 1
-                        spring_factor = 1.5e-1
+                        spring_factor = stiffness
                         # nblob = 1*int(728.17*(ar/2)**2 + 1)  # According to Hang's paper, doubled to avoid overlap
                         # nblob = 10242  # icosa_d5_N10242.dat
                         nblob = 40962  # icosa_d6_N40962.dat
@@ -133,8 +138,8 @@ class DRIVER:
                         blob_x_dim=160*(i+1)
                         hex_num=2
                         reverse_fil_direction_ratio=0.0
-                        # sim_length = 30.0
-                        sim_length = 1.0
+                        sim_length = 150.0
+                        # sim_length = 1.0
                         f_eff = 0.3
                         theta_0 = 3.14159265359/2.1#*0.9
                         freq_shift = 0.0  # This was for a frequency gradient study
