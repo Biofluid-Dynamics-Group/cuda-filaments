@@ -9,6 +9,8 @@ num_fils = int(max(216*(1 - ablation_fraction), 1)) #+ 16*12
 num_seg = 20
 box_size = 8000
 stiffness = 1.5e-1
+tilt_factor = 3
+tilt = 0.2181662*tilt_factor/3   # Platynaereis
 
 gmres_tol = 4
 precon = 'precon'
@@ -23,7 +25,8 @@ class DRIVER:
 
         # self.category = f'swimming_k5/'
         # self.category = f'no_tilt_swimming/'
-        self.category = f'platy_params1/'
+        self.category = f'platy_params3_{tilt_factor}/'
+        # self.category = f'platy_params3_wgf/'
         # self.category = f'platynaereis_new_params_wgf/'
         # self.exe_name = f'cilia_1e-7_wgf'
         # self.exe_name = f'cilia_spacing_1e-4'
@@ -36,9 +39,9 @@ class DRIVER:
         # self.exe_name = f'platy_new_parms_swimming'
         # self.exe_name = f'platy_random_ic_swimming'
         self.exe_name = f'platy_new_params_emergent'
-        self.exe_name = f'platy_params1'
+        # self.exe_name = f'platy_params2'
         # self.exe_name = f'platy_new_params_wgf'
-        self.date = '20251218'
+        self.date = '20260104'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -112,7 +115,8 @@ class DRIVER:
 
                         seg_sep = 2.6
                         force_mag = 1
-                        tilt_angle = 0.2181662   # Platynaereis
+                        tilt_angle = tilt
+                        # tilt_angle = 0.218166/2   # Platynaereis
                         # tilt_angle = 0.0
 
                         nfil = num_fils
