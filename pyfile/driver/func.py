@@ -5,11 +5,12 @@ import util
 ablation_fraction = 0.0
 # num_fils = max(int(360*(1 - ablation_fraction)), 1)
 
-num_fils = int(max(216*(1 - ablation_fraction), 1)) #+ 16*12
+# num_fils = int(max(216*(1 - ablation_fraction), 1)) #+ 16*12
+num_fils = 216
 num_seg = 20
 box_size = 8000
 stiffness = 1.5e-1
-tilt_factor = 3
+tilt_factor = 1
 tilt = 0.2181662*tilt_factor/3   # Platynaereis
 
 gmres_tol = 4
@@ -25,8 +26,8 @@ class DRIVER:
 
         # self.category = f'swimming_k5/'
         # self.category = f'no_tilt_swimming/'
-        self.category = f'platy_params3_{tilt_factor}/'
-        # self.category = f'platy_params3_wgf/'
+        # self.category = f'platy_params3_{tilt_factor}/'
+        self.category = f'platy_params4_{tilt_factor}/'
         # self.category = f'platynaereis_new_params_wgf/'
         # self.exe_name = f'cilia_1e-7_wgf'
         # self.exe_name = f'cilia_spacing_1e-4'
@@ -38,10 +39,13 @@ class DRIVER:
         # self.exe_name = f'platy_new_params3_1e-4'
         # self.exe_name = f'platy_new_parms_swimming'
         # self.exe_name = f'platy_random_ic_swimming'
-        self.exe_name = f'platy_new_params_emergent'
+        # self.exe_name = f'platy_new_params_emergent'
         # self.exe_name = f'platy_params2'
-        # self.exe_name = f'platy_new_params_wgf'
-        self.date = '20260104'
+        # self.exe_name = f'platy_new_params_wgf
+        # self.exe_name = f'platy_params3_wall'
+        # self.exe_name = f'platy_paramsA_wall'
+        self.exe_name = f'platy_paramsB'
+        self.date = '20260114'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
