@@ -1329,7 +1329,20 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
       pos(2) = 0.0;
 
       Real cutoff = EFFECTIVE_STROKE_FRACTION*2.0*PI;
-      Real shifted_phase = phase - s*2.0*PI*ZERO_VELOCITY_AVOIDANCE_LENGTH;  // s \in [0, 1]
+      Real mod_phase = phase - 2.0*PI*std::floor(0.5*phase/PI);
+      Real delay_factor;
+      if (mod_phase < cutoff){
+        delay_factor = ZERO_VELOCITY_AVOIDANCE_LENGTH*(
+          0.5*myfil_cos(mod_phase/EFFECTIVE_STROKE_FRACTION) + 0.5
+        );
+      }
+      else {
+        delay_factor = ZERO_VELOCITY_AVOIDANCE_LENGTH*(
+          0.5*myfil_cos((mod_phase - cutoff)/(1.0 - EFFECTIVE_STROKE_FRACTION)) + 0.5
+        );
+      }
+      Real delay = s*2.0*PI*delay_factor;  // s \in [0, 1]
+      Real shifted_phase = phase - delay;
       shifted_phase -= 2.0*PI*std::floor(0.5*shifted_phase/PI);
 
       if (shifted_phase < cutoff){
@@ -1354,8 +1367,32 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
       matrix direction_integrand(3, 1);
 
       const Real cutoff = EFFECTIVE_STROKE_FRACTION*2.0*PI;
-      Real shifted_phase = phase - s*2.0*PI*ZERO_VELOCITY_AVOIDANCE_LENGTH;
+      
+      // Compute phase-dependent delay factor and its derivative (chain rule)
+      Real mod_phase = phase - 2.0*PI*std::floor(0.5*phase/PI);
+      Real delay_factor;
+      Real d_delay_factor_d_phase;
+      if (mod_phase < cutoff) {
+        delay_factor = ZERO_VELOCITY_AVOIDANCE_LENGTH*(
+          0.5*myfil_cos(mod_phase/EFFECTIVE_STROKE_FRACTION) + 0.5
+        );
+        d_delay_factor_d_phase = -ZERO_VELOCITY_AVOIDANCE_LENGTH*0.5*
+          myfil_sin(mod_phase/EFFECTIVE_STROKE_FRACTION)/EFFECTIVE_STROKE_FRACTION;
+      }
+      else {
+        delay_factor = ZERO_VELOCITY_AVOIDANCE_LENGTH*(
+          0.5*myfil_cos((mod_phase - cutoff)/(1.0 - EFFECTIVE_STROKE_FRACTION)) + 0.5
+        );
+        d_delay_factor_d_phase = -ZERO_VELOCITY_AVOIDANCE_LENGTH*0.5*
+          myfil_sin((mod_phase - cutoff)/(1.0 - EFFECTIVE_STROKE_FRACTION))/(1.0 - EFFECTIVE_STROKE_FRACTION);
+      }
+      
+      // Compute shifted phase with phase-dependent delay
+      Real shifted_phase = phase - s*2.0*PI*delay_factor;
       shifted_phase -= 2.0*PI*std::floor(0.5*shifted_phase/PI);
+      
+      // Chain rule factor: d(shifted_phase)/d(phase) = 1 - 2*PI*s * d(delay_factor)/d(phase)
+      const Real chain_factor = 1.0 - 2.0*PI*s*d_delay_factor_d_phase;
 
       Real deriv_value;
 
@@ -1389,6 +1426,9 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
           (1.0 - REC_TRAVELLING_WAVE_IMPORTANCE)*rotation - REC_TRAVELLING_WAVE_IMPORTANCE*wave
         );
       }
+      
+      // Apply chain rule factor
+      deriv_value *= chain_factor;
 
       direction_integrand(0) = std::cos(platy_beat_tangent_angle(s))*deriv_value;
       direction_integrand(1) = -std::sin(platy_beat_tangent_angle(s))*deriv_value;
