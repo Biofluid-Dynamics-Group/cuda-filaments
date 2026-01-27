@@ -1369,23 +1369,23 @@ void filament::accept_state_from_rigid_body(const Real *const x_in, const Real *
       const Real cutoff = EFFECTIVE_STROKE_FRACTION*2.0*PI;
       
       // Compute phase-dependent delay factor and its derivative (chain rule)
-      Real mod_phase = phase - 2.0*PI*std::floor(0.5*phase/PI);
-      Real delay_factor;
-      Real d_delay_factor_d_phase;
-      if (mod_phase < cutoff) {
-        delay_factor = ZERO_VELOCITY_AVOIDANCE_LENGTH*(
-          0.5*myfil_cos(mod_phase/EFFECTIVE_STROKE_FRACTION) + 0.5
-        );
-        d_delay_factor_d_phase = -ZERO_VELOCITY_AVOIDANCE_LENGTH*0.5*
-          myfil_sin(mod_phase/EFFECTIVE_STROKE_FRACTION)/EFFECTIVE_STROKE_FRACTION;
-      }
-      else {
-        delay_factor = ZERO_VELOCITY_AVOIDANCE_LENGTH*(
-          0.5*myfil_cos((mod_phase - cutoff)/(1.0 - EFFECTIVE_STROKE_FRACTION)) + 0.5
-        );
-        d_delay_factor_d_phase = -ZERO_VELOCITY_AVOIDANCE_LENGTH*0.5*
-          myfil_sin((mod_phase - cutoff)/(1.0 - EFFECTIVE_STROKE_FRACTION))/(1.0 - EFFECTIVE_STROKE_FRACTION);
-      }
+      const Real mod_phase = phase - 2.0*PI*std::floor(0.5*phase/PI);
+      const Real delay_factor = ZERO_VELOCITY_AVOIDANCE_LENGTH;
+      const Real d_delay_factor_d_phase = 0.0;
+      // if (mod_phase < cutoff) {
+      //   delay_factor = ZERO_VELOCITY_AVOIDANCE_LENGTH*(
+      //     0.5*myfil_cos(mod_phase/EFFECTIVE_STROKE_FRACTION) + 0.5
+      //   );
+      //   d_delay_factor_d_phase = -ZERO_VELOCITY_AVOIDANCE_LENGTH*0.5*
+      //     myfil_sin(mod_phase/EFFECTIVE_STROKE_FRACTION)/EFFECTIVE_STROKE_FRACTION;
+      // }
+      // else {
+      //   delay_factor = ZERO_VELOCITY_AVOIDANCE_LENGTH*(
+      //     0.5*myfil_cos((mod_phase - cutoff)/(1.0 - EFFECTIVE_STROKE_FRACTION)) + 0.5
+      //   );
+      //   d_delay_factor_d_phase = -ZERO_VELOCITY_AVOIDANCE_LENGTH*0.5*
+      //     myfil_sin((mod_phase - cutoff)/(1.0 - EFFECTIVE_STROKE_FRACTION))/(1.0 - EFFECTIVE_STROKE_FRACTION);
+      // }
       
       // Compute shifted phase with phase-dependent delay
       Real shifted_phase = phase - s*2.0*PI*delay_factor;
