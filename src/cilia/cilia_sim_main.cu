@@ -84,7 +84,7 @@ int main(int argc, char** argv){
   #if WRITE_GENERALISED_FORCES
     NSWIM = 1;
     NFIL = 1;
-    NBLOB = 0;
+    // NBLOB = 0;
   #endif
 
   // Derive other global variables
