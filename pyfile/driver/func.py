@@ -6,11 +6,11 @@ ablation_fraction = 0.0
 # num_fils = max(int(360*(1 - ablation_fraction)), 1)
 
 # num_fils = int(max(216*(1 - ablation_fraction), 1)) #+ 16*12
-num_fils = 1
+num_fils = 216
 num_seg = 20
 box_size = 8000
 stiffness = 1.5e-1
-tilt_factor = 3
+tilt_factor = 0
 tilt = 0.2181662*tilt_factor/3   # Platynaereis
 
 gmres_tol = 4
@@ -29,7 +29,7 @@ class DRIVER:
         # self.category = f'platy_params3_{tilt_factor}/'
         # self.category = f'platy_params4_{tilt_factor}/'
         # self.category = f'beat_C_delayed_wgf/'
-        self.category = f'beat_C_single_blobs/'
+        self.category = f'beat_C_single_blobs_sphere_random_ic_tilt{tilt_factor}/'
         # self.category = f'platynaereis_new_params_wgf/'
         # self.exe_name = f'cilia_1e-7_wgf'
         # self.exe_name = f'cilia_spacing_1e-4'
@@ -48,8 +48,8 @@ class DRIVER:
         # self.exe_name = f'platy_paramsA_wall'
         # self.exe_name = f'platy_paramsB'
         # self.exe_name = f'platy_vardelay_wall'
-        self.exe_name = f'beat_C_single_blobs'
-        self.date = '20260202'
+        self.exe_name = f'beat_C_single_blobs_sphere'
+        self.date = '20260203'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -150,8 +150,8 @@ class DRIVER:
                         blob_x_dim=160*(i+1)
                         hex_num=2
                         reverse_fil_direction_ratio=0.0
-                        # sim_length = 40.0
-                        sim_length = 10.0
+                        sim_length = 40.0
+                        # sim_length = 10.0
                         f_eff = 0.3
                         theta_0 = 3.14159265359/2.1#*0.9
                         freq_shift = 0.0  # This was for a frequency gradient study
