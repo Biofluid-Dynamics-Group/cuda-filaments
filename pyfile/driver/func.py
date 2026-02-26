@@ -8,7 +8,7 @@ num_fils = 216
 num_seg = 20
 box_size = 8000
 stiffness = 1.5e-1
-tilt_factor = 1.0
+tilt_factor = 0.0
 tilt = 0.2181662*tilt_factor   # Platynaereis
 
 gmres_tol = 4
@@ -24,12 +24,12 @@ class DRIVER:
 
         # self.category = f'ablation_{num_fils}_0/'
         # self.category = f'density_{num_fils}_0/'
-        self.category = f'tilt_{tilt_factor}_1/'
+        self.category = f'tilt_{tilt_factor}_2/'
 
         self.exe_name = f'ablation_cufcm_216_cilia'
         # self.exe_name = f'cufcm_cilia'
 
-        self.date = '20260223'
+        self.date = '20260226'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -120,9 +120,14 @@ class DRIVER:
                         # nblob = 10242  # icosa_d5_N10242.dat
                         nblob = 40962  # icosa_d6_N40962.dat
 
-                        nx=256
-                        ny=256
-                        nz=256
+                        # nx=256
+                        # ny=256
+                        # nz=256
+
+                        nx=320
+                        ny=320
+                        nz=320
+
                         boxsize=box_size
                         fil_spacing=80.0
                         blob_spacing=8.0
