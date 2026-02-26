@@ -2,16 +2,14 @@ import configparser
 import os
 import util
 
-ablation_fraction = 0.0
-# num_fils = max(int(360*(1 - ablation_fraction)), 1)
-
-# num_fils = int(max(216*(1 - ablation_fraction), 1)) #+ 16*12
 num_fils = 216
+# num_fils = 216 + 6*12
+
 num_seg = 20
 box_size = 8000
 stiffness = 1.5e-1
-tilt_factor = 0
-tilt = 0.2181662*tilt_factor/3   # Platynaereis
+tilt_factor = 1.0
+tilt = 0.2181662*tilt_factor   # Platynaereis
 
 gmres_tol = 4
 precon = 'precon'
@@ -24,32 +22,14 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        # self.category = f'swimming_k5/'
-        # self.category = f'no_tilt_swimming/'
-        # self.category = f'platy_params3_{tilt_factor}/'
-        # self.category = f'platy_params4_{tilt_factor}/'
-        # self.category = f'beat_C_delayed_wgf/'
-        self.category = f'beat_C_single_blobs_sphere_random_ic_tilt{tilt_factor}/'
-        # self.category = f'platynaereis_new_params_wgf/'
-        # self.exe_name = f'cilia_1e-7_wgf'
-        # self.exe_name = f'cilia_spacing_1e-4'
-        # self.exe_name = f'platy_new_params_e-4'
-        # self.exe_name = f'cilia_prescribed_swimming_1e-7'
-        # self.exe_name = f'platy_new_params_wgf'
-        # self.exe_name = f'platy_new_params_1e-4'
-        # self.exe_name = f'platy_new_params2_wgf'
-        # self.exe_name = f'platy_new_params3_1e-4'
-        # self.exe_name = f'platy_new_parms_swimming'
-        # self.exe_name = f'platy_random_ic_swimming'
-        # self.exe_name = f'platy_new_params_emergent'
-        # self.exe_name = f'platy_params2'
-        # self.exe_name = f'platy_new_params_wgf
-        # self.exe_name = f'platy_params3_wall'
-        # self.exe_name = f'platy_paramsA_wall'
-        # self.exe_name = f'platy_paramsB'
-        # self.exe_name = f'platy_vardelay_wall'
-        self.exe_name = f'beat_C_single_blobs_sphere'
-        self.date = '20260203'
+        # self.category = f'ablation_{num_fils}_0/'
+        # self.category = f'density_{num_fils}_0/'
+        self.category = f'tilt_{tilt_factor}_1/'
+
+        self.exe_name = f'ablation_cufcm_216_cilia'
+        # self.exe_name = f'cufcm_cilia'
+
+        self.date = '20260223'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -150,7 +130,7 @@ class DRIVER:
                         blob_x_dim=160*(i+1)
                         hex_num=2
                         reverse_fil_direction_ratio=0.0
-                        sim_length = 40.0
+                        sim_length = 80.0
                         # sim_length = 10.0
                         f_eff = 0.3
                         theta_0 = 3.14159265359/2.1#*0.9
