@@ -8,7 +8,7 @@ num_fils = 216
 num_seg = 20
 box_size = 8000
 stiffness = 1.5e-1
-tilt_factor = 0.5
+tilt_factor = 1.5
 tilt = 0.2181662*tilt_factor   # Platynaereis
 
 gmres_tol = 4
@@ -122,15 +122,19 @@ class DRIVER:
 
                         # nx=256
                         # ny=256
-                        # nz=256
+                        # nz=256  # compute total 0.643
 
                         # nx=320
                         # ny=320
-                        # nz=320
+                        # nz=320  # compute total 0.37
 
                         nx=512
                         ny=512
-                        nz=512
+                        nz=512  ## compute total 0.264 (this is provabably the best)
+
+                        # nx = 600
+                        # ny = 600
+                        # nz = 600  # compute total 0.267
 
                         boxsize=box_size
                         fil_spacing=80.0
