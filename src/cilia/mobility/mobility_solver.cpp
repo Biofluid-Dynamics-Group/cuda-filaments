@@ -332,6 +332,41 @@ void mobility_solver::read_positions_and_forces(std::vector<swimmer>& swimmers){
             // Scale if the natural frequency of this cilium differs from the reference case
             q_phase *= 0.5*swimmers[n].filaments[i].omega0/PI;
 
+            // ============== Arrest and Patterned Startup ==============
+            #if ARREST_AND_STARTUP
+            {
+              const Real t = DT*(nt + 1.0);
+              const Real arrest_time = ARREST_START_PERIODS * PERIOD;
+              const Real startup_time = STARTUP_AFTER_PERIODS * PERIOD;
+
+              if (t >= arrest_time && t < startup_time) {
+                // Arrest phase: all cilia inactive
+                q_phase = 0.0;
+              } else if (t >= startup_time) {
+                // Patterned startup phase
+                const int global_fil_index = n*NFIL + i;
+                const int total_filaments = NSWIM * NFIL;
+                const int filaments_per_group = (total_filaments + NUM_STARTUP_GROUPS - 1) / NUM_STARTUP_GROUPS;
+                const int group_id = global_fil_index / filaments_per_group;
+                const int index_in_group = global_fil_index % filaments_per_group;
+
+                const Real group_delay = group_id * INTER_GROUP_DELAY_PERIODS * PERIOD;
+                const Real intra_delay = index_in_group * INTRA_GROUP_DELAY_PERIODS * PERIOD;
+                const Real filament_start_time = startup_time + group_delay + intra_delay;
+                const Real ramp_duration = STARTUP_RAMP_PERIODS * PERIOD;
+
+                if (t < filament_start_time) {
+                  q_phase = 0.0;
+                } else if (t < filament_start_time + ramp_duration) {
+                  // Linear ramp-up
+                  q_phase *= (t - filament_start_time) / ramp_duration;
+                }
+                // else: fully active, q_phase unchanged
+              }
+            }
+            #endif
+            // ============== End Arrest/Startup ==============
+
             // Store minus the generalised force in the RHS
             #if PRESCRIBED_BODY_VELOCITIES
 

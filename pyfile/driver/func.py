@@ -3,12 +3,12 @@ import os
 import util
 
 num_fils = 216
-# num_fils = 216 + 6*12
+# num_fils = 216 + 3*12
 
 num_seg = 20
 box_size = 8000
 stiffness = 1.5e-1
-tilt_factor = 1.5
+tilt_factor = 1.0
 tilt = 0.2181662*tilt_factor   # Platynaereis
 
 gmres_tol = 4
@@ -24,12 +24,14 @@ class DRIVER:
 
         # self.category = f'ablation_{num_fils}_0/'
         # self.category = f'density_{num_fils}_0/'
-        self.category = f'tilt_{tilt_factor}_2/'
+        # self.category = f'tilt_{tilt_factor}_3/'
+        self.category = f'ramp_up_0.5/'
 
-        self.exe_name = f'ablation_cufcm_216_cilia'
+        # self.exe_name = f'ablation_cufcm_216_cilia'
         # self.exe_name = f'cufcm_cilia'
+        self.exe_name = f'ramp_up_cufcm_cilia'
 
-        self.date = '20260226'
+        self.date = '20260302'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -130,7 +132,7 @@ class DRIVER:
 
                         nx=512
                         ny=512
-                        nz=512  ## compute total 0.264 (this is provabably the best)
+                        nz=512  ## compute total 0.264 (this is probably the best)
 
                         # nx = 600
                         # ny = 600
@@ -200,17 +202,17 @@ class DRIVER:
     def read_rules(self):
         sim = configparser.ConfigParser()
         try:
-            print("Here")
+            # print("Here")
             sim.read(self.dir+"rules.ini")
-            print("Now here")
+            # print("Now here")
             for key, value in self.pars_list.items():
-                print("Nowwww here")
+                # print("Nowwww here")
                 if(key in sim["Parameter list"]):
-                    print(f"{key}")
+                    # print(f"{key}")
                     self.pars_list[key] = [float(x) for x in sim["Parameter list"][key].split(', ')][0::1]
-                print("whaaat")
+                # print("whaaat")
             self.num_sim = len(self.pars_list["nfil"])
-            print("what")
+            # print("what")
         except:
             print("WARNING: " + self.dir + "rules.ini not found.")
 

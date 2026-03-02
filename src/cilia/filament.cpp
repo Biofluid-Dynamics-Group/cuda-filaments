@@ -334,6 +334,10 @@ void filament::initial_setup(const Real *const base_pos,
             }
           }
 
+        #elif (CILIA_IC_TYPE==6)
+
+          phase = CILIA_INITIAL_PHASE;
+
         #endif
 
         #if SURFACE_OF_REVOLUTION_BODIES

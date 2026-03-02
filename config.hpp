@@ -152,17 +152,40 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
   // It will also generate reference s-values for shape sequences which don't result in inextensible filaments.
   // NOTE: This will overwrite any existing reference files unless their names have been changed.
 
-  #define CILIA_IC_TYPE 1
+  #define CILIA_IC_TYPE 6
   // Valid options:
   // 0 = All cilia start in-phase with phase 0.
   // 1 = Cilia start with a (uniformly) random initial phase.
   // 2 = A metachronal wave (MCW). Its wavelength and direction are defined below.
   // 3 = Ishikawa MCW
   // 5 = Read from a file (default - we can define arbitrary initial conditions in python)
+  // 6 = All cilia start in-phase at CILIA_INITIAL_PHASE.
+
+  #if CILIA_IC_TYPE==6
+    #define CILIA_INITIAL_PHASE 1.88495559215 // Arbitrary initial phase in radians: set to 0.3*2*pi
+  #endif
+
 
   #define PLATY_GROUPS false // Divide a sphere into 12 segments of frequency w/ gaps
   #if PLATY_GROUPS
     #define NUM_PLATY_GROUPS 12             // number of groups
+  #endif
+
+  // Arrest and patterned startup mechanism for dynamic phase evolution.
+  // ARREST_START_PERIODS: Time (in periods) at which cilia arrest (q_phase -> 0). Set to 0 to start arrested.
+  // STARTUP_AFTER_PERIODS: Time (in periods) at which cilia begin a patterned restart.
+  // NUM_STARTUP_GROUPS: Number of groups for staggered startup (cilia divided by index).
+  // INTER_GROUP_DELAY_PERIODS: Delay (in periods) between consecutive groups starting up.
+  // INTRA_GROUP_DELAY_PERIODS: Delay (in periods) between consecutive cilia within a group.
+  // STARTUP_RAMP_PERIODS: Duration (in periods) of the smooth ramp-up for each cilium.
+  #define ARREST_AND_STARTUP true
+  #if ARREST_AND_STARTUP
+    #define ARREST_START_PERIODS 0.0
+    #define STARTUP_AFTER_PERIODS 1.0
+    #define NUM_STARTUP_GROUPS 12
+    #define INTER_GROUP_DELAY_PERIODS 0.0
+    #define INTRA_GROUP_DELAY_PERIODS 0.5
+    #define STARTUP_RAMP_PERIODS 0.5
   #endif
 
   #define ABLATE false  // Ablate cilia, as in, remove the last cilia in the ring
