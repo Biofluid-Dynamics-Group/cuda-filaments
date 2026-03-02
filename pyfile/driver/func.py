@@ -25,11 +25,13 @@ class DRIVER:
         # self.category = f'ablation_{num_fils}_0/'
         # self.category = f'density_{num_fils}_0/'
         # self.category = f'tilt_{tilt_factor}_3/'
-        self.category = f'ramp_up_0.5/'
+        self.category = f'ramp_up_0.25/'
+        # self.category = f'initial_sync_tilt_{tilt_factor}/'
 
         # self.exe_name = f'ablation_cufcm_216_cilia'
         # self.exe_name = f'cufcm_cilia'
         self.exe_name = f'ramp_up_cufcm_cilia'
+        # self.exe_name = f'cufcm_cilia_wave_ic'
 
         self.date = '20260302'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"

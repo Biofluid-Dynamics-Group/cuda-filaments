@@ -333,15 +333,18 @@ void mobility_solver::read_positions_and_forces(std::vector<swimmer>& swimmers){
             q_phase *= 0.5*swimmers[n].filaments[i].omega0/PI;
 
             // ============== Arrest and Patterned Startup ==============
+            // Compute a single scaling factor and apply to both q_phase and q_angle
+            // so that both driving forces are consistently arrested and ramped up.
             #if ARREST_AND_STARTUP
             {
               const Real t = DT*(nt + 1.0);
               const Real arrest_time = ARREST_START_PERIODS * PERIOD;
               const Real startup_time = STARTUP_AFTER_PERIODS * PERIOD;
+              Real arrest_scaling = 1.0;
 
               if (t >= arrest_time && t < startup_time) {
                 // Arrest phase: all cilia inactive
-                q_phase = 0.0;
+                arrest_scaling = 0.0;
               } else if (t >= startup_time) {
                 // Patterned startup phase
                 const int global_fil_index = n*NFIL + i;
@@ -356,13 +359,19 @@ void mobility_solver::read_positions_and_forces(std::vector<swimmer>& swimmers){
                 const Real ramp_duration = STARTUP_RAMP_PERIODS * PERIOD;
 
                 if (t < filament_start_time) {
-                  q_phase = 0.0;
+                  arrest_scaling = 0.0;
                 } else if (t < filament_start_time + ramp_duration) {
                   // Linear ramp-up
-                  q_phase *= (t - filament_start_time) / ramp_duration;
+                  arrest_scaling = (t - filament_start_time) / ramp_duration;
                 }
-                // else: fully active, q_phase unchanged
+                // else: fully active, arrest_scaling remains 1.0
               }
+
+              q_phase *= arrest_scaling;
+
+              #if DYNAMIC_SHAPE_ROTATION
+                q_angle *= arrest_scaling;
+              #endif
             }
             #endif
             // ============== End Arrest/Startup ==============
