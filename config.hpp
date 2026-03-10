@@ -196,6 +196,11 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
   // which should be more than the actual number of cilia, so that the last places
   // are not seeded.
 
+  // If true, the tilt angle varies sinusoidally around the equator:
+  // 0 at azimuth=0, rising to TILT_ANGLE at azimuth=pi, back to 0 at azimuth=2pi.
+  #define DIFFERENTIAL_TILT false
+
+
   #if CILIA_IC_TYPE==2
 
     #define CILIA_MCW_WAVELENGTH FIL_LENGTH

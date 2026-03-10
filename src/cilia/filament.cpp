@@ -393,8 +393,21 @@ void filament::initial_setup(const Real *const base_pos,
       // The default constructor will make q2 the identity, so this is what will happen here.
 
       // Introduce tilt
-      const Real sn = sin(0.5*TILT_ANGLE);
-      const Real cs = cos(0.5*TILT_ANGLE);
+      Real local_tilt_angle = TILT_ANGLE;
+
+      #if DIFFERENTIAL_TILT
+      {
+        // Sinusoidal tilt: 0 at phi=0, peaks at TILT_ANGLE at phi=pi, back to 0 at phi=2pi.
+        // atan2 returns [-pi, pi], so shift to [0, 2pi].
+        Real phi = std::atan2(base_pos[1], base_pos[0]);
+        if (phi < 0.0) phi += 2.0*PI;
+        // Raised cosine: 0.5*(1 - cos(phi)) gives 0 at phi=0, 1 at phi=pi, 0 at phi=2pi.
+        local_tilt_angle = TILT_ANGLE * 0.5 * (1.0 - std::cos(phi));
+      }
+      #endif
+
+      const Real sn = sin(0.5*local_tilt_angle);
+      const Real cs = cos(0.5*local_tilt_angle);
       q2 = quaternion(cs, sn*dir[0], sn*dir[1], sn*dir[2])*q2;
       
       body_qm1 = q2*qtemp;
