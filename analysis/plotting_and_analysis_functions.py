@@ -104,9 +104,19 @@ def load_simulation(base_path: str,
 
     # Load segment positions
     seg_data = np.loadtxt(seg_file)
-    if seg_data.shape[0] != T:
-        raise ValueError("Phase and segment files have mismatched time length.")
-        pass
+    T_seg = seg_data.shape[0]
+    if T_seg != T:
+        T_min = min(T, T_seg)
+        print(f"[warn] Phase ({T}) and segment ({T_seg}) files have mismatched time length. Truncating to {T_min}.")
+        T = T_min
+        times_raw = times_raw[:T]
+        phases_raw = phases_raw[:T]
+        phases = phases[:T]
+        seg_data = seg_data[:T]
+        if num_steps is not None and num_steps > 0:
+            times = times_raw / num_steps
+        else:
+            times = times_raw / max(times_raw) if times_raw.ptp() > 0 else times_raw
     flat_len = seg_data.shape[1] - 1
     if num_segs is None:
         # Solve S from flat_len = num_fils * S * 3

@@ -3,7 +3,7 @@ import os
 import util
 
 num_fils = 216
-# num_fils = 216 + 3*12
+num_fils = 216 + 2*12
 
 num_seg = 20
 box_size = 8000
@@ -23,17 +23,17 @@ class DRIVER:
         self.inputfile = f""
 
         # self.category = f'ablation_{num_fils}_0/'
-        # self.category = f'density_{num_fils}_0/'
+        self.category = f'density_{num_fils}_0/'
         # self.category = f'tilt_{tilt_factor}_3/'
-        self.category = f'ramp_up_0.25/'
-        # self.category = f'initial_sync_tilt_{tilt_factor}/'
+        # self.category = f'ramp_up_0.125/'
+        # self.category = f'initial_wave_kneg25_tilt_{tilt_factor}/'
 
-        # self.exe_name = f'ablation_cufcm_216_cilia'
-        # self.exe_name = f'cufcm_cilia'
-        self.exe_name = f'ramp_up_cufcm_cilia'
-        # self.exe_name = f'cufcm_cilia_wave_ic'
+        # self.exe_name = f'ablation_cufcm_216_cilia'  # random ic, fixed spacing
+        self.exe_name = f'cufcm_cilia'  # random ic, variable spacing
+        # self.exe_name = f'ramp_up_cufcm_cilia_0125'  # startup sequence ic, variable spacing
+        # self.exe_name = f'cufcm_cilia_wave_ic'  # wave initial condition, variable spacing
 
-        self.date = '20260302'
+        self.date = '20260309'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
