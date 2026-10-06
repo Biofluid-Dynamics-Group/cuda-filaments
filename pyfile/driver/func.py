@@ -11,7 +11,7 @@ num_fils = 216
 num_seg = 20
 box_size = 8000
 stiffness = 1.5e-1
-tilt_factor = 0.0
+tilt_factor = 1.0
 tilt = 0.2181662*tilt_factor   # Platynaereis
 
 # The following is only for planar cilia arrays
@@ -52,7 +52,7 @@ class DRIVER:
         # self.exe_name = f'emergent_noise_sphere_tenpc' # random ic, noise in forcing, sphere
 
         # self.date = '20260810'
-        self.date = '20260721'
+        self.date = '20260722'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         # Continue a finished run from its last saved frame: set this to that run's directory,
