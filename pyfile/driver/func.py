@@ -11,7 +11,7 @@ num_fils = 216
 num_seg = 20
 box_size = 8000
 stiffness = 1.5e-1
-tilt_factor = 1.0
+tilt_factor = 0.0
 tilt = 0.2181662*tilt_factor   # Platynaereis
 
 # The following is only for planar cilia arrays
@@ -27,13 +27,14 @@ class DRIVER:
 
     def __init__(self):
         self.globals_name = 'input/globals.ini'
-        self.afix = ''
+        self.afix = '_continue06102026'
         self.inputfile = f""
 
         # self.category = f'ablation_{num_fils}_0/'
         # self.category = f'density_{num_fils}_1/'
         # self.category = f'tilt_{tilt_factor}_8/'
-        self.category = f'ramp_up_0.0625/'
+        self.category = f'tilt_{tilt_factor}_5/'
+        # self.category = f'ramp_up_0.0625/'
         # self.category = f'initial_wave_kneg25_tilt_{tilt_factor}/'
         # self.category = f'diff_tilt_wave_kneg38/'
         # self.category = f'{num_fils}_wall_tilt{tilt_factor}_spacing{spacing_factor}_0/'
@@ -41,22 +42,24 @@ class DRIVER:
         # self.category = f'noise_10_0/'
 
         # self.exe_name = f'ablation_cufcm_216_cilia'  # random ic, fixed spacing
-        self.exe_name = f'cufcm_cilia'  # random ic, variable spacing
-        self.exe_name = f'ramp_up_cufcm_cilia_00625'  # startup sequence ic, variable spacing
+        # self.exe_name = f'cufcm_cilia'  # random ic, variable spacing
+        # self.exe_name = f'ramp_up_cufcm_cilia_00625'  # startup sequence ic, variable spacing
+        self.exe_name = f'cufcm_cilia_resume'  # ic read from the last frame of self.resume_from, variable spacing
         # self.exe_name = f'cufcm_cilia_wave_ic'  # wave initial condition, variable spacing
         # self.exe_name = f'prescribed_wave'  # wave initial condition, variable spacing, prescribed motion
         # self.exe_name = f'prescribed_wave_diff_tilt' # wave initial condition, variable spacing, prescribed motion, differential tilt
         # self.exe_name = f'emergent_wall' # random ic, wall
         # self.exe_name = f'emergent_noise_sphere_tenpc' # random ic, noise in forcing, sphere
 
-        self.date = '20260810'
+        # self.date = '20260810'
+        self.date = '20260721'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         # Continue a finished run from its last saved frame: set this to that run's directory,
         # give self.afix a suffix (e.g. '_continue1') so the output goes to a new directory,
         # and use a binary compiled with CILIA_IC_TYPE 5. Leave empty for a fresh start.
-        self.resume_from = ''
-        # self.resume_from = f'data/density_96_1/20260803/'
+        # self.resume_from = ''
+        self.resume_from = f"data/{self.category}{self.date}/"
 
         self.pars_list = {
                      "index": [],
@@ -170,7 +173,7 @@ class DRIVER:
                         blob_x_dim=160*(i+1)
                         hex_num=2
                         reverse_fil_direction_ratio=0.0
-                        sim_length = 80.0
+                        sim_length = 120.0  # periods in this run; a resumed run restarts its clock at 0, so this ends at t = 80 + 120 = 200
                         # sim_length = 10.0
                         # sim_length = 1.0
                         f_eff = 0.3
