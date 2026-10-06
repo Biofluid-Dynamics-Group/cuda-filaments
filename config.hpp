@@ -152,7 +152,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
   // It will also generate reference s-values for shape sequences which don't result in inextensible filaments.
   // NOTE: This will overwrite any existing reference files unless their names have been changed.
 
-  #define CILIA_IC_TYPE 1
+  #define CILIA_IC_TYPE 0
   // Valid options:
   // 0 = All cilia start in-phase with phase 0.
   // 1 = Cilia start with a (uniformly) random initial phase.
@@ -214,7 +214,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
 
 #endif
 
-#define BODY_OR_SURFACE_TYPE 5
+#define BODY_OR_SURFACE_TYPE 2
 // Valid options:
 // 0 = An infinite plane wall at z = 0. This choice has some sub-types (see below). // 20240717:decrecated - only compatible with RPY
 // 1 = Deformed planes with 2 principal curvatures (partially implemented)
@@ -242,7 +242,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
 
 #elif BODY_OR_SURFACE_TYPE==2 or BODY_OR_SURFACE_TYPE==4 or BODY_OR_SURFACE_TYPE==5
 
-  #define SEEDING_TYPE 3
+  #define SEEDING_TYPE 7
   // Valid options:
   // 0 = Filaments are evenly distributed over the surface.
   // 1 = Filaments are seeded in an equatorial band.
@@ -300,6 +300,16 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Physical parameters
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Stochastic forcing for generalised RHS terms (q_phase/q_angle)
+// FORCE_NOISE_MODE: 0 = absolute (q += sigma*z), 1 = relative (q *= (1 + sigma*z))
+#define FORCE_NOISE_ENABLE_DEFAULT false
+#define FORCE_NOISE_MODE_DEFAULT 1
+#define FORCE_NOISE_SIGMA_PHASE_DEFAULT 0.0
+#define FORCE_NOISE_SIGMA_ANGLE_DEFAULT 0.0
+#define FORCE_NOISE_SEED_DEFAULT 0ULL
+#define FORCE_NOISE_PER_CILIA_DEFAULT false
+#define FORCE_NOISE_DIAGNOSTICS false
+
 extern int NSWIM;
 extern int NSEG;
 extern int NFIL;
@@ -320,6 +330,12 @@ extern Real TILT_ANGLE;
 extern Real EFFECTIVE_STROKE_FRACTION; // Fraction of the beat that corresponds to the effective stroke in phase space. Only used in Platy beat.
 extern Real THETA_0; // Amplitude of the beat in radians. Only used in Platy beat.
 extern Real FREQ_SHIFT;  // Frequency percentage shift
+extern bool FORCE_NOISE_ENABLE;
+extern int FORCE_NOISE_MODE;
+extern Real FORCE_NOISE_SIGMA_PHASE;
+extern Real FORCE_NOISE_SIGMA_ANGLE;
+extern unsigned long long FORCE_NOISE_SEED;
+extern bool FORCE_NOISE_PER_CILIA;
 
 
 #define MU 1.0 // Fluid viscosity.

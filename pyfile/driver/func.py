@@ -2,14 +2,22 @@ import configparser
 import os
 import util
 
+# num_fils = 216 - 14*12
+# num_fils = 216 + 2*12
+
 num_fils = 216
-num_fils = 216 + 2*12
+# num_fils = 96
 
 num_seg = 20
 box_size = 8000
 stiffness = 1.5e-1
 tilt_factor = 1.0
 tilt = 0.2181662*tilt_factor   # Platynaereis
+
+# The following is only for planar cilia arrays
+number_spacing = 0.12
+spacing_factor = number_spacing
+spacing = spacing_factor*(2.6*(num_seg - 1))
 
 gmres_tol = 4
 precon = 'precon'
@@ -23,17 +31,25 @@ class DRIVER:
         self.inputfile = f""
 
         # self.category = f'ablation_{num_fils}_0/'
-        self.category = f'density_{num_fils}_0/'
-        # self.category = f'tilt_{tilt_factor}_3/'
-        # self.category = f'ramp_up_0.125/'
+        # self.category = f'density_{num_fils}_1/'
+        # self.category = f'tilt_{tilt_factor}_8/'
+        self.category = f'ramp_up_0.0625/'
         # self.category = f'initial_wave_kneg25_tilt_{tilt_factor}/'
+        # self.category = f'diff_tilt_wave_kneg38/'
+        # self.category = f'{num_fils}_wall_tilt{tilt_factor}_spacing{spacing_factor}_0/'
+        # self.category = f'swimming_k25/'
+        # self.category = f'noise_10_0/'
 
         # self.exe_name = f'ablation_cufcm_216_cilia'  # random ic, fixed spacing
         self.exe_name = f'cufcm_cilia'  # random ic, variable spacing
-        # self.exe_name = f'ramp_up_cufcm_cilia_0125'  # startup sequence ic, variable spacing
+        self.exe_name = f'ramp_up_cufcm_cilia_00625'  # startup sequence ic, variable spacing
         # self.exe_name = f'cufcm_cilia_wave_ic'  # wave initial condition, variable spacing
+        # self.exe_name = f'prescribed_wave'  # wave initial condition, variable spacing, prescribed motion
+        # self.exe_name = f'prescribed_wave_diff_tilt' # wave initial condition, variable spacing, prescribed motion, differential tilt
+        # self.exe_name = f'emergent_wall' # random ic, wall
+        # self.exe_name = f'emergent_noise_sphere_tenpc' # random ic, noise in forcing, sphere
 
-        self.date = '20260309'
+        self.date = '20260810'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         self.pars_list = {
@@ -141,7 +157,8 @@ class DRIVER:
                         # nz = 600  # compute total 0.267
 
                         boxsize=box_size
-                        fil_spacing=80.0
+                        # fil_spacing=80.0
+                        fil_spacing=spacing
                         blob_spacing=8.0
                         fil_x_dim=16*(i+1)
                         blob_x_dim=160*(i+1)
@@ -149,6 +166,7 @@ class DRIVER:
                         reverse_fil_direction_ratio=0.0
                         sim_length = 80.0
                         # sim_length = 10.0
+                        # sim_length = 1.0
                         f_eff = 0.3
                         theta_0 = 3.14159265359/2.1#*0.9
                         freq_shift = 0.0  # This was for a frequency gradient study

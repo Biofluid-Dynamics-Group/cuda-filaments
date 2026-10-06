@@ -6,12 +6,57 @@
 #include <fstream>
 #include <cmath>
 #include <algorithm>
+#include <cstdint>
 #include <string>
 #include "mobility_solver.hpp"
 #include "../swimmer.hpp"
 #include "omp.h"
 #include "../../general/util.hpp"
 #include "../../../config.hpp"
+
+namespace {
+
+  inline uint64_t splitmix64(uint64_t& x) {
+    x += 0x9e3779b97f4a7c15ULL;
+    uint64_t z = x;
+    z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9ULL;
+    z = (z ^ (z >> 27)) * 0x94d049bb133111ebULL;
+    return z ^ (z >> 31);
+  }
+
+  inline Real uniform01_from_u64(uint64_t x) {
+    const double scale = 1.0 / 9007199254740992.0; // 2^53
+    return static_cast<Real>((x >> 11) * scale);
+  }
+
+  inline Real gaussian_from_seed(uint64_t seed) {
+    uint64_t x = seed;
+    Real u1 = uniform01_from_u64(splitmix64(x));
+    Real u2 = uniform01_from_u64(splitmix64(x));
+
+    if (u1 < static_cast<Real>(1e-12)) {
+      u1 = static_cast<Real>(1e-12);
+    }
+
+    const double r = std::sqrt(-2.0 * std::log(static_cast<double>(u1)));
+    const double theta = 2.0 * PI * static_cast<double>(u2);
+    return static_cast<Real>(r * std::cos(theta));
+  }
+
+  inline uint64_t make_noise_seed(const int nt, const int n, const int i, const int channel) {
+    uint64_t seed = FORCE_NOISE_SEED;
+    seed ^= 0x9e3779b97f4a7c15ULL * static_cast<uint64_t>(nt + 1);
+
+    if (FORCE_NOISE_PER_CILIA) {
+      seed ^= 0xbf58476d1ce4e5b9ULL * static_cast<uint64_t>(n + 1);
+      seed ^= 0x94d049bb133111ebULL * static_cast<uint64_t>(i + 1);
+    }
+
+    seed ^= 0x27d4eb2f165667c5ULL * static_cast<uint64_t>(channel + 1);
+    return seed;
+  }
+
+}
 
 mobility_solver::~mobility_solver(){}
 
@@ -376,6 +421,38 @@ void mobility_solver::read_positions_and_forces(std::vector<swimmer>& swimmers){
             #endif
             // ============== End Arrest/Startup ==============
 
+            if (FORCE_NOISE_ENABLE && FORCE_NOISE_SIGMA_PHASE != static_cast<Real>(0.0)) {
+              const Real z = gaussian_from_seed(make_noise_seed(nt, n, i, 0));
+              if (FORCE_NOISE_MODE == 0) {
+                q_phase += FORCE_NOISE_SIGMA_PHASE * z;
+              } else {
+                q_phase *= static_cast<Real>(1.0) + FORCE_NOISE_SIGMA_PHASE * z;
+              }
+
+              #if FORCE_NOISE_DIAGNOSTICS
+              if (nt < 5 && n == 0 && i == 0) {
+                std::cout << "[noise] nt=" << nt << " q_phase=" << q_phase << " z_phase=" << z << std::endl;
+              }
+              #endif
+            }
+
+            #if DYNAMIC_SHAPE_ROTATION
+            if (FORCE_NOISE_ENABLE && FORCE_NOISE_SIGMA_ANGLE != static_cast<Real>(0.0)) {
+              const Real z = gaussian_from_seed(make_noise_seed(nt, n, i, 1));
+              if (FORCE_NOISE_MODE == 0) {
+                q_angle += FORCE_NOISE_SIGMA_ANGLE * z;
+              } else {
+                q_angle *= static_cast<Real>(1.0) + FORCE_NOISE_SIGMA_ANGLE * z;
+              }
+
+              #if FORCE_NOISE_DIAGNOSTICS
+              if (nt < 5 && n == 0 && i == 0) {
+                std::cout << "[noise] nt=" << nt << " q_angle=" << q_angle << " z_angle=" << z << std::endl;
+              }
+              #endif
+            }
+            #endif
+
             // Store minus the generalised force in the RHS
             #if PRESCRIBED_BODY_VELOCITIES
 
@@ -417,6 +494,21 @@ void mobility_solver::read_positions_and_forces(std::vector<swimmer>& swimmers){
             }
 
             #if DYNAMIC_SHAPE_ROTATION
+
+              if (FORCE_NOISE_ENABLE && FORCE_NOISE_SIGMA_ANGLE != static_cast<Real>(0.0)) {
+                const Real z = gaussian_from_seed(make_noise_seed(nt, n, i, 1));
+                if (FORCE_NOISE_MODE == 0) {
+                  q_angle += FORCE_NOISE_SIGMA_ANGLE * z;
+                } else {
+                  q_angle *= static_cast<Real>(1.0) + FORCE_NOISE_SIGMA_ANGLE * z;
+                }
+
+                #if FORCE_NOISE_DIAGNOSTICS
+                if (nt < 5 && n == 0 && i == 0) {
+                  std::cout << "[noise] nt=" << nt << " q_angle=" << q_angle << " z_angle=" << z << std::endl;
+                }
+                #endif
+              }
 
               #if PRESCRIBED_BODY_VELOCITIES
 

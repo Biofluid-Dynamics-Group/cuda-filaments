@@ -76,6 +76,69 @@ int main(int argc, char** argv){
   SIMULATION_ICSTATE_NAME = data_from_ini(GLOBAL_FILE_NAME, "Filenames", "simulation_icstate_name");
   SIMULATION_BODYSTATE_NAME = data_from_ini(GLOBAL_FILE_NAME, "Filenames", "simulation_bodystate_name");
 
+  // Optional stochastic forcing parameters (from [Noise] section).
+  {
+    const auto iniData = parseINI(GLOBAL_FILE_NAME);
+    const auto get_value = [&](const std::string& section, const std::string& key) -> std::string {
+      const auto secIt = iniData.find(section);
+      if (secIt == iniData.end()) {
+        return "";
+      }
+      const auto keyIt = secIt->second.find(key);
+      if (keyIt == secIt->second.end()) {
+        return "";
+      }
+      return keyIt->second;
+    };
+
+    const auto parse_bool = [](const std::string& value) -> bool {
+      if (value == "true" || value == "True" || value == "TRUE") {
+        return true;
+      }
+      if (value == "false" || value == "False" || value == "FALSE") {
+        return false;
+      }
+      return std::stoi(value) != 0;
+    };
+
+    std::string value;
+    value = get_value("Noise", "force_noise_enable");
+    if (!value.empty()) {
+      FORCE_NOISE_ENABLE = parse_bool(value);
+    }
+
+    value = get_value("Noise", "force_noise_mode");
+    if (!value.empty()) {
+      if (value == "relative" || value == "Relative" || value == "RELATIVE") {
+        FORCE_NOISE_MODE = 1;
+      } else if (value == "absolute" || value == "Absolute" || value == "ABSOLUTE") {
+        FORCE_NOISE_MODE = 0;
+      } else {
+        FORCE_NOISE_MODE = std::stoi(value);
+      }
+    }
+
+    value = get_value("Noise", "force_noise_sigma_phase");
+    if (!value.empty()) {
+      FORCE_NOISE_SIGMA_PHASE = std::stof(value);
+    }
+
+    value = get_value("Noise", "force_noise_sigma_angle");
+    if (!value.empty()) {
+      FORCE_NOISE_SIGMA_ANGLE = std::stof(value);
+    }
+
+    value = get_value("Noise", "force_noise_seed");
+    if (!value.empty()) {
+      FORCE_NOISE_SEED = std::stoull(value);
+    }
+
+    value = get_value("Noise", "force_noise_per_cilia");
+    if (!value.empty()) {
+      FORCE_NOISE_PER_CILIA = parse_bool(value);
+    }
+  }
+
   #if INFINITE_PLANE_WALL
     NSWIM = 1;
     NBLOB = 0;
