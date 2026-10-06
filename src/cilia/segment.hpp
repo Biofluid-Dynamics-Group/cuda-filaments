@@ -12,8 +12,11 @@ class matrix;
 // =============================================================================
 // Included dependencies
 #include "../general/quaternion.hpp"
+// Unused here; since CUDA 12.9 thrust only compiles in .cu files, and segment.hpp is also included by .cpp files
+#ifdef __CUDACC__
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
+#endif
 
 
 class segment{

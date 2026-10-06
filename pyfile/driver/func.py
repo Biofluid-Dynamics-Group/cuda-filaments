@@ -52,6 +52,12 @@ class DRIVER:
         self.date = '20260810'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
+        # Continue a finished run from its last saved frame: set this to that run's directory,
+        # give self.afix a suffix (e.g. '_continue1') so the output goes to a new directory,
+        # and use a binary compiled with CILIA_IC_TYPE 5. Leave empty for a fresh start.
+        self.resume_from = ''
+        # self.resume_from = f'data/density_96_1/20260803/'
+
         self.pars_list = {
                      "index": [],
                      "nswim": [],
@@ -236,6 +242,29 @@ class DRIVER:
         except:
             print("WARNING: " + self.dir + "rules.ini not found.")
 
+    def write_resume_files(self, i):
+        # The last saved frame of the run in self.resume_from becomes the initial condition of this one
+        src = os.path.join(self.resume_from, self.simName)
+        if os.path.abspath(self.resume_from) == os.path.abspath(self.dir):
+            raise ValueError(f"resume_from must differ from {self.dir}, otherwise the old output files get appended to")
+        if not os.path.isfile(f"{src}_true_states.dat"):
+            # Without this file the binary silently starts from random phases
+            raise FileNotFoundError(f"{src}_true_states.dat not found, check resume_from and that the parameters match the old run")
+
+        # One line of _true_states.dat: step, period, phases, shape rotation angles
+        util.copy_last_line(f"{src}_true_states.dat", f"{self.dir}psi{i}.dat")
+        with open(f"{self.dir}psi{i}.dat") as psi_file:
+            num_values = len(psi_file.read().split())
+        expected_values = 2 + 2*int(self.pars_list['nfil'][i])
+        if num_values != expected_values:
+            raise ValueError(f"{self.dir}psi{i}.dat has {num_values} values, expected {expected_values}")
+
+        # The body state reader expects x y z qs qx qy qz, without the leading step counter
+        with open(f"{src}_body_states.dat") as body_file:
+            last_body_state = body_file.readlines()[-1].split()
+        with open(f"{self.dir}bodystate{i}.dat", 'w') as body_file:
+            body_file.write(' '.join(last_body_state[1:]) + '\n')
+
     def run(self):
         self.create_ini()
         self.write_ini("Filenames", "simulation_dir", self.dir)
@@ -287,5 +316,7 @@ class DRIVER:
             # command = f"export OPENBLAS_NUM_THREADS=1; \
             #             ./bin/{self.exe_name}"
 
+            if self.resume_from:
+                self.write_resume_files(i)
 
             os.system(command)
