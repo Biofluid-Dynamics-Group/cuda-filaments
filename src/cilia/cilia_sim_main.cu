@@ -343,6 +343,18 @@ int main(int argc, char** argv){
 
     #if WRITE_GENERALISED_FORCES
 
+      // The file name only encodes some beat parameters, so refuse to overwrite an existing reference.
+      if (std::ifstream(reference_phase_generalised_force_file_name()).good()){
+
+        std::cout << std::endl;
+        std::cout << "Reference file '" << reference_phase_generalised_force_file_name() << "' already exists." << std::endl;
+        std::cout << "Move or rename it before writing new generalised forces." << std::endl;
+        std::cout << std::endl;
+
+        std::exit(-1);
+
+      }
+
       std::ofstream phase_generalised_force_file(reference_phase_generalised_force_file_name());
 
       phase_generalised_force_file << TOTAL_TIME_STEPS << " ";

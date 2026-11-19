@@ -111,8 +111,12 @@ HPC_LINK = -lcufft -lcurand -L/usr/lib64 -l:liblapack.so.3.8 -l:libopenblas.so.0
 cilia_nvidia4_CUFCM_double: $(CILIA_CPP) $(CILIA_CUDA)
 	nvcc $^ -DUSE_DOUBLE_PRECISION $(NVCC_FLAGS) $(LINK) $(GEN_FLAGS) -o bin/beat_C_double_wgf_blobs
 
+# Output name: make cilia_nvidia4_CUFCM EXE=<name>. Refuses to overwrite an existing binary.
+EXE ?= beat_fb_wgf_wall
+
 cilia_nvidia4_CUFCM: $(CILIA_CPP) $(CILIA_CUDA)
-	nvcc $^ $(NVCC_FLAGS) $(LINK) $(GEN_FLAGS) -o bin/cufcm_cilia_resume
+	@test ! -e bin/$(EXE) || { echo "bin/$(EXE) already exists; pass EXE=<new name>"; exit 1; }
+	nvcc $^ $(NVCC_FLAGS) $(LINK) $(GEN_FLAGS) -o bin/$(EXE)
 
 cilia_ic_hpc_CUFCM: $(CILIA_CPP) $(CILIA_CUDA)
 	module load cuda/11.4.2 && \

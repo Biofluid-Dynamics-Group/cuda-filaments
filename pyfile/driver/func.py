@@ -14,6 +14,15 @@ stiffness = 1.5e-1
 tilt_factor = 1.0
 tilt = 0.2181662*tilt_factor   # Platynaereis
 
+# Beat study: the REC_ wave parameters are compiled into each binary, f_eff is set here
+BEAT = 'fb'       # 'fb' = Fulford & Blake, 'int' = intermediate
+REPLICATE = 2     # 0..4
+WGF = False        # True for the reference-force run (WRITE_GENERALISED_FORCES binary)
+beat_f_eff = {'fb': 5.0/14.0, 'int': 0.5*(0.3 + 5.0/14.0)}
+theta_0_value_platy = 3.14159265359/2.1
+theta_0_value_fb = 0.9227
+theta_0_value = {'fb': theta_0_value_fb, 'int': 0.5*(theta_0_value_fb + theta_0_value_platy)}
+
 # The following is only for planar cilia arrays
 number_spacing = 0.12
 spacing_factor = number_spacing
@@ -27,13 +36,15 @@ class DRIVER:
 
     def __init__(self):
         self.globals_name = 'input/globals.ini'
-        self.afix = '_continue06102026'
+        # self.afix = '_continue06102026'
+        self.afix = ''
         self.inputfile = f""
 
         # self.category = f'ablation_{num_fils}_0/'
         # self.category = f'density_{num_fils}_1/'
         # self.category = f'tilt_{tilt_factor}_8/'
-        self.category = f'tilt_{tilt_factor}_5/'
+        # self.category = f'tilt_{tilt_factor}_5/'
+        self.category = f'beat_{BEAT}_th{theta_0_value[BEAT]:.4f}_wgf/' if WGF else f'beat_{BEAT}_th{theta_0_value[BEAT]:.4f}_{REPLICATE}/'
         # self.category = f'ramp_up_0.0625/'
         # self.category = f'initial_wave_kneg25_tilt_{tilt_factor}/'
         # self.category = f'diff_tilt_wave_kneg38/'
@@ -44,7 +55,8 @@ class DRIVER:
         # self.exe_name = f'ablation_cufcm_216_cilia'  # random ic, fixed spacing
         # self.exe_name = f'cufcm_cilia'  # random ic, variable spacing
         # self.exe_name = f'ramp_up_cufcm_cilia_00625'  # startup sequence ic, variable spacing
-        self.exe_name = f'cufcm_cilia_resume'  # ic read from the last frame of self.resume_from, variable spacing
+        # self.exe_name = f'cufcm_cilia_resume'  # ic read from the last frame of self.resume_from, variable spacing
+        self.exe_name = f'beat_{BEAT}_wgf_wall' if WGF else f'beat_{BEAT}_emergent'  # random ic, beat study; WGF on a rigid wall
         # self.exe_name = f'cufcm_cilia_wave_ic'  # wave initial condition, variable spacing
         # self.exe_name = f'prescribed_wave'  # wave initial condition, variable spacing, prescribed motion
         # self.exe_name = f'prescribed_wave_diff_tilt' # wave initial condition, variable spacing, prescribed motion, differential tilt
@@ -52,14 +64,15 @@ class DRIVER:
         # self.exe_name = f'emergent_noise_sphere_tenpc' # random ic, noise in forcing, sphere
 
         # self.date = '20260810'
-        self.date = '20260722'
+        # self.date = '20260722'
+        self.date = '20261105'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         # Continue a finished run from its last saved frame: set this to that run's directory,
         # give self.afix a suffix (e.g. '_continue1') so the output goes to a new directory,
         # and use a binary compiled with CILIA_IC_TYPE 5. Leave empty for a fresh start.
-        # self.resume_from = ''
-        self.resume_from = f"data/{self.category}{self.date}/"
+        self.resume_from = ''
+        # self.resume_from = f"data/{self.category}{self.date}/"
 
         self.pars_list = {
                      "index": [],
@@ -173,11 +186,13 @@ class DRIVER:
                         blob_x_dim=160*(i+1)
                         hex_num=2
                         reverse_fil_direction_ratio=0.0
-                        sim_length = 120.0  # periods in this run; a resumed run restarts its clock at 0, so this ends at t = 80 + 120 = 200
+                        # sim_length = 120.0  # periods in this run; a resumed run restarts its clock at 0, so this ends at t = 80 + 120 = 200
+                        sim_length = 80.0  # ignored by WGF binaries, which run exactly STEPS_PER_PERIOD steps
                         # sim_length = 10.0
                         # sim_length = 1.0
-                        f_eff = 0.3
-                        theta_0 = 3.14159265359/2.1#*0.9
+                        # f_eff = 0.3
+                        f_eff = beat_f_eff[BEAT]
+                        theta_0 = theta_0_value[BEAT]
                         freq_shift = 0.0  # This was for a frequency gradient study
 
 
@@ -290,6 +305,9 @@ class DRIVER:
             for key, value in self.pars_list.items():
                 self.write_ini("Parameters", key, float(self.pars_list[key][i]))
             self.simName = f"ciliate_{self.pars_list['nfil'][i]:.0f}fil_{self.pars_list['nblob'][i]:.0f}blob_{self.pars_list['ar'][i]:.2f}R_{self.pars_list['spring_factor'][i]:.4f}torsion_{self.pars_list['tilt_angle'][i]:.4f}tilt_{self.pars_list['f_eff'][i]:.4f}f_eff_{self.pars_list['theta_0'][i]:.4f}theta0_{self.pars_list['freq_shift'][i]:.4f}freqshift"
+            if os.path.isfile(f"{self.dir}{self.simName}_true_states.dat"):
+                # The binary appends to its output files
+                raise FileExistsError(f"{self.dir}{self.simName}_true_states.dat already exists, change category/date/afix")
             self.write_ini("Filenames", "simulation_file", self.simName)
             self.write_ini("Filenames", "simulation_dir", self.dir)
             self.write_ini("Filenames", "filplacement_file_name", f"input/placement/icosahedron/icosa_d2_N160.dat")

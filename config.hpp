@@ -125,8 +125,22 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
   #endif
 
   #if SHAPE_SEQUENCE==5
-    #define REC_TRAVELLING_WAVE_WINDOW 0.9 // Width of the travelling wave as fraction of the filament length, f_w in (0, 1)
-    #define REC_TRAVELLING_WAVE_IMPORTANCE 0.95 // Fraction of the recovery stroke that is due to the travelling wave, f_psi in (0, 1)
+    #define BEAT_VARIANT 1
+    // Valid options (only the recovery-stroke wave differs; set f_eff in func.py to match):
+    // 0 = Current beat, f_eff = 0.3
+    // 1 = Fulford & Blake recreation, f_eff = 5/14
+    // 2 = Intermediate (average of 0 and 1), f_eff = 0.5*(0.3 + 5/14)
+
+    #if BEAT_VARIANT==1
+      #define REC_TRAVELLING_WAVE_WINDOW (0.21571877517894314 + 0.5*(1.0 - 0.21571877517894314))
+      #define REC_TRAVELLING_WAVE_IMPORTANCE (0.7124255370527028 + 0.99*(1.0 - 0.7124255370527028))
+    #elif BEAT_VARIANT==2
+      #define REC_TRAVELLING_WAVE_WINDOW (0.5*(0.9 + (0.21571877517894314 + 0.5*(1.0 - 0.21571877517894314))))
+      #define REC_TRAVELLING_WAVE_IMPORTANCE (0.5*(0.95 + (0.7124255370527028 + 0.99*(1.0 - 0.7124255370527028))))
+    #else
+      #define REC_TRAVELLING_WAVE_WINDOW 0.9 // Width of the travelling wave as fraction of the filament length, f_w in (0, 1)
+      #define REC_TRAVELLING_WAVE_IMPORTANCE 0.95 // Fraction of the recovery stroke that is due to the travelling wave, f_psi in (0, 1)
+    #endif
     #define EFF_TRAVELLING_WAVE_WINDOW 0.95 // Width of the effective stroke wave as fraction of the filament length, f_e in (0, 1)
     #define EFF_TRAVELLING_WAVE_IMPORTANCE 0.1 // Fraction of the effective stroke that is due to the travelling wave, f_psi in (0, 1)
     #define ZERO_VELOCITY_AVOIDANCE_LENGTH 0.1 // A value in (0,1), giving the maximum fraction of the cycle by which we shift the tangent angle curve to ensure the velocity cannot be zero everywhere along the filament at once.
@@ -137,22 +151,22 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
     // #define TRAVELLING_WAVE_IMPORTANCE 0.7124255370527028 + 0.99*(1.0 - 0.7124255370527028)
   #endif
 
-  #define DYNAMIC_PHASE_EVOLUTION true
+  #define DYNAMIC_PHASE_EVOLUTION false
   // If true, cilia phase speeds are solved for as part of the dynamics. Note that this requires having run a reference simulation with WRITE_GENERALISED_FORCES=true previously.
   // If false, phase_dot = omega0 is constant for each cilium.
 
-  #define DYNAMIC_SHAPE_ROTATION true
+  #define DYNAMIC_SHAPE_ROTATION false
   // If true, the vertical in the cilia reference configuration can rotate with respect to the surface normal.
   // Essentially, the cilia can 'tip backwards or forwards' in their beat planes.
   // If false, no such rotation ever occurs.
   // In the Platynaereis case this changes to an elastic variable. NO LONGER TRUE
 
-  #define WRITE_GENERALISED_FORCES false
+  #define WRITE_GENERALISED_FORCES true
   // If true, this simulation will save its generalised forces to file for use as the reference values.
   // It will also generate reference s-values for shape sequences which don't result in inextensible filaments.
   // NOTE: This will overwrite any existing reference files unless their names have been changed.
 
-  #define CILIA_IC_TYPE 5
+  #define CILIA_IC_TYPE 1
   // Valid options:
   // 0 = All cilia start in-phase with phase 0.
   // 1 = Cilia start with a (uniformly) random initial phase.
@@ -214,7 +228,7 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
 
 #endif
 
-#define BODY_OR_SURFACE_TYPE 2
+#define BODY_OR_SURFACE_TYPE 5 // 5 for WGF reference runs (one filament on a rigid wall), 2 for emergent sphere runs
 // Valid options:
 // 0 = An infinite plane wall at z = 0. This choice has some sub-types (see below). // 20240717:decrecated - only compatible with RPY
 // 1 = Deformed planes with 2 principal curvatures (partially implemented)
@@ -242,7 +256,11 @@ extern std::string CUFCM_CONFIG_FILE_NAME;
 
 #elif BODY_OR_SURFACE_TYPE==2 or BODY_OR_SURFACE_TYPE==4 or BODY_OR_SURFACE_TYPE==5
 
-  #define SEEDING_TYPE 7
+  #if BODY_OR_SURFACE_TYPE==5
+    #define SEEDING_TYPE 3 // The rigid wall needs hexagonal seeding; other types leave every blob at the origin
+  #else
+    #define SEEDING_TYPE 7
+  #endif
   // Valid options:
   // 0 = Filaments are evenly distributed over the surface.
   // 1 = Filaments are seeded in an equatorial band.
@@ -420,7 +438,11 @@ extern bool FORCE_NOISE_PER_CILIA;
 
 #else
 
-  #define STEPS_PER_PERIOD 500
+  #if (CILIA_TYPE==3 && WRITE_GENERALISED_FORCES)
+    #define STEPS_PER_PERIOD 25000 // Reference forces are sampled at this resolution (matches the FEFF=0.3 reference)
+  #else
+    #define STEPS_PER_PERIOD 500
+  #endif
   #define SAVES_PER_PERIOD 100
 
 #endif
