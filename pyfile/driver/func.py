@@ -5,8 +5,12 @@ import util
 # num_fils = 216 - 14*12
 # num_fils = 216 + 2*12
 
-num_fils = 216
+# num_fils = 216
 # num_fils = 96
+num_fils = 2  # ablation re-runs 2026-11-19: 100, 50, 15, 5, 3, 2
+
+# Ablation re-runs: True runs 1 step into data/geomcheck/ to check the cilium positions, False the full run
+GEOM_CHECK = False
 
 num_seg = 20
 box_size = 8000
@@ -40,11 +44,11 @@ class DRIVER:
         self.afix = ''
         self.inputfile = f""
 
-        # self.category = f'ablation_{num_fils}_0/'
+        self.category = f'geomcheck/ablation_{num_fils}_0/' if GEOM_CHECK else f'ablation_{num_fils}_0/'
         # self.category = f'density_{num_fils}_1/'
         # self.category = f'tilt_{tilt_factor}_8/'
         # self.category = f'tilt_{tilt_factor}_5/'
-        self.category = f'beat_{BEAT}_th{theta_0_value[BEAT]:.4f}_wgf/' if WGF else f'beat_{BEAT}_th{theta_0_value[BEAT]:.4f}_{REPLICATE}/'
+        # self.category = f'beat_{BEAT}_th{theta_0_value[BEAT]:.4f}_wgf/' if WGF else f'beat_{BEAT}_th{theta_0_value[BEAT]:.4f}_{REPLICATE}/'
         # self.category = f'ramp_up_0.0625/'
         # self.category = f'initial_wave_kneg25_tilt_{tilt_factor}/'
         # self.category = f'diff_tilt_wave_kneg38/'
@@ -52,11 +56,14 @@ class DRIVER:
         # self.category = f'swimming_k25/'
         # self.category = f'noise_10_0/'
 
-        # self.exe_name = f'ablation_cufcm_216_cilia'  # random ic, fixed spacing
+        self.exe_name = f'ablation_cufcm_216_cilia'  # random ic, fixed spacing
+        # Binaries built before the 2026-08-08 CUDA 12.9 upgrade need the CUDA 11 libcufft.so.10 (this one is from CUDA 11.8).
+        # Set to '' for binaries built after the upgrade.
+        self.extra_lib_path = '/usr/local/lib/python3.8/dist-packages/nvidia/cufft/lib'
         # self.exe_name = f'cufcm_cilia'  # random ic, variable spacing
         # self.exe_name = f'ramp_up_cufcm_cilia_00625'  # startup sequence ic, variable spacing
         # self.exe_name = f'cufcm_cilia_resume'  # ic read from the last frame of self.resume_from, variable spacing
-        self.exe_name = f'beat_{BEAT}_wgf_wall' if WGF else f'beat_{BEAT}_emergent'  # random ic, beat study; WGF on a rigid wall
+        # self.exe_name = f'beat_{BEAT}_wgf_wall' if WGF else f'beat_{BEAT}_emergent'  # random ic, beat study; WGF on a rigid wall
         # self.exe_name = f'cufcm_cilia_wave_ic'  # wave initial condition, variable spacing
         # self.exe_name = f'prescribed_wave'  # wave initial condition, variable spacing, prescribed motion
         # self.exe_name = f'prescribed_wave_diff_tilt' # wave initial condition, variable spacing, prescribed motion, differential tilt
@@ -65,7 +72,8 @@ class DRIVER:
 
         # self.date = '20260810'
         # self.date = '20260722'
-        self.date = '20261105'
+        # self.date = '20261105'
+        self.date = '20261119'
         self.dir = f"data/{self.category}{self.date}{self.afix}/"
 
         # Continue a finished run from its last saved frame: set this to that run's directory,
@@ -179,20 +187,22 @@ class DRIVER:
                         # nz = 600  # compute total 0.267
 
                         boxsize=box_size
-                        # fil_spacing=80.0
-                        fil_spacing=spacing
+                        fil_spacing=80.0
+                        # fil_spacing=spacing
                         blob_spacing=8.0
                         fil_x_dim=16*(i+1)
                         blob_x_dim=160*(i+1)
                         hex_num=2
                         reverse_fil_direction_ratio=0.0
                         # sim_length = 120.0  # periods in this run; a resumed run restarts its clock at 0, so this ends at t = 80 + 120 = 200
-                        sim_length = 80.0  # ignored by WGF binaries, which run exactly STEPS_PER_PERIOD steps
+                        # sim_length = 80.0  # ignored by WGF binaries, which run exactly STEPS_PER_PERIOD steps
+                        sim_length = 0.0 if GEOM_CHECK else 80.0  # 0.0 gives TOTAL_TIME_STEPS = 1
                         # sim_length = 10.0
                         # sim_length = 1.0
-                        # f_eff = 0.3
-                        f_eff = beat_f_eff[BEAT]
-                        theta_0 = theta_0_value[BEAT]
+                        f_eff = 0.3
+                        theta_0 = 3.14159265359/2.1  # platy beat
+                        # f_eff = beat_f_eff[BEAT]
+                        # theta_0 = theta_0_value[BEAT]
                         freq_shift = 0.0  # This was for a frequency gradient study
 
 
@@ -326,7 +336,8 @@ class DRIVER:
             #             export CUDA_VISIBLE_DEVICES={self.cuda_device}; \
             #             ./bin/{self.exe_name} > terminal_outputs/output_{self.date}_{self.pars_list['nfil'][i]:.0f}fil_{i}.out"
 
-            command = f"export OPENBLAS_NUM_THREADS=1; \
+            lib_path = f"export LD_LIBRARY_PATH={self.extra_lib_path}${{LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}}; " if self.extra_lib_path else ""
+            command = f"export OPENBLAS_NUM_THREADS=1; {lib_path}\
                         export CUDA_VISIBLE_DEVICES={self.cuda_device}; \
                         nohup ./bin/{self.exe_name} > {self.dir}{num_fils}_nseg{num_seg}.out &"
                         # ./bin/{self.exe_name}"
